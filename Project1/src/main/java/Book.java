@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class Book {
+public class Book { // Book class
 
     String title;
     ArrayList<Review> reviews;
