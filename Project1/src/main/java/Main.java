@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class Main {
@@ -40,14 +41,16 @@ public class Main {
         S3Bucket s3 = new S3Bucket("assignment1", credentialsProvider);
         ArrayList<Instance> Ids = getInstances(ec2);
         if (!hasManager(Ids, ec2)){
-
-            createInstance(Ids, ec2,5,5, "");
+            String startofscript = "#!/bin/bash\n";
+            String setAccessKey = "aws configure set aws_access_key_id default_access_key\n";
+            String setSecretAccessKey ="aws configure set aws_secret_access_key default_secret_key";
+            createInstance(Ids, ec2,5,5, startofscript + setAccessKey + setSecretAccessKey);
             Ids = getInstances(ec2);
-            createTags(ec2, Ids.get(0).getInstanceId(), new Tag("manager", "manager"));
+            //createTags(ec2, Ids.get(0).getInstanceId(), new Tag("manager", "manager"));
         }
 
 
-        terminateInstances(Ids, ec2);
+        //terminateInstances(Ids, ec2);
 
     }
 
@@ -73,7 +76,8 @@ public class Main {
     private static void createInstance(ArrayList<Instance> Ids, AmazonEC2 ec2, int min, int max, String userdata){
         RunInstancesRequest request = new RunInstancesRequest("ami-0c5204531f799e0c6", min, max);
         request.setInstanceType(InstanceType.T1Micro.toString());
-        request.withUserData(userdata);
+        request.withUserData(Base64.getEncoder().encodeToString(userdata.getBytes()));
+        System.out.println(userdata);
         RunInstancesResult instancesResult = ec2.runInstances(request);
     }
 

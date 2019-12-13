@@ -141,6 +141,7 @@ public class Queue {
         }
         System.out.println();
     }
+
     public void deleteMessage(String queueUrl, Message message) throws Exception {
         try {
             System.out.println("Deleting a message.\n");
@@ -154,6 +155,8 @@ public class Queue {
             printClientError(ace);
         }
     }
+
+
 
     public void deleteQueue(String queueUrl){
 

@@ -1,10 +1,13 @@
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.google.gson.Gson;
 
 import java.io.*;
@@ -14,16 +17,18 @@ import java.util.UUID;
 
 public class LocalApp {
 
-    String loacalAppQueueUrl;
+    static String localAppQueueUrl;
+    static String summeryFilesIndicatorQueueUrl;
     String inputFile;
     BookList inputRepresentation;
     AWSCredentialsProvider credentialsProvider;
+    boolean summeryFileIsReady;
 
-    public LocalApp(String loacalAppQueueUrl, String inputFile, AWSCredentialsProvider credentialsProvider) {
-        this.loacalAppQueueUrl = loacalAppQueueUrl;
+    public LocalApp(String inputFile, AWSCredentialsProvider credentialsProvider) {
         this.inputFile = inputFile;
         this.credentialsProvider = credentialsProvider;
         this.inputRepresentation = new BookList();
+        summeryFileIsReady = false;
     }
 
     public void run() throws Exception {
@@ -35,8 +40,17 @@ public class LocalApp {
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
         for(parsedInputObject obj : inputList) {
-            writer.write(obj.getReview().getId() + "@" + obj.getReview().getText() + "\n");
+            writer.write(obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
         }
+
+     /*
+        EC2Object ec2 = new EC2Object();
+        String bucketName = "s3://akiaqa6nkbgkxkrfhu43aassignment1/";
+        String fileToDownload = "testJar.jar";
+        String downloadCommand = "aws s3 cp " + bucketName +fileToDownload + "\n";
+        String userdata = "#!/bin/bash\n" + downloadCommand + "java -jar " + fileToDownload + "\n";
+        ec2.createInstance(1,1,userdata);
+     */
 
         AmazonEC2 ec2 = AmazonEC2ClientBuilder.standard()
                 .withCredentials(credentialsProvider)
@@ -46,34 +60,44 @@ public class LocalApp {
         S3Bucket s3 = new S3Bucket("assignment1", credentialsProvider);
         Queue queue = new Queue(credentialsProvider);
 
-        // creating AWS resources, Asuuming local app queue was created by the wrapper
+        // creating AWS resources, Assuming local app queue was created by the wrapper
         ArrayList<Instance> Ids = getInstances(ec2);
         if (!hasManager(Ids, ec2)){
 
             createInstance(Ids, ec2,5,5, "");
             Ids = getInstances(ec2);
             createTags(ec2, Ids.get(0).getInstanceId(), new Tag("manager", "manager"));
+            summeryFilesIndicatorQueueUrl = queue.createQueue(); // queue for manager to send "summery file is ready"
+             localAppQueueUrl = queue.createQueue(); // initialize the url's queue of the manager and localApps
         }
-
 
         terminateInstances(Ids, ec2);
         s3.createBucket();
 
         s3.upload(path, outputFilename);
 
-        queue.sendMessage(loacalAppQueueUrl, outputFilename + "@" + s3.bucketName);
+        queue.sendMessage(localAppQueueUrl, outputFilename + "@" + s3.bucketName); // outputFilename = key ??????
         Boolean managerAnswerNotReceived = true;
         Message answer = null;
 
-        /*
-        while (managerAnswerNotReceived){
-            List<Message> messages = queue.recieveMessage(this.loacalAppQueueUrl);
+        while (!summeryFileIsReady){
+            String currMessageName;
+            List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl);
             for (Message msg : messages) {
-                if (msg.getBody().startsWith(inputFile)){
-                    managerAnswerNotReceived = false;
-                    queue.deleteMessage(this.loacalAppQueueUrl, msg);
+                currMessageName = msg.getBody().split("$")[0]; // the input file name
+                if (currMessageName.equals(outputFilename)) {
+                    //queue.deleteMessage(new DeleteMessageRequest(summeryFilesIndicatorQueueUrl, messageRecieptHandle),msg); // delete the message from the queue
+                    S3Object outputObject = s3.downloadObject(currMessageName + "$");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
+                    String[] resultsToHTML = reader.readLine().split("\n");
+
+                    createHTML(resultsToHTML);
+                    summeryFileIsReady = true;
+
+                    queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
                 }
             }
+
             Thread.sleep(60);
         }
 
@@ -81,22 +105,46 @@ public class LocalApp {
             throw new Exception("Answer from Manager had an error in the file");
         }
 
-        else{
-            S3Object downObj = s3.downloadObject(outputFilename);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(downObj.getObjectContent()));
-            String ans[] = new String[2];
-            ans = reader.readLine().split("@");
-            inputRepresentation.addSentiment(ans[0],ans[1]);
-
-            // !!!!!!! Need to complete !!!!!
-            createHTML(inputRepresentation);
-        }
-
-         */
+//        else{
+//            S3Object downObj = s3.downloadObject(outputFilename);
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(downObj.getObjectContent()));
+//            String ans[] = new String[2];
+//            ans = reader.readLine().split("@");
+//            inputRepresentation.addSentiment(ans[0],ans[1]);
+//
+//            // !!!!!!! Need to complete !!!!!
+//            createHTML(inputRepresentation);
+//        }
+//
+//         */
 
     }
 
-    private void createHTML(BookList inputRepresentation){
+    private void createHTML(String[] inputRepresentation) throws IOException {
+//String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
+        String toAdd;
+        String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
+        File HTMLfile = new File("Desktop");
+        HTMLfile.mkdir();
+        BufferedWriter bw = new BufferedWriter(new FileWriter(HTMLfile));
+        StringBuilder html = new StringBuilder("<html>\n" + "<body>");
+        for (String str : inputRepresentation) {
+            String[] currReviewAttributes = str.split("@");
+            int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
+            toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
+                    "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";
+//            html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + reviewText + "</h1>" +
+//                    "<h1>" + reviewEntities + " " + currReviewAttributes[2] + "</h1>");
+            html.append(toAdd);
+        }
+
+        html.append("</body>\n" + "</html>");
+        try {
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("html_output.html"), "utf-8"));
+                writer.write(html.toString());
+            }
+        catch (IOException e) {
+            e.printStackTrace();}
 
     }
 
@@ -246,4 +294,6 @@ public class LocalApp {
         }
         return inputArray;
     }
+
+
 }
