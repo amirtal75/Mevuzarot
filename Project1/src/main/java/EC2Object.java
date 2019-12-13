@@ -147,7 +147,7 @@ public class EC2Object {
         // create the project Key Pair
         createKeyPair("projectKey");
         // Create the project IAM Role
-        //createRole("projectRole");
+        //  createRole("projectRole");
         //Create the request to run
         RunInstancesRequest request = new RunInstancesRequest(projectPrivateAmi, min, max);
         // define instance type

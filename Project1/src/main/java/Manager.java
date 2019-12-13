@@ -23,15 +23,17 @@ import java.util.concurrent.Executors;
 
 public class Manager {
 
-    String summeryFilesIndicatorQueue;
-    boolean shouldTerminate = false;
+    public static void main(String[] args) throws Exception {
 
-    public void work(String QueueUrlLocalApps, String summeryFilesIndicatorQueue) throws Exception {
+        String summeryFilesIndicatorQueue = args[0];
+        String QueueUrlLocalApps = args[1];
+        boolean shouldTerminate = false;
+
         ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById = new ConcurrentHashMap<Integer, InputFileObject>();
         ArrayList<InputFileObject> InputFileObjectList = new ArrayList<InputFileObject>();//????
         ConcurrentHashMap<Integer, StringBuilder> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
         AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
-        Queue queue = new Queue(credentialsProvider);
+        Queue queue = new Queue();
         S3Bucket s3 = new S3Bucket("assignment1", credentialsProvider);
         AmazonEC2 ec2 = AmazonEC2ClientBuilder.standard()
                 .withCredentials(credentialsProvider)

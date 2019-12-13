@@ -26,7 +26,7 @@ public class OutputThread implements Runnable {
     boolean toTerminate;
 
     public OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, AWSCredentialsProvider credentialsProvider, ConcurrentHashMap<Integer, StringBuilder> stringResultsById) {
-        this.queue = new Queue(credentialsProvider);
+        this.queue = new Queue();
         this.myQueueUrl2 = myQueueUrl2;
         this.s3 = new S3Bucket("assignment1", credentialsProvider);
         this.InputFileObjectById = inputFileObjectById;

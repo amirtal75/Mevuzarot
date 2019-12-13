@@ -40,13 +40,14 @@ public class Queue {
         return sqs;
     }
 
-    public Queue(AWSCredentialsProvider credentialsProvider) {
+    public Queue() {
         /*
          * Important: Be sure to fill in your AWS access credentials in the
          *            AwsCredentials.properties file before you try to run this
          *            sample.
          * http://aws.amazon.com/security-credentials
          */
+        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());;
         this.sqs = AmazonSQSClientBuilder.standard()
                 .withCredentials(credentialsProvider)
                 .withRegion("us-west-2")

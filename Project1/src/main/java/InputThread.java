@@ -36,7 +36,7 @@ public class InputThread implements Runnable {
     String bucketName;
 
     public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, AWSCredentialsProvider credentialsProvider, String inputFileName, String bucketName) {
-        this.queue = new Queue(credentialsProvider);
+        this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket("assignment1", credentialsProvider);
         this.myQueueUrl1 = myQueueUrl1;

@@ -37,7 +37,7 @@ public class Worker {
     boolean isSarcastic;
 
     public Worker(AWSCredentialsProvider credentialsProvider,ConcurrentHashMap <Integer,InputFileObject> InputFileObjectById, String myQueueUrl1,String myQueueUrl2) {
-        this.queue = new Queue(credentialsProvider);
+        this.queue = new Queue();
         this.InputFileObjectById = InputFileObjectById;
         this.myQueueUrl1 = myQueueUrl1;
         this.myQueueUrl2 = myQueueUrl2;

@@ -58,7 +58,7 @@ public class LocalApp {
                 .build();
 
         S3Bucket s3 = new S3Bucket("assignment1", credentialsProvider);
-        Queue queue = new Queue(credentialsProvider);
+        Queue queue = new Queue();
 
         // creating AWS resources, Assuming local app queue was created by the wrapper
         ArrayList<Instance> Ids = getInstances(ec2);
