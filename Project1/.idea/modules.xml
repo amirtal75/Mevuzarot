@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/core-java.iml" filepath="$PROJECT_DIR$/core-java.iml" />
       <module fileurl="file://$PROJECT_DIR$/maven.iml" filepath="$PROJECT_DIR$/maven.iml" />
     </modules>
   </component>

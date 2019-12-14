@@ -7,11 +7,13 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class InputThread implements Runnable {
+//public class InputThread implements Runnable {
+public class InputThread implements Callable<Message> {
 
     Queue queue;
     String location;
@@ -27,8 +29,9 @@ public class InputThread implements Runnable {
     String inputFilename;
     String bucketName;
     String workerUserData;
+    Message message;
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData) {
+    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData,Message message) {
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket();
@@ -39,21 +42,13 @@ public class InputThread implements Runnable {
         this.ec2 = new EC2Object();
         toTerminate = false;
         this.workerUserData = workerUserData;
+        this.message = message;
     }
 
-    public void run() {
+    public Message call() {
+        Message resultMessage = null;
         String currMessageRecieptHandle; // we need to hold a String for deleting the current message each time when we finish
-        while(!toTerminate) {
-//            try {
-//                currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
-//            }
-//            catch (Exception e) {
-//                e.printStackTrace(); }
-//
-//            Message currMessege = currMessageQueue.get(0);
-//            String[] content = currMessege.getBody().split("@");
-//            String inputFilename = content[0];
-//            String bucketName = content[1];
+
             InputFileObject currFileObject = new InputFileObject(idOfInputFile.getAndIncrement(),inputFilename);
             InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
             System.out.println("Downloading an object with key: " + inputFilename + " from the bucket: " + bucketName);
@@ -74,13 +69,11 @@ public class InputThread implements Runnable {
                     queue.sendMessage(myQueueUrl1, job);
                 }
                 currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-//                currMessageRecieptHandle = currMessege.getReceiptHandle();
-
-//              queue.deleteMessage(myQueueUrl1,currMessege);
-                //need to delete
+                resultMessage = this.message;
             }
             catch (Exception e) {
                 e.printStackTrace(); }
-        }
+
+        return resultMessage;
     }
 }

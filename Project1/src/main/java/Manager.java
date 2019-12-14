@@ -16,6 +16,8 @@ public class Manager {
         BufferedReader reader = new BufferedReader(new FileReader("managerArgs"));
         String QueueUrlLocalApps = reader.readLine();
         String summeryFilesIndicatorQueue = reader.readLine();
+        System.out.println("In Manager:");
+        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Variables Creation
         boolean shouldTerminate = false;
@@ -36,25 +38,26 @@ public class Manager {
         String createAndRunProject = buildProject + "java -jar  target/maven-1.0-SNAPSHOT.jar\n";
 
         String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
-        String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
+        String pushFirstArg = createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n" + createAndRunProject + filedata;
-        System.out.println("local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        System.out.println("Worker UserData: " + workerUserData);
 
         String myQueueUrl1 = queue.createQueue(); //queue for inputTask for workers
         String myQueueUrl2 = queue.createQueue();//queue for outputTask from workers
+        System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
 
-        ExecutorService poolForInput = Executors.newCachedThreadPool();
-        ExecutorService poolForOutput = Executors.newCachedThreadPool();
+        System.out.println("Creating pools for Input Thread & Output Thread");
+        ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
+        ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
             try {
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
-                }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -63,16 +66,17 @@ public class Manager {
             String inputFilename = MessageContent[0];
             String bucketName = MessageContent[1];
 
-            poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, inputFilename, workerUserData));
+            Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, inputFilename, workerUserData, currMessege));
             poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
 
-            queue.deleteMessage(myQueueUrl1, currMessege);
+            if (result != null)
+                queue.deleteMessage(myQueueUrl1, result.get()); // result = currMessage
         }
 
-         poolForInput.shutdown();
-         poolForOutput.shutdown();
+        poolForInput.shutdown();
+        poolForOutput.shutdown();
     }
-<<<<<<< HEAD
+}
 
 
 //        List<Message> messages = queue.recieveMessage(QueueUrlLocalApps); //all the locations of the input files from the local-apps
@@ -97,7 +101,7 @@ public class Manager {
 //            }
 //        }
 
-        // adding jobs to inputjobs queue
+    // adding jobs to inputjobs queue
 //        String job;
 //        for (upJobIndicator UI:
 //                upJobIndicatorList) {
@@ -108,20 +112,20 @@ public class Manager {
 //    }
 
 
-        private String displayTextInputStream (InputStream input) throws IOException {
-            String res = "";
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-            while (true) {
-                String line = reader.readLine();
-                if (line == null) break;
-                res = res + " " + line;
-//            System.out.p  qsxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxsrintln("    " + line);
-            }
-//        System.out.println("");
-            return res;
-        }
-    }
-=======
-}
->>>>>>> 3da014a8213aeda946170dfe27958ce5270cfeb5
+//        private String displayTextInputStream (InputStream input) throws IOException {
+//            String res = "";
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+//            while (true) {
+//                String line = reader.readLine();
+//                if (line == null) break;
+//                res = res + " " + line;
+////            System.out.p  qsxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxsrintln("    " + line);
+//            }
+////        System.out.println("");
+//            return res;
+//        }
+//    }
+//=======
+//}
+//>>>>>>> 3da014a8213aeda946170dfe27958ce5270cfeb5
 

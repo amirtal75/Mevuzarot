@@ -161,7 +161,7 @@ public class LocalApp {
             String unzip = getProject + "unzip master.zip\n";
             String goToProjectDirectory = unzip + "cd Mevuzarot/Project1/\n";
             String removeSuperPom = goToProjectDirectory + "rm pom.xml\n";
-            String setWorkerPom = removeSuperPom + "cp managerpom pom.xml\n";
+            String setWorkerPom = removeSuperPom + "cp managerpom.xml pom.xml\n";
             String buildProject = setWorkerPom + "mvn compile\n mvn package\n mvn install\n";
             String createAndRunProject = buildProject + "java -jar  target/maven-1.0-SNAPSHOT.jar\n";
 
@@ -170,8 +170,11 @@ public class LocalApp {
             String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
             String userdata = "#!/bin/bash\n" + createAndRunProject + filedata;
+            System.out.println("In LocalAPP: " + Thread.currentThread());
+            System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+            System.out.println("UserData: " + userdata);
             manager = ec2.createInstance(1,1, userdata).get(0);
-            ec2.attachTags(manager, "manager");
+            ec2.attachTags(manager, "manager"); // need to fix
             return  manager;
         }
         return  null;
