@@ -13,15 +13,17 @@ public class Manager {
 
     public static void main(String[] args) throws Exception {
         BufferedReader reader = null;
+        String QueueUrlLocalApps = "";
+        String summeryFilesIndicatorQueue = "";
         // Read the Queue names from the managerArgs file
         try{
             reader = new BufferedReader(new FileReader("managerArgs"));
+            QueueUrlLocalApps = reader.readLine();
+            summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
             System.out.println(e.getMessage());
         }
 
-        String QueueUrlLocalApps = reader.readLine();
-        String summeryFilesIndicatorQueue = reader.readLine();
         System.out.println("In Manager:");
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
