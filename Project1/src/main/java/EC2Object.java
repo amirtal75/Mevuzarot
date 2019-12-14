@@ -1,16 +1,12 @@
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.services.costandusagereport.model.AWSRegion;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.*;
-import com.amazonaws.services.ec2.model.Tag;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.identitymanagement.model.*;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 
 public class EC2Object {
     private AmazonEC2 ec2;
@@ -139,11 +135,11 @@ public class EC2Object {
      * @param userdata - the script to launch for each instance
      * @return the number of instances created
      */
-    public int createInstance(int min, int max, String userdata){
+    public ArrayList<Instance> createInstance(int min, int max, String userdata){
         // Convert userData script to base 64
         String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
         // ami image we created with various installations
-        String projectPrivateAmi = "ami-057639851469dd9fc";
+        String projectPrivateAmi = "ami-016d64c6f6a5d01d5";
         // create the project Key Pair
         createKeyPair("projectKey");
         // Create the project IAM Role
@@ -161,7 +157,8 @@ public class EC2Object {
         request.withIamInstanceProfile(specification);
         // run the instance with the above defined request
         RunInstancesResult instancesResult = this.ec2.runInstances(request);
-        return instancesResult.getReservation().getInstances().size();
+
+        return new ArrayList<Instance> ( instancesResult.getReservation().getInstances());
     }
 
 

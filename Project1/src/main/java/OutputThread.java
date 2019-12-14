@@ -1,15 +1,9 @@
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.mediastoredata.model.PutObjectRequest;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OutputThread implements Runnable {
@@ -25,10 +19,11 @@ public class OutputThread implements Runnable {
     ConcurrentHashMap<Integer, StringBuilder> stringResultsById; // will be passed by manager(the refference) by constructor
     boolean toTerminate;
 
-    public OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, AWSCredentialsProvider credentialsProvider, ConcurrentHashMap<Integer, StringBuilder> stringResultsById) {
+    public OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps) {
         this.queue = new Queue();
         this.myQueueUrl2 = myQueueUrl2;
-        this.s3 = new S3Bucket("assignment1", credentialsProvider);
+        this.QueueUrlLocalApps = QueueUrlLocalApps;
+        this.s3 = new S3Bucket();
         this.InputFileObjectById = inputFileObjectById;
         this.stringResultsById = stringResultsById;
         toTerminate = false;
@@ -71,7 +66,7 @@ public class OutputThread implements Runnable {
                     String path = "/home/amirtal/IdeaProjects/Project1/src/main/java/"; /// what should be the path?????
 
                     s3.upload("", outputName);
-                    queue.sendMessage(summeryFilesIndicatorQueue, outputName + "@" + s3.bucketName); // outputFilename = key ??????
+                    queue.sendMessage(summeryFilesIndicatorQueue, outputName + "@" + s3.getBucketName()); // outputFilename = key ??????
                 }
 
                 catch (IOException e) {

@@ -48,7 +48,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
                             <mainClass>
-                                Main
+                                Manager
                             </mainClass>
                         </manifest>
                     </archive>
