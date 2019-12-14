@@ -22,14 +22,14 @@ public class Main {
         String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
         String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
-        String buildProject = setWorkerPom + "sudo mvn package\n";
-        String createAndRunProject = buildProject + "sudo java -jar  target/maven-1.0-SNAPSHOT.jar\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
+        String createAndRunProject = "sudo java -jar  target/maven-1.0-SNAPSHOT.jar\n";
 
         String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
         String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
-        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" + createAndRunProject + filedata;
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + filedata +createAndRunProject;
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);
@@ -38,3 +38,4 @@ public class Main {
 
     }
 }
+
