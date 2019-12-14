@@ -19,17 +19,17 @@ public class Main {
         // sudo cat user-data.txt
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "unzip master.zip\n";
-        String goToProjectDirectory = unzip + "cd Mevuzarot/Project1/\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
         String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
-        String buildProject = setWorkerPom + "sudo mvn compile\n mvn package\n";
+        String buildProject = setWorkerPom + "sudo mvn package\n";
         String createAndRunProject = buildProject + "sudo java -jar  target/maven-1.0-SNAPSHOT.jar\n";
 
         String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
         String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
-        String userdata = "#!/bin/bash\n" + "cd ~\n" + createAndRunProject + filedata;
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" + createAndRunProject + filedata;
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);
