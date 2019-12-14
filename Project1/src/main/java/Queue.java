@@ -2,10 +2,17 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.services.securitytoken.model.GetSessionTokenRequest;
+import com.amazonaws.services.securitytoken.model.GetSessionTokenResult;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.*;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -34,7 +41,8 @@ public class Queue {
     }
 
     public Queue() {
-        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
+        AWSStaticCredentialsProvider credentialsProvider = getMyCredentials();
+
         this.sqs = AmazonSQSClientBuilder.standard()
                 .withCredentials(credentialsProvider)
                 .withRegion("us-west-2")
@@ -173,6 +181,38 @@ public class Queue {
                 "a serious internal problem while trying to communicate with SQS, such as not " +
                 "being able to access the network.");
         System.out.println("Error Message: " + ace.getMessage());
+    }
+
+    private AWSStaticCredentialsProvider getMyCredentials(){
+        AWSStaticCredentialsProvider credentialsProvider = null;
+        try{
+            credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
+        } catch (Exception e){
+            AWSSecurityTokenService stsClient = AWSSecurityTokenServiceClientBuilder.standard()
+                    .withCredentials(new ProfileCredentialsProvider())
+                    .withRegion("us-west-2")
+                    .build();
+
+            // Start a session.
+            GetSessionTokenRequest getSessionTokenRequest = new GetSessionTokenRequest().withDurationSeconds(7200);
+            // The duration can be set to more than 3600 seconds only if temporary
+            // credentials are requested by an IAM user rather than an account owner.
+            GetSessionTokenResult sessionTokenResult = stsClient.getSessionToken(getSessionTokenRequest);
+            Credentials sessionCredentials = sessionTokenResult
+                    .getCredentials()
+                    .withSessionToken(sessionTokenResult.getCredentials().getSessionToken())
+                    .withExpiration(sessionTokenResult.getCredentials().getExpiration());
+
+            // Package the temporary security credentials as a BasicSessionCredentials object
+            // for an Amazon S3 client object to use.
+            BasicSessionCredentials basicSessionCredentials = new BasicSessionCredentials(
+                    sessionCredentials.getAccessKeyId(), sessionCredentials.getSecretAccessKey(),
+                    sessionCredentials.getSessionToken());
+
+            credentialsProvider = new AWSStaticCredentialsProvider(basicSessionCredentials);
+        }
+
+        return credentialsProvider;
     }
 
 }
