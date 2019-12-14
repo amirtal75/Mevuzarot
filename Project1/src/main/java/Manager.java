@@ -1,17 +1,19 @@
 import com.amazonaws.services.sqs.model.Message;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 
 public class Manager {
 
     public static void main(String[] args) throws Exception {
+        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/log.txt"));
+        
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
         String summeryFilesIndicatorQueue = "";
@@ -21,11 +23,11 @@ public class Manager {
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
-            System.out.println(e.getMessage());
+            writer.write(e.getMessage());
         }
 
-        System.out.println("In Manager:");
-        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        writer.write("In Manager:");
+        writer.write("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Variables Creation
         boolean shouldTerminate = false;
@@ -50,13 +52,13 @@ public class Manager {
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n" + createAndRunProject + filedata;
-        System.out.println("Worker UserData: " + workerUserData);
+        writer.write("Worker UserData: " + workerUserData);
 
         String myQueueUrl1 = queue.createQueue(); //queue for inputTask for workers
         String myQueueUrl2 = queue.createQueue();//queue for outputTask from workers
-        System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
+        writer.write("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
 
-        System.out.println("Creating pools for Input Thread & Output Thread");
+        writer.write("Creating pools for Input Thread & Output Thread");
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
@@ -71,7 +73,7 @@ public class Manager {
 
             Message currMessege = currMessageQueue.get(0);
             String messageContent = currMessege.getBody();
-            System.out.println("Received Message contents:" + messageContent);
+            writer.write("Received Message contents:" + messageContent);
 
             Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
             // Might need to add future
