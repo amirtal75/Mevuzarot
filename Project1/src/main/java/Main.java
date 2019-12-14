@@ -14,19 +14,25 @@ public class Main {
         String summeryFilesIndicatorQueue = queue.createQueue();
         String QueueUrlLocalApps = queue.createQueue();
         EC2Object ec2 = new EC2Object();
-
+        // how to check user data inside putty connection
+        // cd var/lib/cloud/instance
+        // sudo cat user-data.txt
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "unzip master.zip\n";
         String goToProjectDirectory = unzip + "cd Mevuzarot/Project1/\n";
-        String buildProject = goToProjectDirectory + "mvn compile\n mvn package\n mvn install\n";
-        String createAndRunProject = buildProject + "java -jar  target/maven-1.0-SNAPSHOT.jar\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn compile\n mvn package\n";
+        String createAndRunProject = buildProject + "sudo java -jar  target/maven-1.0-SNAPSHOT.jar\n";
 
         String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
         String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
-        String userdata = "#!/bin/bash\n" + createAndRunProject + filedata;
-        System.out.println(userdata);
+        String userdata = "#!/bin/bash\n" + "cd ~\n" + createAndRunProject + filedata;
+        System.out.println("In LocalAPP: " + Thread.currentThread());
+        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        System.out.println("UserData: " + userdata);
         ec2.terminateInstances(null);
         ec2.createInstance(1,1,userdata);
 

@@ -36,7 +36,7 @@ public class Worker {
     ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
     boolean isSarcastic;
 
-    public Worker(AWSCredentialsProvider credentialsProvider,ConcurrentHashMap <Integer,InputFileObject> InputFileObjectById, String myQueueUrl1,String myQueueUrl2) {
+    public Worker(ConcurrentHashMap <Integer,InputFileObject> InputFileObjectById, String myQueueUrl1,String myQueueUrl2) {
         this.queue = new Queue();
         this.InputFileObjectById = InputFileObjectById;
         this.myQueueUrl1 = myQueueUrl1;
@@ -46,14 +46,15 @@ public class Worker {
     public void work() {
         while (true) {
             try {
-                currJobQueue = queue.recieveMessage(myQueueUrl1, 1, 30); // check about visibility
+                currJobQueue = queue.recieveMessage(myQueueUrl1, 1, 10); // check about visibility
             }
             catch (Exception e) {
                 e.printStackTrace();
             }
-
+            System.out.println("In Worker: ");
             Message currJob = currJobQueue.get(0);
-            //obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n");
+            System.out.println("Message Received: " + currJob.getBody());
+            //inputFIleID + "@" + obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n");
             String[] reviewAttributes = currJob.getBody().split("@");
             String inputFileId = reviewAttributes[0];
             String reviewId = reviewAttributes[1];
@@ -61,13 +62,15 @@ public class Worker {
             String reviewRating = reviewAttributes[3];
             int sentiment = findSentiment(reviewText);
             String reviewEntities = returnEntities(reviewText);
+            System.out.println("Sentiment found is: " + sentiment);
+            System.out.println("Entities Discovered: " + reviewEntities);
             isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
-           // OutputFileObject currOutputFile = new OutputFileObject(Integer.parseInt(inputFileId),Integer.parseInt(reviewId)
-                //    ,currIndicator,reviewText,reviewEntities);
+            System.out.println("Review is sarcastic: " + isSarcastic);
             String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
 
             try {
                 queue.sendMessage(myQueueUrl2, result);
+                System.out.println("message was sent, deleting the task");
                 queue.deleteMessage(myQueueUrl1,currJob); // we need to check befor deleting if we succeed to send the message
             }
             catch (Exception e) {

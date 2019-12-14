@@ -2,6 +2,7 @@ import com.amazonaws.services.sqs.model.Message;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,9 +12,14 @@ import java.util.concurrent.Executors;
 public class Manager {
 
     public static void main(String[] args) throws Exception {
-
+        BufferedReader reader = null;
         // Read the Queue names from the managerArgs file
-        BufferedReader reader = new BufferedReader(new FileReader("managerArgs"));
+        try{
+            reader = new BufferedReader(new FileReader("managerArgs"));
+        } catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+
         String QueueUrlLocalApps = reader.readLine();
         String summeryFilesIndicatorQueue = reader.readLine();
         System.out.println("In Manager:");
@@ -62,11 +68,11 @@ public class Manager {
             }
 
             Message currMessege = currMessageQueue.get(0);
-            String[] MessageContent = currMessege.getBody().split("@");
-            String inputFilename = MessageContent[0];
-            String bucketName = MessageContent[1];
+            String messageContent = currMessege.getBody();
+            System.out.println("Received Message contents:" + messageContent);
 
-            Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, inputFilename, workerUserData, currMessege));
+            Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
+            // Might need to add future
             poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
 
             if (result != null)
@@ -77,55 +83,4 @@ public class Manager {
         poolForOutput.shutdown();
     }
 }
-
-
-//        List<Message> messages = queue.recieveMessage(QueueUrlLocalApps); //all the locations of the input files from the local-apps
-//
-//        for (Message message : messages) { // for each location
-//            String[] content = message.getBody().split("@");
-//            String line;
-//            for (int i = 0; i<1 ; i++){
-//
-//                String key = content[0];
-//                String bucketName = content[1];
-//                System.out.println("Downloading an object with key: " + key + " from the bucket: " + bucketName);
-//                try {
-//
-//                    S3Object object = s3.downloadObject(key); //input file
-//                    upJobIndicatorList.add(new upJobIndicator( key,bucketName, object));
-//
-//                }
-//                catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-
-    // adding jobs to inputjobs queue
-//        String job;
-//        for (upJobIndicator UI:
-//                upJobIndicatorList) {
-//            job = UI.getInputFileFromLocalApp().readLine();
-//            queue.sendMessage(myQueueUrl1, job);
-//        }
-//
-//    }
-
-
-//        private String displayTextInputStream (InputStream input) throws IOException {
-//            String res = "";
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-//            while (true) {
-//                String line = reader.readLine();
-//                if (line == null) break;
-//                res = res + " " + line;
-////            System.out.p  qsxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxsrintln("    " + line);
-//            }
-////        System.out.println("");
-//            return res;
-//        }
-//    }
-//=======
-//}
-//>>>>>>> 3da014a8213aeda946170dfe27958ce5270cfeb5
 

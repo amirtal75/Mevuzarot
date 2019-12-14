@@ -4,8 +4,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InputFileObject {
 
     int id;
+
+    public int getId() {
+        return id;
+    }
+
     AtomicInteger inputLines;
     AtomicInteger outputLines;
+
+
     AtomicBoolean redAllLines; // finish to read all lines
     AtomicBoolean allWorkersDone; //all the workers finished
     String inputFilename;
@@ -24,6 +31,14 @@ public class InputFileObject {
 
     public AtomicInteger getOutputLines() {
         return outputLines;
+    }
+
+    public AtomicBoolean getRedAllLines() {
+        return redAllLines;
+    }
+
+    public AtomicBoolean getAllWorkersDone() {
+        return allWorkersDone;
     }
 
     public AtomicBoolean AllWorkersDone() {

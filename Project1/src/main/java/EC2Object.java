@@ -179,8 +179,12 @@ public class EC2Object {
         }
 
         TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest(instancesToTerminate);
-        TerminateInstancesResult result = this.ec2.terminateInstances(terminateRequest);
-        return result.getTerminatingInstances().size();
+        if (!instances.isEmpty()) {
+            TerminateInstancesResult result = this.ec2.terminateInstances(terminateRequest);
+            return result.getTerminatingInstances().size();
+        }
+        return 0;
+
     }
 
     /**

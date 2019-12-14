@@ -30,43 +30,45 @@ public class OutputThread implements Runnable {
     }
 
     public void run() {
+        System.out.println("In Output Thread: " + Thread.currentThread());
         String currMessageRecieptHandle; // we need to hold a String for deleting the current message each time when we finish
         while (!toTerminate) {
             try {
-                currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 30); // check about visibility
+                currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 10); // check about visibility
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
             Message currMessege = currMessageQueue.get(0);
+            System.out.println("Received message content: " + currMessege.getBody());
             String[] resultContent = currMessege.getBody().split("@");
             int inputFileId = Integer.parseInt(resultContent[0]);
             //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
             if (stringResultsById.containsKey(inputFileId))
                 stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
             //check again what I sent to the local app
-            else
+            else {
                 stringResultsById.put(inputFileId, new StringBuilder()); // if is absent
+                }
+
             InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
             currInputFileObj.increaseOutputLines();
             currInputFileObj.CheckAndSetAllWorkersDone();
-
+            System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
             String inputFilename = currInputFileObj.getInputFilename();
 
-            if (currInputFileObj.allWorkersDone.get()) {// if all workers done
+            if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
                 FileOutputStream outputFile = null;
 
                 try {
                     String outputName = inputFilename +"$";
-                    outputFile = new FileOutputStream(outputName); //create output file
                     //added "$" to the name because I dont want exact names for the input file and output file
-                    Writer writer = new BufferedWriter(new OutputStreamWriter(outputFile, "utf-8")); //write to the output file
+                    Writer writer = new BufferedWriter(new FileWriter(outputName)); //write to the output file
                     writer.write(stringResultsById.get(inputFileId).toString());
 
-                    String path = "/home/amirtal/IdeaProjects/Project1/src/main/java/"; /// what should be the path?????
-
-                    s3.upload("", outputName);
-                    queue.sendMessage(summeryFilesIndicatorQueue, outputName + "@" + s3.getBucketName()); // outputFilename = key ??????
+                    s3.upload(outputName);
+                    System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
+                    queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
                 }
 
                 catch (IOException e) {

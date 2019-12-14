@@ -107,7 +107,7 @@ public class S3Bucket {
         }
     }
 
-    public void upload(String path, String filename) throws Exception {
+    public void upload(String filename) throws Exception {
 
         String key = null;
         try {
@@ -116,7 +116,7 @@ public class S3Bucket {
             System.out.println("bucket: " + this.bucketName + ", key: " + filename);
             key = filename.replace('\\', 'a').replace('/','a').replace(':', 'a');
 
-            PutObjectRequest req = new PutObjectRequest(this.bucketName, key, new File(path + filename));
+            PutObjectRequest req = new PutObjectRequest(this.bucketName, key, new File(filename));
             s3.putObject(req);
 
         }  catch (AmazonServiceException ase) {

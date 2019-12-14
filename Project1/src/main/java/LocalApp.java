@@ -55,7 +55,7 @@ public class LocalApp {
                 writer.write(obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
             }
             //  Upload it to s3 bucket and send the filename to the manager
-            s3.upload(path, outputFilename);
+            s3.upload( outputFilename);
             queue.sendMessage(QueueUrlLocalApps, outputFilename);
         }
 
@@ -157,12 +157,12 @@ public class LocalApp {
     private Instance createManager(EC2Object ec2, String QueueUrlLocalApps, String summeryFilesIndicatorQueue, Instance manager){
         boolean hasManger = ec2.getInstances("manager").size() == 0;
         if (hasManger){
-            String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip";
+            String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
             String unzip = getProject + "unzip master.zip\n";
             String goToProjectDirectory = unzip + "cd Mevuzarot/Project1/\n";
             String removeSuperPom = goToProjectDirectory + "rm pom.xml\n";
             String setWorkerPom = removeSuperPom + "cp managerpom.xml pom.xml\n";
-            String buildProject = setWorkerPom + "mvn compile\n mvn package\n mvn install\n";
+            String buildProject = setWorkerPom + "mvn compile\n mvn package\n";
             String createAndRunProject = buildProject + "java -jar  target/maven-1.0-SNAPSHOT.jar\n";
 
             String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
