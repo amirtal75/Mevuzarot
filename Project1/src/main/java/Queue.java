@@ -1,9 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
-
-import java.util.UUID;
-import java.util.Map.Entry;
-
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -11,12 +5,11 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
-import com.amazonaws.services.sqs.model.CreateQueueRequest;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.DeleteQueueRequest;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.*;
+
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon SQS using the
@@ -41,13 +34,7 @@ public class Queue {
     }
 
     public Queue() {
-        /*
-         * Important: Be sure to fill in your AWS access credentials in the
-         *            AwsCredentials.properties file before you try to run this
-         *            sample.
-         * http://aws.amazon.com/security-credentials
-         */
-        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());;
+        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
         this.sqs = AmazonSQSClientBuilder.standard()
                 .withCredentials(credentialsProvider)
                 .withRegion("us-west-2")

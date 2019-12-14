@@ -1,101 +1,93 @@
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.ec2.model.*;
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.google.gson.Gson;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LocalApp {
 
-    static String localAppQueueUrl;
     static String summeryFilesIndicatorQueueUrl;
-    String inputFile;
+    ArrayList<String> inputFiles;
     BookList inputRepresentation;
     AWSCredentialsProvider credentialsProvider;
     boolean summeryFileIsReady;
+    static AtomicBoolean restartManager = new AtomicBoolean(false);
 
-    public LocalApp(String inputFile, AWSCredentialsProvider credentialsProvider) {
-        this.inputFile = inputFile;
-        this.credentialsProvider = credentialsProvider;
+    public LocalApp(ArrayList<String> inputFiles) {
+        this.inputFiles = inputFiles;
         this.inputRepresentation = new BookList();
         summeryFileIsReady = false;
     }
 
     public void run() throws Exception {
 
-        String path = "/home/amirtal/IdeaProjects/Project1/src/main/java/";
-        Gson gson = new Gson();
-        ArrayList<parsedInputObject> inputList = parse(path + inputFile);
-        String outputFilename = inputFile + UUID.randomUUID() + ".txt";
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
-        for(parsedInputObject obj : inputList) {
-            writer.write(obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
-        }
-
-     /*
+        // Create objects and bucket
         EC2Object ec2 = new EC2Object();
-        String bucketName = "s3://akiaqa6nkbgkxkrfhu43aassignment1/";
-        String fileToDownload = "testJar.jar";
-        String downloadCommand = "aws s3 cp " + bucketName +fileToDownload + "\n";
-        String userdata = "#!/bin/bash\n" + downloadCommand + "java -jar " + fileToDownload + "\n";
-        ec2.createInstance(1,1,userdata);
-     */
-
-        AmazonEC2 ec2 = AmazonEC2ClientBuilder.standard()
-                .withCredentials(credentialsProvider)
-                .withRegion("us-west-2")
-                .build();
-
-        S3Bucket s3 = new S3Bucket("assignment1", credentialsProvider);
+        S3Bucket s3 = new S3Bucket();
+        s3.createBucket();
         Queue queue = new Queue();
+        String QueueUrlLocalApps = queue.createQueue(); // queue for all local apps to send messages to manager
+        String summeryFilesIndicatorQueue = queue.createQueue(); // queue for all local apps to get messages from worker
+        String path = "/home/ubuntu/IdeaProjects/Project1/src/main/java/";
+        Gson gson = new Gson();
+        Instance ec2Instance = null;
 
-        // creating AWS resources, Assuming local app queue was created by the wrapper
-        ArrayList<Instance> Ids = getInstances(ec2);
-        if (!hasManager(Ids, ec2)){
 
-            createInstance(Ids, ec2,5,5, "");
-            Ids = getInstances(ec2);
-            createTags(ec2, Ids.get(0).getInstanceId(), new Tag("manager", "manager"));
-            summeryFilesIndicatorQueueUrl = queue.createQueue(); // queue for manager to send "summery file is ready"
-             localAppQueueUrl = queue.createQueue(); // initialize the url's queue of the manager and localApps
+        // First created instance = manager
+        ec2Instance = createManager(ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
+
+        // Go over the list of input files
+        ArrayList<parsedInputObject> inputList = new ArrayList<>();
+        for (String inputFile:
+                inputFiles) {
+            // Create a parsed object from the input list
+            inputList = parse(path + inputFile);
+            String outputFilename = inputFile + UUID.randomUUID() + ".txt";
+            // Write the parsed object to a file
+            BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
+            for(parsedInputObject obj : inputList) {
+                writer.write(obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
+            }
+            //  Upload it to s3 bucket and send the filename to the manager
+            s3.upload(path, outputFilename);
+            queue.sendMessage(QueueUrlLocalApps, outputFilename);
         }
 
-        terminateInstances(Ids, ec2);
-        s3.createBucket();
-
-        s3.upload(path, outputFilename);
-
-        queue.sendMessage(localAppQueueUrl, outputFilename + "@" + s3.bucketName); // outputFilename = key ??????
+         // outputFilename = key ??????
         Boolean managerAnswerNotReceived = true;
         Message answer = null;
-
+        boolean foundSumaryFile = false;
+        
         while (!summeryFileIsReady){
+            if (ec2.getInstances("manager").get(0).getState().getName().equals("terminated")){
+                System.out.println("Manager is dead !!!!!!!!!!!!!");
+                createManager(ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
+            }
             String currMessageName;
             List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl);
+
             for (Message msg : messages) {
-                currMessageName = msg.getBody().split("$")[0]; // the input file name
-                if (currMessageName.equals(outputFilename)) {
-                    //queue.deleteMessage(new DeleteMessageRequest(summeryFilesIndicatorQueueUrl, messageRecieptHandle),msg); // delete the message from the queue
-                    S3Object outputObject = s3.downloadObject(currMessageName + "$");
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
-                    String[] resultsToHTML = reader.readLine().split("\n");
+                currMessageName = msg.getBody().split("@")[0]; // the input file name
+                for (String inputFile:
+                        inputFiles) {
+                    if (currMessageName.split(inputFile).length > 0) {
+                        S3Object outputObject = s3.downloadObject(currMessageName + "$");
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
+                        String[] resultsToHTML = reader.readLine().split("\n");
 
-                    createHTML(resultsToHTML);
-                    summeryFileIsReady = true;
+                        createHTML(resultsToHTML);
+                        summeryFileIsReady = true;
 
-                    queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
+                        queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
+                    }
                 }
+
             }
 
             Thread.sleep(60);
@@ -104,20 +96,6 @@ public class LocalApp {
         if (answer == null){
             throw new Exception("Answer from Manager had an error in the file");
         }
-
-//        else{
-//            S3Object downObj = s3.downloadObject(outputFilename);
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(downObj.getObjectContent()));
-//            String ans[] = new String[2];
-//            ans = reader.readLine().split("@");
-//            inputRepresentation.addSentiment(ans[0],ans[1]);
-//
-//            // !!!!!!! Need to complete !!!!!
-//            createHTML(inputRepresentation);
-//        }
-//
-//         */
-
     }
 
     private void createHTML(String[] inputRepresentation) throws IOException {
@@ -148,125 +126,6 @@ public class LocalApp {
 
     }
 
-    private void toCHANGE(AmazonEC2 ec2, int min, int max, String bucketName, String localpath) {
-        Boolean managerExist = false;
-
-        try {
-            // Basic 32-bit Amazon Linux AMI 1.0 (AMI Id: ami-08728661)
-            List<TagDescription> list = ec2.describeTags().getTags();
-            if (!list.isEmpty()) {
-                for (TagDescription tag : list)
-                    if (tag.getKey().equals("manager"))
-                        managerExist = true;
-            }
-            if (!managerExist) {
-                String data =  credentialsProvider.getCredentials().getAWSAccessKeyId() + "@" + credentialsProvider.getCredentials().getAWSSecretKey();
-                RunInstancesRequest request = new RunInstancesRequest("ami-0c5204531f799e0c6", min, max);
-                request.setInstanceType(InstanceType.T1Micro.toString());
-
-                String userData = "";
-                String downloadJar = "aws s3 cp s3://" + bucketName + "/manager.jar" + localpath + "manager.jar" + " --recursive;";
-                String createCredentialsFile = "touch /home/amirtal/.aws/crentials;";
-                String setAccessKey = "aws configure set aws_access_key_id default_access_key;";
-                String setSecretAccessKey ="aws configure set aws_secret_access_key default_secret_key;";
-                // request.withUserData(
-                // + "java -jar manager.jar " + data);
-
-                List<Instance> instances = ec2.runInstances(request).getReservation().getInstances();
-
-                CreateTagsRequest createTagsRequest = new CreateTagsRequest();
-                createTagsRequest.withResources("ami-0c5204531f799e0c6").withTags(new Tag("manager", "manager"));
-                ec2.createTags(createTagsRequest);
-            }
-
-        } catch (AmazonServiceException ase) {
-            System.out.println("Caught Exception: " + ase.getMessage());
-            System.out.println("Reponse Status Code: " + ase.getStatusCode());
-            System.out.println("Error Code: " + ase.getErrorCode());
-            System.out.println("Request ID: " + ase.getRequestId());
-        }
-    }
-    private  boolean hasManager(ArrayList<Instance> Ids, AmazonEC2 ec2){
-        for (Instance instance:
-                Ids) {
-            for (Tag tag:
-                    instance.getTags()) {
-                if (tag.getKey().equals("manager")){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private  void createTags(AmazonEC2 ec2, String instanceId, Tag tag){
-        System.out.println(instanceId);
-        CreateTagsRequest request = new CreateTagsRequest().withResources(instanceId).withTags(tag);
-        CreateTagsResult response = ec2.createTags(request);
-    }
-
-    private  void createInstance(ArrayList<Instance> Ids, AmazonEC2 ec2, int min, int max, String userdata){
-        RunInstancesRequest request = new RunInstancesRequest("ami-0c5204531f799e0c6", min, max);
-        request.setInstanceType(InstanceType.T1Micro.toString());
-        request.withUserData(userdata);
-        RunInstancesResult instancesResult = ec2.runInstances(request);
-    }
-
-    private  void terminateInstances(ArrayList<Instance> Ids, AmazonEC2 ec2) {
-        try {
-            // Basic 32-bit Amazon Linux AMI 1.0 (AMI Id: ami-08728661)
-            TerminateInstancesRequest terminateRequest;
-            for (Instance instance:
-                    Ids) {
-                terminateRequest = new TerminateInstancesRequest();
-                terminateRequest.withInstanceIds(instance.getInstanceId());
-                ec2.terminateInstances(terminateRequest);
-            }
-
-
-
-        } catch (AmazonServiceException ase) {
-            System.out.println("Caught Exception: " + ase.getMessage());
-            System.out.println("Reponse Status Code: " + ase.getStatusCode());
-            System.out.println("Error Code: " + ase.getErrorCode());
-            System.out.println("Request ID: " + ase.getRequestId());
-        }
-    }
-
-    private  ArrayList<Instance> getInstances(AmazonEC2 ec2){
-        DescribeInstancesRequest request = new DescribeInstancesRequest();
-        boolean notdone = true;
-
-        ArrayList<Instance> Ids= new ArrayList<>();
-        while(notdone) {
-            DescribeInstancesResult response = ec2.describeInstances(request);
-            List<Reservation> reservations = response.getReservations();
-            if (reservations.isEmpty()){
-                notdone = false;
-            }
-            else{
-                for(Reservation reservation : reservations) {
-                    //System.out.println(reservations.size());
-                    List<Instance> instances = reservation.getInstances();
-                    if (instances.isEmpty()){
-                        notdone = false;
-                    }
-                    else{
-                        //System.out.println(instances.size());
-                        Ids.addAll(instances);
-                    }
-                }
-            }
-
-
-            request.setNextToken(response.getNextToken());
-
-            if(response.getNextToken() == null) {
-                notdone = false;
-            }
-        }
-        return  Ids;
-    }
     private ArrayList<parsedInputObject> parse(String filename) {
 
         ArrayList<parsedInputObject> inputArray = new ArrayList<parsedInputObject>();
@@ -295,5 +154,27 @@ public class LocalApp {
         return inputArray;
     }
 
+    private Instance createManager(EC2Object ec2, String QueueUrlLocalApps, String summeryFilesIndicatorQueue, Instance manager){
+        boolean hasManger = ec2.getInstances("manager").size() == 0;
+        if (hasManger){
+            String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip";
+            String unzip = getProject + "unzip master.zip\n";
+            String goToProjectDirectory = unzip + "cd Mevuzarot/Project1/\n";
+            String removeSuperPom = goToProjectDirectory + "rm pom.xml\n";
+            String setWorkerPom = removeSuperPom + "cp managerpom pom.xml\n";
+            String buildProject = setWorkerPom + "mvn compile\n mvn package\n mvn install\n";
+            String createAndRunProject = buildProject + "java -jar  target/maven-1.0-SNAPSHOT.jar\n";
+
+            String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
+            String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
+            String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
+
+            String userdata = "#!/bin/bash\n" + createAndRunProject + filedata;
+            manager = ec2.createInstance(1,1, userdata).get(0);
+            ec2.attachTags(manager, "manager");
+            return  manager;
+        }
+        return  null;
+    } 
 
 }
