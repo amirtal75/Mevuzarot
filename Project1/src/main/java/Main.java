@@ -33,14 +33,15 @@ public class Main {
         String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
-        String userdata = "#!/bin/bash\n" +  buildProject + filedata +createAndRunProject;
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata +createAndRunProject;
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);
         ec2.terminateInstances(null);
         ec2.createInstance(1,1,userdata);
 
-        LocalApp local1 = new LocalApp("inputFile1");
+        //LocalApp local1 = new LocalApp("inputFile1");
+        //local1.run();
         System.out.println("finished sleep");
 
     }
