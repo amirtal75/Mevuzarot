@@ -36,8 +36,9 @@ public class Main {
         System.out.println("UserData: " + userdata);
         ec2.terminateInstances(null);
         ec2.createInstance(1,1,userdata);
-        Thread.currentThread().sleep(10000);
-        System.out.println("finished sleep");
+        Thread.currentThread().sleep(1000000);
+        System.out.println("terminating session");
+        ec2.terminateInstances(null);
 
     }
 }
