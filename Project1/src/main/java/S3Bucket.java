@@ -40,7 +40,7 @@ public class S3Bucket {
     public S3Bucket() throws Exception {
         this.directoryName = "assigment1";
         this.s3 = AmazonS3ClientBuilder.defaultClient();
-        this.bucketName = "Amir and Amit Assignment";
+        this.bucketName = "amirandamitassignment";
         createBucket();
         System.out.println("The Following bucket was created  " + this.bucketName);
     }
@@ -73,7 +73,7 @@ public class S3Bucket {
         }
         try {
             System.out.println("Creating bucket " + newBucket + "\n");
-            s3.createBucket(newBucket);
+            s3.createBucket(newBucket.toLowerCase());
 
         }  catch (AmazonServiceException ase) {
             printServiceError(ase);
