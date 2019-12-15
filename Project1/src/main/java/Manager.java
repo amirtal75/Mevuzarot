@@ -71,20 +71,26 @@ public class Manager {
 
             try {
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
-            } catch (Exception e) {
-                e.printStackTrace();
+                if (currMessageQueue  != null || currMessageQueue.size() > 0){
+                    Message currMessege = currMessageQueue.get(0);
+                    String messageContent = currMessege.getBody();
+                    writer.write("Received Message contents:" + messageContent);
+
+                    Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
+                    // Might need to add future
+                    poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
+
+                    if (result != null) {
+                        queue.deleteMessage(myQueueUrl1, result.get()); // result = currMessag
+                    }
+                }
+                else{
+                    writer.write("Local App Queue is empty");
+                    Thread.sleep(000);
+                }
+            } catch (Exception e){
+                writer.write(e.getMessage());
             }
-
-            Message currMessege = currMessageQueue.get(0);
-            String messageContent = currMessege.getBody();
-            writer.write("Received Message contents:" + messageContent);
-
-            Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
-            // Might need to add future
-            poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
-
-            if (result != null)
-                queue.deleteMessage(myQueueUrl1, result.get()); // result = currMessage
         }
 
         poolForInput.shutdown();
