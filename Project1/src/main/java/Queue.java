@@ -6,10 +6,7 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
-import com.amazonaws.services.securitytoken.model.GetSessionTokenRequest;
-import com.amazonaws.services.securitytoken.model.GetSessionTokenResult;
+import com.amazonaws.services.securitytoken.model.*;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.*;
@@ -198,8 +195,8 @@ public class Queue {
             GetSessionTokenRequest getSessionTokenRequest = new GetSessionTokenRequest().withDurationSeconds(3500);
             // The duration can be set to more than 3600 seconds only if temporary
             // credentials are requested by an IAM user rather than an account owner.
-            GetSessionTokenResult sessionTokenResult = stsClient
-                    .assumeRole(new AssumeRoleRequest().withRoleArn("arn:aws:iam::002041186709:role/projectRole"))
+            AssumeRoleResult sessionTokenResult = stsClient
+                    .assumeRole(new AssumeRoleRequest().withRoleArn("arn:aws:iam::002041186709:role/projectRole"));
 
             Credentials sessionCredentials = sessionTokenResult
                     .getCredentials()
