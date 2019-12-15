@@ -20,7 +20,7 @@ public class Manager {
         String summeryFilesIndicatorQueue = "";
         // Read the Queue names from the managerArgs file
         try{
-            reader = new BufferedReader(new FileReader("managerArgs"));
+            reader = new BufferedReader(new FileReader("managerArgs.txt"));
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
