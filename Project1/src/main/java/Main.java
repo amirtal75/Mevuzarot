@@ -2,6 +2,7 @@
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.simpleworkflow.flow.annotations.Wait;
 
 public class Main {
 
@@ -23,19 +24,20 @@ public class Main {
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
         String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
-        String createAndRunProject = "sudo java -jar  target/maven-1.0-SNAPSHOT.jar\n";
+        String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
 
         String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
         String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
 
-        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + filedata +createAndRunProject;
+        String userdata = "#!/bin/bash\n" +  buildProject + filedata +createAndRunProject;
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);
         ec2.terminateInstances(null);
         ec2.createInstance(1,1,userdata);
+        Thread.currentThread().sleep(10000);
+        System.out.println("finished sleep");
 
     }
 }
-

@@ -12,8 +12,9 @@ import java.util.logging.Logger;
 public class Manager {
 
     public static void main(String[] args) throws Exception {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/log.txt"));
-        
+        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
+        writer.write("test");
+
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
         String summeryFilesIndicatorQueue = "";
@@ -23,11 +24,11 @@ public class Manager {
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
-            writer.write(e.getMessage());
+            System.out.println(e.getMessage());
         }
-
-        writer.write("In Manager:");
-        writer.write("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        System.out.println();
+        System.out.println("In Manager:");
+        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Variables Creation
         boolean shouldTerminate = false;
@@ -38,33 +39,36 @@ public class Manager {
         S3Bucket s3 = new S3Bucket();
         EC2Object ec2 = new EC2Object();
 
-        // create user data dor workers
-        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip";
-        String unzip = getProject + "unzip master.zip\n";
-        String goToProjectDirectory = unzip + "cd Mevuzarot/Project1/\n";
-        String removeSuperPom = goToProjectDirectory + "rm pom.xml\n";
-        String setWorkerPom = removeSuperPom + "cp workerpom pom.xml\n";
-        String buildProject = setWorkerPom + "mvn compile\n mvn package\n mvn install\n";
-        String createAndRunProject = buildProject + "java -jar  target/maven-1.0-SNAPSHOT.jar\n";
-
-        String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
-        String pushFirstArg = createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
-        String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
-
-        String workerUserData = "#!/bin/bash\n" + createAndRunProject + filedata;
-        writer.write("Worker UserData: " + workerUserData);
-
+        // Create Queues
         String myQueueUrl1 = queue.createQueue(); //queue for inputTask for workers
         String myQueueUrl2 = queue.createQueue();//queue for outputTask from workers
-        writer.write("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
+        System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
 
-        writer.write("Creating pools for Input Thread & Output Thread");
+        // create user data dor workers
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "unzip master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp workersrpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
+        String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
+
+        String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
+        String pushFirstArg =  createManagerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
+
+        String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata +createAndRunProject;
+        System.out.println("Worker UserData: " + workerUserData);
+
+        // Create Thread Pools
+        System.out.println("Creating pools for Input Thread & Output Thread");
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
+
             try {
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
             } catch (Exception e) {
@@ -73,7 +77,7 @@ public class Manager {
 
             Message currMessege = currMessageQueue.get(0);
             String messageContent = currMessege.getBody();
-            writer.write("Received Message contents:" + messageContent);
+            System.out.println("Received Message contents:" + messageContent);
 
             Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
             // Might need to add future
@@ -86,5 +90,6 @@ public class Manager {
         poolForInput.shutdown();
         poolForOutput.shutdown();
     }
+
 }
 

@@ -37,20 +37,12 @@ public class S3Bucket {
     private String directoryName;
 
 
-    public S3Bucket() {
-        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
+    public S3Bucket() throws Exception {
         this.directoryName = "assigment1";
-        this.s3 = AmazonS3ClientBuilder.standard()
-                .withCredentials(credentialsProvider)
-                .withRegion("us-west-2")
-                .build();
-        this.bucketName =
-                credentialsProvider.getCredentials().getAWSAccessKeyId() + 'a' + directoryName.replace('\\', 'a').replace('/','a').replace(':', 'a').toLowerCase();
-        this.bucketName = bucketName.toLowerCase();
-        System.out.println("IN BUILD:  " + this.bucketName);
-        System.out.println("===========================================");
-        System.out.println("Getting Started with Amazon S3");
-        System.out.println("===========================================\n");
+        this.s3 = AmazonS3ClientBuilder.defaultClient();
+        this.bucketName = "Amir and Amit Assignment";
+        createBucket();
+        System.out.println("The Following bucket was created  " + this.bucketName);
     }
 
 

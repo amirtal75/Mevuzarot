@@ -12,11 +12,7 @@ public class EC2Object {
     private AmazonEC2 ec2;
 
     public EC2Object() {
-        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());;
-        this.ec2 = AmazonEC2ClientBuilder.standard()
-                .withCredentials(credentialsProvider)
-                .withRegion("us-west-2")
-                .build();
+        this.ec2 = AmazonEC2ClientBuilder.defaultClient();
     }
 
     public AmazonEC2 getEc2() {
@@ -47,7 +43,9 @@ public class EC2Object {
 
         ArrayList<Tag> tags = new ArrayList<>();
         tags.add(new Tag(tagName,tagName));
-        instance.setTags(tags);
+        CreateTagsRequest tagsRequest = new CreateTagsRequest()
+                .withTags(new Tag(tagName,tagName))
+                .withResources(instance.getInstanceId());
     }
 
     /**
@@ -139,7 +137,7 @@ public class EC2Object {
         // Convert userData script to base 64
         String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
         // ami image we created with various installations
-        String projectPrivateAmi = "ami-016d64c6f6a5d01d5";
+        String projectPrivateAmi = "ami-043cc8e7cfc4c20cf";
         // create the project Key Pair
         createKeyPair("projectKey");
         // Create the project IAM Role

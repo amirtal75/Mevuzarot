@@ -51,8 +51,9 @@ public class Queue {
 
         String queueUrl = "";
         try {
-            System.out.println("Creating a new SQS queue called MyQueue.\n");
-            CreateQueueRequest createQueueRequest = new CreateQueueRequest("MyQueue"+ UUID.randomUUID());
+            String queueName = "MyQueue"+ UUID.randomUUID();
+            System.out.println("Creating a new SQS queue called " +queueName);
+            CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
             return this.sqs.createQueue(createQueueRequest).getQueueUrl();
 
         } catch (AmazonServiceException ase) {

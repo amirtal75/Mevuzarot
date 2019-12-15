@@ -19,7 +19,7 @@ public class OutputThread implements Runnable {
     ConcurrentHashMap<Integer, StringBuilder> stringResultsById; // will be passed by manager(the refference) by constructor
     boolean toTerminate;
 
-    public OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps) {
+    public OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps) throws Exception {
         this.queue = new Queue();
         this.myQueueUrl2 = myQueueUrl2;
         this.QueueUrlLocalApps = QueueUrlLocalApps;
