@@ -197,7 +197,7 @@ public class Queue {
             // credentials are requested by an IAM user rather than an account owner.
             AssumeRoleResult sessionTokenResult = stsClient
                     .assumeRole(new AssumeRoleRequest().withRoleArn("arn:aws:iam::002041186709:role/projectRole"));
-
+            System.out.println(sessionTokenResult.getCredentials().getAccessKeyId());
             Credentials sessionCredentials = sessionTokenResult
                     .getCredentials()
                     .withSessionToken(sessionTokenResult.getCredentials().getSessionToken())
