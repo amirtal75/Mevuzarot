@@ -33,6 +33,7 @@ public class LocalApp {
 
     public void run() throws Exception {
 
+        System.out.println("In local App " +Thread.currentThread().getId());
         // Create objects and bucket
         EC2Object ec2 = new EC2Object();
         S3Bucket s3 = new S3Bucket();
@@ -40,13 +41,32 @@ public class LocalApp {
         Queue queue = new Queue();
         String QueueUrlLocalApps = queue.createQueue(); // queue for all local apps to send messages to manager
         String summeryFilesIndicatorQueue = queue.createQueue(); // queue for all local apps to get messages from worker
-        String path = "/home/ubuntu/IdeaProjects/Project1/src/main/java/";
+        String path = "/home/amirtal/IdeaProjects/Project1/src/main/java/";
         Gson gson = new Gson();
         Instance ec2Instance = null;
 
+        // Manager userdata
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "unzip master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
+        String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
+
+        String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
+        String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
+
+        String userdata = "#!/bin/bash\n" +  buildProject + filedata +createAndRunProject;
+
+        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        System.out.println("UserData: " + userdata);
+
 
         // First created instance = manager
-        ec2Instance = createManager(ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
+        Instance instance = ec2.createInstance(1,1,userdata).get(0);
+        ec2.attachTags(instance,"manager");
 
         // Go over the list of input files
         ArrayList<parsedInputObject> inputList = new ArrayList<>();

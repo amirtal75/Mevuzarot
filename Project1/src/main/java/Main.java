@@ -42,7 +42,10 @@ public class Main {
 
         //LocalApp local1 = new LocalApp("inputFile1");
         //local1.run();
+        Thread.sleep(1000000);
+
         System.out.println("finished sleep");
+        ec2.terminateInstances(null);
 
     }
 }
