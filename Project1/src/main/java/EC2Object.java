@@ -137,7 +137,7 @@ public class EC2Object {
         // Convert userData script to base 64
         String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
         // ami image we created with various installations
-        String projectPrivateAmi = "ami-043cc8e7cfc4c20cf";
+        String projectPrivateAmi = "ami-0364365a9172345b4";
         // create the project Key Pair
         createKeyPair("projectKey");
         // Create the project IAM Role
