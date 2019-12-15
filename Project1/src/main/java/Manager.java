@@ -71,7 +71,7 @@ public class Manager {
 
             try {
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
-                if (currMessageQueue  != null || currMessageQueue.size() > 0){
+                if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
                     writer.write("Received Message contents:" + messageContent);
@@ -86,10 +86,10 @@ public class Manager {
                 }
                 else{
                     writer.write("Local App Queue is empty");
-                    Thread.sleep(000);
+                    Thread.sleep(3000);
                 }
             } catch (Exception e){
-                writer.write(e.getMessage());
+                //writer.write(e.getMessage());
             }
         }
 
