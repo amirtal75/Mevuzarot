@@ -1,8 +1,11 @@
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.services.dynamodbv2.xspec.L;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.simpleworkflow.flow.annotations.Wait;
+
+import java.util.ArrayList;
 
 public class Main {
 
@@ -36,9 +39,10 @@ public class Main {
         System.out.println("UserData: " + userdata);
         ec2.terminateInstances(null);
         ec2.createInstance(1,1,userdata);
-        Thread.currentThread().sleep(1000000);
-        System.out.println("terminating session");
+
+        LocalApp local1 = new LocalApp("inputFile1");
         ec2.terminateInstances(null);
+        System.out.println("finished sleep");
 
     }
 }

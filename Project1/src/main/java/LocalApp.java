@@ -25,6 +25,12 @@ public class LocalApp {
         summeryFileIsReady = false;
     }
 
+    public LocalApp(String inputFiles) {
+        ArrayList<String> files = new ArrayList<>();
+        files.add("inputFile1");
+        this.inputFiles = files;
+    }
+
     public void run() throws Exception {
 
         // Create objects and bucket
