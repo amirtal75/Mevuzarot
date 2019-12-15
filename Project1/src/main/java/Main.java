@@ -41,7 +41,6 @@ public class Main {
         ec2.createInstance(1,1,userdata);
 
         LocalApp local1 = new LocalApp("inputFile1");
-        ec2.terminateInstances(null);
         System.out.println("finished sleep");
 
     }
