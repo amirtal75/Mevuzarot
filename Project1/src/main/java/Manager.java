@@ -24,11 +24,11 @@ public class Manager {
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
-            System.out.println(e.getMessage());
+            writer.write(e.getMessage());
         }
-        System.out.println();
-        System.out.println("In Manager:");
-        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        
+        writer.write("In Manager:");
+        writer.write("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Variables Creation
         boolean shouldTerminate = false;
@@ -42,7 +42,7 @@ public class Manager {
         // Create Queues
         String myQueueUrl1 = queue.createQueue(); //queue for inputTask for workers
         String myQueueUrl2 = queue.createQueue();//queue for outputTask from workers
-        System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
+        writer.write("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
 
         // create user data dor workers
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
@@ -58,10 +58,10 @@ public class Manager {
         String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata +createAndRunProject;
-        System.out.println("Worker UserData: " + workerUserData);
+        writer.write("Worker UserData: " + workerUserData);
 
         // Create Thread Pools
-        System.out.println("Creating pools for Input Thread & Output Thread");
+        writer.write("Creating pools for Input Thread & Output Thread");
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
@@ -77,7 +77,7 @@ public class Manager {
 
             Message currMessege = currMessageQueue.get(0);
             String messageContent = currMessege.getBody();
-            System.out.println("Received Message contents:" + messageContent);
+            writer.write("Received Message contents:" + messageContent);
 
             Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
             // Might need to add future
