@@ -33,22 +33,18 @@ public class Queue {
 
     public AmazonSQS sqs = null;
 
-    public
-    AmazonSQS getSqs() {
-        return sqs;
-    }
-
     public Queue() {
-        AWSStaticCredentialsProvider credentialsProvider = getMyCredentials();
+        //AWSStaticCredentialsProvider credentialsProvider = getMyCredentials();
 
-        this.sqs = AmazonSQSClientBuilder.standard()
-                .withCredentials(credentialsProvider)
-                .withRegion("us-west-2")
-                .build();
+        this.sqs = AmazonSQSClientBuilder.defaultClient();
 
         System.out.println("===========================================");
         System.out.println("Getting Started with Amazon SQS");
         System.out.println("===========================================\n");
+    }
+    public
+    AmazonSQS getSqs() {
+        return sqs;
     }
 
     public String createQueue() throws Exception {
