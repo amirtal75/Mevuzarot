@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 //public class InputThread implements Runnable {
-public class InputThread implements Runnable {
+public class InputThread implements Callable<Message> {
 
     Queue queue;
     String location;
@@ -32,8 +32,7 @@ public class InputThread implements Runnable {
     String workerUserData;
     Message message;
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData) throws Exception {
-        System.out.println("In input thread constructor");
+    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData,Message message) throws Exception {
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket();
@@ -46,9 +45,12 @@ public class InputThread implements Runnable {
         this.message = message;
     }
 
-    public void run() {
+    public Message call() {
+        Message resultMessage = null;
         String currMessageRecieptHandle; // we need to hold a String for deleting the current message each time when we finish
         System.out.println("In InputThread: " + Thread.currentThread());
+
+
 
             InputFileObject currFileObject = new InputFileObject(idOfInputFile.getAndIncrement(), inputFilename);
             InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
@@ -57,10 +59,18 @@ public class InputThread implements Runnable {
             try {
                 // Check if need to create worker
                 if (numberOfTasks.get() % 10 == 0) {
-                    ec2.createInstance(1, 1, this.workerUserData);
+                    ec2.createInstance(1,1,this.workerUserData);
                 }
                 System.out.println("Downloading an object with key: " + inputFilename);
                 S3Object object = s3.downloadObject(inputFilename); //input file
+
+                // S3 download gives an input stream containg the file contents
+
+//                File file = new File("C:\\Users\\amithaim7\\IdeaProjects\\maven\\src\\main\\java\\inputFile1.txt");
+//                Scanner sc = new Scanner(file);
+//                String line;
+//                while (sc.hasNext() ) {
+//                    line = sc.nextLine();
 
                 BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                 String currLine = "";
@@ -71,14 +81,15 @@ public class InputThread implements Runnable {
                     currFileObject.increaseInputLines();
                     job = idOfInputFile + "@" + currLine;
                     queue.sendMessage(myQueueUrl1, job);
-                    numberOfTasks.getAndIncrement();
+                    numberOfTasks.incrementAndGet();
                 }
                 currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-                System.out.println("we finish to read all lines :" + currFileObject.getRedAllLines());
-
+                System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
+                resultMessage = this.message;
             }
             catch (Exception e) {
                 e.printStackTrace(); }
 
+        return resultMessage;
     }
 }

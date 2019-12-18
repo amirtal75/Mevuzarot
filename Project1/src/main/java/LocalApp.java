@@ -55,7 +55,7 @@ public class LocalApp implements Runnable{
                     String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
                     String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
                     String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
-                    // String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
+                    String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
 
                     String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
                     String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
@@ -125,7 +125,7 @@ public class LocalApp implements Runnable{
 
                     }
                     System.out.println("sleep local");
-                   Thread.currentThread().stop();
+                   Thread.currentThread().sleep(3000);
 //            Thread.sleep(60);
                 }
             System.out.println("ending the run");
