@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class Manager {
 
     public static void main(String[] args) throws Exception {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));;
+       //BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));;
 
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
@@ -21,18 +21,17 @@ public class Manager {
         try{
             FileReader reader1 = new FileReader("log.txt");
             reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
-            writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
-            writer.write("test");
+            System.out.println("test");
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
             System.out.println("the local queue adress is : " + QueueUrlLocalApps);
-            writer.write("the local queue adress is : " + QueueUrlLocalApps);
+            System.out.println("the local queue adress is : " + QueueUrlLocalApps);
         } catch (IOException e){
-            writer.write(e.getMessage());
+            System.out.println(e.getMessage());
         }
-
-        writer.write("In Manager:");
-        writer.write("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        System.out.println();
+        System.out.println("In Manager:");
+        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Variables Creation
         boolean shouldTerminate = false;
@@ -46,7 +45,7 @@ public class Manager {
         // Create Queues
         String myQueueUrl1 = queue.createQueue(); //queue for inputTask for workers
         String myQueueUrl2 = queue.createQueue();//queue for outputTask from workers
-        writer.write("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
+        System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
 
         // create user data dor workers
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
@@ -62,24 +61,24 @@ public class Manager {
         String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata +createAndRunProject;
-        writer.write("Worker UserData: " + workerUserData);
+        System.out.println("Worker UserData: " + workerUserData);
 
         // Create Thread Pools
-        writer.write("Creating pools for Input Thread & Output Thread");
+        System.out.println("Creating pools for Input Thread & Output Thread");
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
-            Thread.sleep(3000);
+
             try {
                 System.out.println("the local queue adress is : " + QueueUrlLocalApps);
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
-                    writer.write("Received Message contents:" + messageContent);
+                    System.out.println("Received Message contents:" + messageContent);
 
                     Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
                     // Might need to add future
@@ -90,11 +89,11 @@ public class Manager {
                     }
                 }
                 else{
-                    writer.write("Local App Queue is empty");
+                    System.out.println("Local App Queue is empty");
                     Thread.sleep(3000);
                 }
             } catch (Exception e){
-                //writer.write(e.getMessage());
+                //System.out.println(e.getMessage());
             }
         }
 
