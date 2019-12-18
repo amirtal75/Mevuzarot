@@ -58,9 +58,7 @@ public class InputThread implements Callable<Message> {
 
             try {
                 // Check if need to create worker
-                if (numberOfTasks.get() % 10 == 0) {
-                    ec2.createInstance(1,1,this.workerUserData);
-                }
+
                 System.out.println("Downloading an object with key: " + inputFilename);
                 S3Object object = s3.downloadObject(inputFilename); //input file
 
@@ -76,6 +74,12 @@ public class InputThread implements Callable<Message> {
                 String currLine = "";
                 String job = "";
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
+                    System.out.println("current number of tasks is: " + numberOfTasks);
+                    if (numberOfTasks.get() % 10 == 0) {
+                        Instance instance = ec2.createInstance(1,1,this.workerUserData).get(0);
+                        System.out.println("created new worker instance: " + instance.getInstanceId());
+                    }
+
                     System.out.println(" Making a job from the current read line: " + currLine);
                     // Line content: (obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
                     currFileObject.increaseInputLines();
