@@ -65,4 +65,11 @@ public class InputFileObject {
 
         redAllLines.set(true);
     }
+
+    public String toString(){
+        String res = "input lines : " + inputLines.get() + " output lines : " + outputLines.get() +
+               "input file name: " + inputFilename + " all lines has been readed " + getRedAllLines().get() +
+                " all workes done : " + allWorkersDone.get();
+        return res;
+            }
 }

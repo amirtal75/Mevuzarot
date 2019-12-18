@@ -1,4 +1,8 @@
-import java.util.List;
+//package com.interviewbubble.StandfordSimpleNLP;
+
+import java.util.Properties;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import java.util.Properties;
 
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -10,6 +14,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+//import edu.stanford.nlp.rnn.RNNCoreAnnotations;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
@@ -17,13 +22,16 @@ import edu.stanford.nlp.util.CoreMap;
 
 public class SentimentAnalysis {
 
-
-
-    public static int findSentiment(String review) {
-
+    public static void main(String[] args) {
         Properties props = new Properties();
         props.put("annotators", "tokenize, ssplit, parse, sentiment");
         StanfordCoreNLP  sentimentPipeline =  new StanfordCoreNLP(props);
+        String review = "the book is very good";
+//        Properties props = new Properties();
+//        props.setProperty("annotators", "tokenize, ssplit, parse, sentiment");
+//        System.out.println("1111111");
+//        StanfordCoreNLP  sentimentPipeline =  new StanfordCoreNLP();
+        System.out.println("222222");
         int mainSentiment = 0;
         if (review!= null && review.length() > 0) {
             int longest = 0;
@@ -39,12 +47,9 @@ public class SentimentAnalysis {
 
             }
         }
-        return mainSentiment;
+
     }
 
-    public static void main(String[] args) {
-        String str = "Super cute book. My son loves lifting the flaps";
-        System.out.println(findSentiment(str));
-    }
+
 
 }

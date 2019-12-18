@@ -31,7 +31,6 @@ public class OutputThread implements Runnable {
 
     public void run() {
         System.out.println("In Output Thread: " + Thread.currentThread());
-        String currMessageRecieptHandle; // we need to hold a String for deleting the current message each time when we finish
         while (!toTerminate) {
             try {
                 currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 10); // check about visibility
@@ -66,7 +65,7 @@ public class OutputThread implements Runnable {
                     Writer writer = new BufferedWriter(new FileWriter(outputName)); //write to the output file
                     writer.write(stringResultsById.get(inputFileId).toString());
 
-                    s3.upload(outputName);
+                    s3.upload("",outputName);
                     System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
                     queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
                 }

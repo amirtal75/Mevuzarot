@@ -20,13 +20,14 @@ public class Manager {
         String summeryFilesIndicatorQueue = "";
         // Read the Queue names from the managerArgs file
         try{
+            FileReader reader1 = new FileReader("log.txt");
             reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
             writer.write(e.getMessage());
         }
-        
+
         writer.write("In Manager:");
         writer.write("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
@@ -49,12 +50,12 @@ public class Manager {
         String unzip = getProject + "unzip master.zip\n";
         String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
-        String setWorkerPom = removeSuperPom + "sudo cp workersrpom.xml pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
         String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
 
-        String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
-        String pushFirstArg =  createManagerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
+        String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
+        String pushFirstArg =  createWorkerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata +createAndRunProject;

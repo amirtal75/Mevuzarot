@@ -9,13 +9,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon S3 using
@@ -61,26 +55,31 @@ public class S3Bucket {
         return directoryName;
     }
 
-    public void createBucket() throws Exception {
+    public Bucket createBucket() throws Exception {
 
-        createBucket(this.bucketName);
+        return createBucket(this.bucketName);
     }
 
-    public void createBucket(String newBucket) throws Exception {
-
-        if (s3.doesBucketExistV2(newBucket)){
-            return;
+    public Bucket createBucket(String newBucket) throws Exception {
+        System.out.println("Inside create bucket");
+        Bucket bucket = null;
+        if (s3.doesBucketExistV2(newBucket)) {
+            System.out.println("Bucket already exists\n");
         }
-        try {
-            System.out.println("Creating bucket " + newBucket + "\n");
-            s3.createBucket(newBucket);
+        else {
+            try {
+                System.out.println("Creating bucket " + newBucket + "\n");
+                bucket = s3.createBucket(newBucket);
+                System.out.println("Created Bucket Details: \n" + bucket.toString());
 
-        }  catch (AmazonServiceException ase) {
-            printServiceError(ase);
+            } catch (AmazonServiceException ase) {
+                printServiceError(ase);
 
-        } catch (AmazonClientException ace) {
-            printClientError(ace);
+            } catch (AmazonClientException ace) {
+                printClientError(ace);
+            }
         }
+        return bucket;
     }
 
     public void listBuckets() throws Exception {
@@ -99,16 +98,18 @@ public class S3Bucket {
         }
     }
 
-    public void upload(String filename) throws Exception {
+    public void upload(String path, String filename) throws Exception {
+        System.out.println("trying to upload the file: " + filename);
+        System.out.println(" to the bucket" + this.bucketName);
 
-        String key = null;
         try {
 
             System.out.println("Uploading a new object to S3 from a file\n");
             System.out.println("bucket: " + this.bucketName + ", key: " + filename);
-            key = filename.replace('\\', 'a').replace('/','a').replace(':', 'a');
+            filename = filename.replace('\\', 'a').replace('/','a').replace(':', 'a');
 
-            PutObjectRequest req = new PutObjectRequest(this.bucketName, key, new File(filename));
+            PutObjectRequest req = new PutObjectRequest(this.bucketName, filename, new File(path + filename));
+
             s3.putObject(req);
 
         }  catch (AmazonServiceException ase) {
@@ -231,7 +232,7 @@ public class S3Bucket {
 
     private void printServiceError(AmazonServiceException ase){
         System.out.println("Caught an AmazonServiceException, which means your request made it " +
-                "to Amazon SQS, but was rejected with an error response for some reason.");
+                "to Amazon S3, but was rejected with an error response for some reason.");
         System.out.println("Error Message:    " + ase.getMessage());
         System.out.println("HTTP Status Code: " + ase.getStatusCode());
         System.out.println("AWS Error Code:   " + ase.getErrorCode());
@@ -240,7 +241,7 @@ public class S3Bucket {
     }
     private void printClientError(AmazonClientException ace){
         System.out.println("Caught an AmazonClientException, which means the client encountered " +
-                "a serious internal problem while trying to communicate with SQS, such as not " +
+                "a serious internal problem while trying to communicate with S3, such as not " +
                 "being able to access the network.");
         System.out.println("Error Message: " + ace.getMessage());
     }

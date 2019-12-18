@@ -46,6 +46,7 @@ public class EC2Object {
         CreateTagsRequest tagsRequest = new CreateTagsRequest()
                 .withTags(new Tag(tagName,tagName))
                 .withResources(instance.getInstanceId());
+
     }
 
     /**
@@ -155,7 +156,6 @@ public class EC2Object {
         request.withIamInstanceProfile(specification);
         // run the instance with the above defined request
         RunInstancesResult instancesResult = this.ec2.runInstances(request);
-
         return new ArrayList<Instance> ( instancesResult.getReservation().getInstances());
     }
 
@@ -222,5 +222,9 @@ public class EC2Object {
             }
         }
         return  instancesResult;
+    }
+
+    public void stopInstance(String instanceID){
+        this.ec2.stopInstances(new StopInstancesRequest().withInstanceIds(instanceID));
     }
 }

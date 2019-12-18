@@ -1,22 +1,10 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.lang.StringBuilder;
-import java.util.concurrent.ConcurrentHashMap;
-
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.InstanceType;
-import com.amazonaws.services.ec2.model.RunInstancesRequest;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sqs.model.Message;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -29,25 +17,28 @@ import edu.stanford.nlp.util.CoreMap;
 
 public class Worker {
 
-    Queue queue;
-    String myQueueUrl1; //queue for inputJobs;
-    String myQueueUrl2;//queue for outputTask from workers
-    List<Message> currJobQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
-    ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
-    boolean isSarcastic;
+    public static void main(String[] args) {
+        Queue queue = new Queue();
+        List<Message> currJobQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
+        boolean isSarcastic;
+        BufferedReader reader = null;
+        String myQueueUrl1 = "";
+        String myQueueUrl2 = "";
 
-    public Worker(ConcurrentHashMap <Integer,InputFileObject> InputFileObjectById, String myQueueUrl1,String myQueueUrl2) {
-        this.queue = new Queue();
-        this.InputFileObjectById = InputFileObjectById;
-        this.myQueueUrl1 = myQueueUrl1;
-        this.myQueueUrl2 = myQueueUrl2;
-    }
+        // Read the Queue names from the managerArgs file
+        try {
+            reader = new BufferedReader(new FileReader("workerArgs"));
+            myQueueUrl1 = reader.readLine();
+            myQueueUrl2 = reader.readLine();
+            }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
 
-    public void work() {
         while (true) {
             try {
                 currJobQueue = queue.recieveMessage(myQueueUrl1, 1, 10); // check about visibility
-            }
+                }
             catch (Exception e) {
                 e.printStackTrace();
             }
@@ -71,15 +62,10 @@ public class Worker {
             try {
                 queue.sendMessage(myQueueUrl2, result);
                 System.out.println("message was sent, deleting the task");
-                queue.deleteMessage(myQueueUrl1,currJob); // we need to check befor deleting if we succeed to send the message
-            }
-            catch (Exception e) {
+                queue.deleteMessage(myQueueUrl1, currJob); // we need to check befor deleting if we succeed to send the message
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
-                 // change the bool allWorkersDone if need
-
         }
     }
 
@@ -107,12 +93,12 @@ public class Worker {
     }
 
 
-    public  String returnEntities(String review){
+    public static String returnEntities(String review) {
 
         StringBuilder result = new StringBuilder();
         Properties props = new Properties();
         props.put("annotators", "tokenize , split, pos, lemma, ner");
-        StanfordCoreNLP NERPipeline =  new StanfordCoreNLP(props);
+        StanfordCoreNLP NERPipeline = new StanfordCoreNLP(props);
         // create an empty Annotation just with the given text
         Annotation document = new Annotation(review);
 
@@ -123,10 +109,10 @@ public class Worker {
         // a CoreMap is essentially a Map that uses class objects as keys and has values with custom types
         List<CoreMap> sentences = document.get(CoreAnnotations.SentencesAnnotation.class);
 
-        for(CoreMap sentence: sentences) {
+        for (CoreMap sentence : sentences) {
             // traversing the words in the current sentence
             // a CoreLabel is a CoreMap with additional token-specific methods
-            for (CoreLabel token: sentence.get(CoreAnnotations.TokensAnnotation.class)) {
+            for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
                 // this is the text of the token
                 String word = token.get(CoreAnnotations.TextAnnotation.class);
                 // this is the NER label of the token
@@ -138,3 +124,4 @@ public class Worker {
         return result.toString();
     }
 }
+
