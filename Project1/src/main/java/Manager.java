@@ -72,7 +72,7 @@ public class Manager {
 
             try {
                 System.out.println("the local queue adress is : " + QueueUrlLocalApps);
-                currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
+                currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
@@ -83,11 +83,11 @@ public class Manager {
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
 
                     if (result != null) {
+                        System.out.println("Received result from input thread, we need to delete the message");
                         queue.deleteMessage(myQueueUrl1, result.get()); // result = currMessag
                     }
                 }
                 else{
-                    System.out.println("Local App Queue is empty");
                     Thread.sleep(3000);
                 }
             } catch (Exception e){

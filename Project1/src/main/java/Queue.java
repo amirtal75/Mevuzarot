@@ -34,13 +34,8 @@ public class Queue {
     public AmazonSQS sqs = null;
 
     public Queue() {
-        //AWSStaticCredentialsProvider credentialsProvider = getMyCredentials();
 
         this.sqs = AmazonSQSClientBuilder.defaultClient();
-
-        System.out.println("===========================================");
-        System.out.println("Getting Started with Amazon SQS");
-        System.out.println("===========================================\n");
     }
     public
     AmazonSQS getSqs() {
@@ -104,7 +99,6 @@ public class Queue {
     public List<Message> recieveMessage(String queueUrl, int numOfMessages, int Visibility) throws Exception {
 
         try {
-            System.out.println("Receiving messages from MyQueue.\n");
             ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
             receiveMessageRequest.setMaxNumberOfMessages(numOfMessages);
             receiveMessageRequest.setVisibilityTimeout(Visibility);

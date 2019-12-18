@@ -38,7 +38,7 @@ public class LocalApp implements Runnable{
             S3Bucket s3 = new S3Bucket();
             s3.createBucket();
             Queue queue = new Queue();
-            String path = "C:\\Users\\amithaim7\\Documents\\GitHub\\Mevuzarot\\Project1\\src\\main\\java\\";
+            String path = "/home/amirtal/IdeaProjects/Project1/src/main/java/";
             // C:\Users\amithaim7\Documents\GitHub\Mevuzarot\Project1\src\main\java
             //Gson gson = new Gson();
            // Instance ec2Instance = null;
@@ -55,13 +55,13 @@ public class LocalApp implements Runnable{
                     String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
                     String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
                     String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
-                    String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
+                    // String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
 
                     String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
                     String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
                     String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueueUrl + " >> src/main/java/managerArgs.txt\n";
 
-                    String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata +createAndRunProject;
+                    String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata;
                     System.out.println("In LocalAPP: " + Thread.currentThread());
                     System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
                     System.out.println("UserData: " + userdata);
@@ -82,13 +82,14 @@ public class LocalApp implements Runnable{
                 for (String inputFile : inputFiles) {
                     // Create a parsed object from the input list
                     System.out.println("trying to parse the file " + path + inputFile);
-                    //inputList = parse(path + inputFile);
+                    inputList = parse(path + inputFile);
                     String outputFilename = inputFile + UUID.randomUUID() + ".txt";
                     // Write the parsed object to a file
                     BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
                     for (parsedInputObject obj : inputList) {
                         writer.write(obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n"); // added rating******
                     }
+                    s3.upload(path,outputFilename);
                     queue.sendMessage(QueueUrlLocalApps, outputFilename);
                     System.out.println("done parse");
                 }
@@ -163,8 +164,7 @@ public class LocalApp implements Runnable{
 
     }
 
-    private ArrayList<parsedInputObject> parse(String filename) {
-        System.out.println("in parse");
+    private ArrayList<parsedInputObject> parse(String filename) {        System.out.println("in parse");
         ArrayList<parsedInputObject> inputArray = new ArrayList<parsedInputObject>();
         Gson gson = new Gson();
         BufferedReader reader;
@@ -197,33 +197,5 @@ public class LocalApp implements Runnable{
         }
         return inputArray;
     }
-
-    private Instance createManager(S3Bucket s3, EC2Object ec2, String QueueUrlLocalApps, String summeryFilesIndicatorQueue, Instance manager) throws Exception {
-        Bucket bucket = s3.createBucket();
-        System.out.println("done creating bucke and got" + bucket == null);
-        boolean hasManger = ec2.getInstances("manager").size() == 0;
-        if (hasManger){
-            String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
-            String unzip = getProject + "unzip master.zip\n";
-            String goToProjectDirectory = unzip + "cd Mevuzarot/Project1/\n";
-            String removeSuperPom = goToProjectDirectory + "rm pom.xml\n";
-            String setWorkerPom = removeSuperPom + "cp managerpom.xml pom.xml\n";
-            String buildProject = setWorkerPom + "mvn compile\n mvn package\n";
-            String createAndRunProject = buildProject + "java -jar  target/maven-1.0-SNAPSHOT.jar\n";
-
-            String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
-            String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
-            String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueue + " >> src/main/java/managerArgs.txt\n";
-
-            String userdata = "#!/bin/bash\n" + createAndRunProject + filedata;
-            System.out.println("In LocalAPP: " + Thread.currentThread());
-            System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
-            System.out.println("UserData: " + userdata);
-            manager = ec2.createInstance(1,1, userdata).get(0);
-            ec2.attachTags(manager, "manager"); // need to fix
-            return  manager;
-        }
-        return  null;
-    } 
 
 }

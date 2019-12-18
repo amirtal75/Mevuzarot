@@ -17,14 +17,14 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        Queue queue = new Queue();
-        String summeryFilesIndicatorQueue = queue.createQueue();
-        String QueueUrlLocalApps = queue.createQueue();
+        //Queue queue = new Queue();
+        //String summeryFilesIndicatorQueue = queue.createQueue();
+        //String QueueUrlLocalApps = queue.createQueue();
         EC2Object ec2 = new EC2Object();
         // how to check user data inside putty connection
         // cd var/lib/cloud/instance
         // sudo cat user-data.txt
-        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        /*String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "unzip master.zip\n";
         String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
@@ -39,12 +39,13 @@ public class Main {
         String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata +createAndRunProject;
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
-        System.out.println("UserData: " + userdata);
+        System.out.println("UserData: " + userdata);*/
         ec2.terminateInstances(null);
         //Instance createInstance = ec2.createInstance(1,1,userdata).get(0);
-        /*LocalApp localApp = new LocalApp("inputFile1");
+
+        LocalApp localApp = new LocalApp("inputFile1.txt");
         Thread app = new Thread(localApp);
-        app.start();*/
+        app.start();
 
         String[] inputFiles = {"inputFile1","inputFile2"};
 
