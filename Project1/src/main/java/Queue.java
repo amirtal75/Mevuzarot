@@ -106,13 +106,9 @@ public class Queue {
         try {
             System.out.println("Receiving messages from MyQueue.\n");
             ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
-            System.out.println("1");
             receiveMessageRequest.setMaxNumberOfMessages(numOfMessages);
-            System.out.println("2");
             receiveMessageRequest.setVisibilityTimeout(Visibility);
-            System.out.println("3");
             List<Message> messages = this.sqs.receiveMessage(receiveMessageRequest).getMessages();
-            System.out.println("4");
             return messages;
         } catch (AmazonServiceException ase) {
             printServiceError(ase);
