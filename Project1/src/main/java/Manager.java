@@ -24,6 +24,8 @@ public class Manager {
             reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
+            System.out.println("the local queue adress is : " + QueueUrlLocalApps);
+            writer.write("the local queue adress is : " + QueueUrlLocalApps);
         } catch (IOException e){
             writer.write(e.getMessage());
         }
@@ -71,6 +73,7 @@ public class Manager {
         while (!shouldTerminate) {
 
             try {
+                
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
