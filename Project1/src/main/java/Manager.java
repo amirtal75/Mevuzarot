@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class Manager {
 
     public static void main(String[] args) throws Exception {
-        BufferedWriter writer = null;
+        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));;
 
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
