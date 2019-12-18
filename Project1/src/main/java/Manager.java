@@ -19,12 +19,10 @@ public class Manager {
         String summeryFilesIndicatorQueue = "";
         // Read the Queue names from the managerArgs file
         try{
-            FileReader reader1 = new FileReader("log.txt");
             reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
             System.out.println("test");
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
-            System.out.println("the local queue adress is : " + QueueUrlLocalApps);
             System.out.println("the local queue adress is : " + QueueUrlLocalApps);
         } catch (IOException e){
             System.out.println(e.getMessage());
