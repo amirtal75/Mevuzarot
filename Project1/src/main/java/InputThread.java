@@ -33,6 +33,7 @@ public class InputThread implements Runnable {
     Message message;
 
     public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData) throws Exception {
+        System.out.println("In input thread constructor");
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket();
@@ -66,7 +67,7 @@ public class InputThread implements Runnable {
                 String job = "";
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
                     System.out.println(" Making a job from the current read line: " + currLine);
-                    // Line content: (obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating****
+                    // Line content: (obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
                     currFileObject.increaseInputLines();
                     job = idOfInputFile + "@" + currLine;
                     queue.sendMessage(myQueueUrl1, job);
