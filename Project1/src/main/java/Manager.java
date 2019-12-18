@@ -12,8 +12,7 @@ import java.util.logging.Logger;
 public class Manager {
 
     public static void main(String[] args) throws Exception {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
-        writer.write("test");
+        BufferedWriter writer = null;
 
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
@@ -22,6 +21,8 @@ public class Manager {
         try{
             FileReader reader1 = new FileReader("log.txt");
             reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
+            writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
+            writer.write("test");
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
             System.out.println("the local queue adress is : " + QueueUrlLocalApps);
@@ -73,7 +74,7 @@ public class Manager {
         while (!shouldTerminate) {
 
             try {
-                
+                System.out.println("the local queue adress is : " + QueueUrlLocalApps);
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
