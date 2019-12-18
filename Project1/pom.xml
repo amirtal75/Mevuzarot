@@ -50,7 +50,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
                             <mainClass>
-                                Manager
+                                Main
                             </mainClass>
                         </manifest>
                     </archive>

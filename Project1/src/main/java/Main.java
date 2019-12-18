@@ -43,9 +43,9 @@ public class Main {
         ec2.terminateInstances(null);
         //Instance createInstance = ec2.createInstance(1,1,userdata).get(0);
 
-        LocalApp localApp = new LocalApp("inputFile1.txt");
+        /*LocalApp localApp = new LocalApp("inputFile1.txt");
         Thread app = new Thread(localApp);
-        app.start();
+        app.start();*/
 
         String[] inputFiles = {"inputFile1","inputFile2"};
 

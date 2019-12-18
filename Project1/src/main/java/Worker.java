@@ -18,32 +18,33 @@ import edu.stanford.nlp.util.CoreMap;
 public class Worker {
 
     public static void main(String[] args) throws InterruptedException {
+
+        System.out.println("In Worker:\n");
         Queue queue = new Queue();
         List<Message> currJobQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
         boolean isSarcastic;
         BufferedReader reader = null;
-        String myQueueUrl1 = "";
-        String myQueueUrl2 = "";
+        String receivedTasks = "";
+        String completedTasks = "";
 
         // Read the Queue names from the managerArgs file
         try {
             reader = new BufferedReader(new FileReader("workerArgs"));
-            myQueueUrl1 = reader.readLine();
-            myQueueUrl2 = reader.readLine();
-            }
+            receivedTasks = reader.readLine();
+            completedTasks = reader.readLine();
+        }
         catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
+        System.out.println("receivedTasks queue" + receivedTasks + ", completedTasks queue" + completedTasks);
         while (true) {
             try {
-                currJobQueue = queue.recieveMessage(myQueueUrl1, 1, 10); // check about visibility
-                }
+                currJobQueue = queue.recieveMessage(receivedTasks, 1, 10); // check about visibility
+            }
             catch (Exception e) {
                 e.printStackTrace();
             }
             if(!currJobQueue.isEmpty()) {
-                System.out.println("In Worker: ");
                 Message currJob = currJobQueue.get(0);
                 System.out.println("Message Received: " + currJob.getBody());
                 //inputFIleID + "@" + obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n");
@@ -52,8 +53,10 @@ public class Worker {
                 String reviewId = reviewAttributes[1];
                 String reviewText = reviewAttributes[2];
                 String reviewRating = reviewAttributes[3];
-                int sentiment = SentimentAnalysis.findSentiment(reviewText);
-                String reviewEntities = WorkerTest.returnEntities(reviewText);
+                System.out.println("Finding sentiment");
+                int sentiment = findSentiment(reviewText);
+                System.out.println("Finding entities");
+                String reviewEntities = returnEntities(reviewText);
                 System.out.println("Sentiment found is: " + sentiment);
                 System.out.println("Entities Discovered: " + reviewEntities);
                 isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
@@ -61,18 +64,19 @@ public class Worker {
                 String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
 
                 try {
-                    queue.sendMessage(myQueueUrl2, result);
+                    queue.sendMessage(completedTasks, result);
                     System.out.println("message was sent, deleting the task");
-                    queue.deleteMessage(myQueueUrl1, currJob); // we need to check befor deleting if we succeed to send the message
+                    queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
             }
             else{
-                Thread.currentThread().sleep(3000);
+                System.out.println("Queus is empty");
+                Thread.currentThread().sleep(6000);
                 break;
-                }
+            }
         }
     }
 
