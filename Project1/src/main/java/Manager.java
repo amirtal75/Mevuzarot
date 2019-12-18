@@ -72,7 +72,7 @@ public class Manager {
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
-
+            Thread.sleep(3000);
             try {
                 System.out.println("the local queue adress is : " + QueueUrlLocalApps);
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 30); // check about visibility
