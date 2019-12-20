@@ -78,9 +78,14 @@ public class Manager {
                     String messageContent = currMessege.getBody();
                     System.out.println("Received Message contents:" + messageContent);
 
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData));
+                    Future<Message> result = (Future<Message>) poolForInput.submit(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData, currMessege));
+                    // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
-                    queue.deleteMessage(myQueueUrl1, currMessege); // result = currMessag
+
+                    if (result != null) {
+                        System.out.println("Received result from input thread, we need to delete the message");
+                        queue.deleteMessage(myQueueUrl1, result.get()); // result = currMessag
+                    }
                 }
                 else{
                     Thread.sleep(3000);
