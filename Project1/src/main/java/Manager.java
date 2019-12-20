@@ -52,7 +52,7 @@ public class Manager {
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
         String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
-        String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
         String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
         String pushFirstArg =  createWorkerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
@@ -78,7 +78,7 @@ public class Manager {
                     String messageContent = currMessege.getBody();
                     System.out.println("Received Message contents:" + messageContent);
 
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData));
+                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, "/home/amirtal/IdeaProjects/Project1/src/main/java/inputFile1.txt2ce70f41-021d-4c12-9db6-5c814212b313.txt", workerUserData));
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
                     System.out.println("Received result from input thread, we need to delete the message");

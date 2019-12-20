@@ -54,7 +54,7 @@ public class InputFileObject {
     }
 
     public synchronized  void  CheckAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
-        allWorkersDone.compareAndSet(true , (redAllLines.get() & (inputLines.get() == outputLines.get())));
+        allWorkersDone.compareAndSet(false , (redAllLines.get() & (inputLines.get() == outputLines.get())));
     }
 
     public String getInputFilename() {

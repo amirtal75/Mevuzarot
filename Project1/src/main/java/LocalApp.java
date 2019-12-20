@@ -55,13 +55,13 @@ public class LocalApp implements Runnable{
                     String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
                     String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
                     String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
-                    String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
+                    String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
                     String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
                     String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
                     String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueueUrl + " >> src/main/java/managerArgs.txt\n";
 
-                    String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
+                    String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata;
                     System.out.println("In LocalAPP: " + Thread.currentThread());
                     System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
                     System.out.println("UserData: " + userdata);

@@ -5,6 +5,7 @@ import com.amazonaws.services.sqs.model.Message;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,17 +59,10 @@ public class InputThread implements Runnable {
                 // Check if need to create worker
 
                 System.out.println("Downloading an object with key: " + inputFilename);
-                S3Object object = s3.downloadObject(inputFilename); //input file
-
-                // S3 download gives an input stream containg the file contents
-
-//                File file = new File("C:\\Users\\amithaim7\\IdeaProjects\\maven\\src\\main\\java\\inputFile1.txt");
-//                Scanner sc = new Scanner(file);
-//                String line;
-//                while (sc.hasNext() ) {
-//                    line = sc.nextLine();
-
-                BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                /*S3Object object = s3.downloadObject(inputFilename); //input file
+                BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));*/
+                System.out.println("fie to create tasks from:" + inputFilename);
+                BufferedReader inputFileFromLocalApp =  new BufferedReader(new FileReader(inputFilename));
                 String currLine = "";
                 String job = "";
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
@@ -84,6 +78,8 @@ public class InputThread implements Runnable {
                     job = idOfInputFile + "@" + currLine;
                     queue.sendMessage(myQueueUrl1, job);
                     numberOfTasks.incrementAndGet();
+                    System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
+
                 }
                 currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
                 System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
