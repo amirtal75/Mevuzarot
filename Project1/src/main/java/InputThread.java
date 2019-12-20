@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 //public class InputThread implements Runnable {
-public class InputThread implements Callable<Message> {
+public class InputThread implements Runnable {
 
     Queue queue;
     String location;
@@ -30,9 +30,8 @@ public class InputThread implements Callable<Message> {
     boolean toTerminate;
     String inputFilename;
     String workerUserData;
-    Message message;
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData,Message message) throws Exception {
+    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData) throws Exception {
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket();
@@ -42,17 +41,16 @@ public class InputThread implements Callable<Message> {
         this.ec2 = new EC2Object();
         toTerminate = false;
         this.workerUserData = workerUserData;
-        this.message = message;
     }
 
-    public Message call() {
-        Message resultMessage = null;
+    public void run() {
+
         String currMessageRecieptHandle; // we need to hold a String for deleting the current message each time when we finish
         System.out.println("In InputThread: " + Thread.currentThread());
 
 
 
-            InputFileObject currFileObject = new InputFileObject(idOfInputFile.getAndIncrement(), inputFilename);
+            InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename);
             InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
             System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(currFileObject));
 
@@ -89,11 +87,11 @@ public class InputThread implements Callable<Message> {
                 }
                 currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
                 System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
-                resultMessage = this.message;
+
             }
             catch (Exception e) {
                 e.printStackTrace(); }
 
-        return resultMessage;
+
     }
 }
