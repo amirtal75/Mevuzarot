@@ -56,7 +56,7 @@ public class Manager {
         String pushFirstArg =  createWorkerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
 
-        String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata;
+        String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata + createAndRunProject;
         System.out.println("Worker UserData: " + workerUserData);
 
         // Create Thread Pools
