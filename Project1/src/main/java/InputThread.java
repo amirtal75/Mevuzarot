@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-//public class InputThread implements Runnable {
 public class InputThread implements Runnable {
 
     Queue queue;
