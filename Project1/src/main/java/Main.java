@@ -1,11 +1,4 @@
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.services.dynamodbv2.xspec.L;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.InstanceState;
-import com.amazonaws.services.simpleworkflow.flow.annotations.Wait;
 import com.amazonaws.services.sqs.model.DeleteQueueRequest;
 
 import java.util.ArrayList;
@@ -17,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        //Queue queue = new Queue();
+        Queue queue = new Queue();
         //String summeryFilesIndicatorQueue = queue.createQueue();
         //String QueueUrlLocalApps = queue.createQueue();
         EC2Object ec2 = new EC2Object();
@@ -41,11 +34,12 @@ public class Main {
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);*/
         ec2.terminateInstances(null);
+        queue.sqs.deleteQueue(new DeleteQueueRequest());
         //Instance createInstance = ec2.createInstance(1,1,userdata).get(0);
 
-        /*LocalApp localApp = new LocalApp("inputFile1.txt");
+        LocalApp localApp = new LocalApp("inputFile1.txt");
         Thread app = new Thread(localApp);
-        app.start();*/
+        app.start();
 
         String[] inputFiles = {"inputFile1","inputFile2"};
 
