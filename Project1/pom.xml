@@ -16,8 +16,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
                     <release>11</release>
                 </configuration>
             </plugin>
@@ -66,8 +64,26 @@
         <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk -->
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.11.685</version>
+            <artifactId>aws-java-sdk-ec2</artifactId>
+            <version>1.11.697</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.11.697</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sqs</artifactId>
+            <version>1.11.697</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sts</artifactId>
+            <version>1.11.697</version>
         </dependency>
 
         <dependency>
