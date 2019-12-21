@@ -16,16 +16,17 @@ public class OutputThread implements Runnable {
     S3Bucket s3;
     String myQueueUrl2; //queue for outputJobs , should be passed to workers as well
     AmazonEC2 ec2;
-    ConcurrentHashMap<Integer, StringBuilder> stringResultsById; // will be passed by manager(the refference) by constructor
+    ConcurrentHashMap<Integer, StringBuffer> stringResultsById; // will be passed by manager(the refference) by constructor
     boolean toTerminate;
 
-    public OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps) throws Exception {
+    public OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String QueueUrlLocalApps, String summeryFilesIndicatorQueue) throws Exception {
         this.queue = new Queue();
         this.myQueueUrl2 = myQueueUrl2;
         this.QueueUrlLocalApps = QueueUrlLocalApps;
         this.s3 = new S3Bucket();
         this.InputFileObjectById = inputFileObjectById;
         this.stringResultsById = stringResultsById;
+        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;
         toTerminate = false;
     }
     int i =1;
@@ -42,7 +43,7 @@ public class OutputThread implements Runnable {
             if (!currMessageQueue.isEmpty()){
                 Message currMessege = currMessageQueue.get(0);
                 System.out.println("Received message number " + i + " content: " + currMessege.getBody());
-                i++;
+                ++i;
                 String[] resultContent = currMessege.getBody().split("@");
                 int inputFileId = Integer.parseInt(resultContent[0]);
                 //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
@@ -54,7 +55,7 @@ public class OutputThread implements Runnable {
                 }
                     //check again what I sent to the local app
                 else {
-                    stringResultsById.put(inputFileId, new StringBuilder(currMessege.getBody() + "\n")); // if is absent
+                    stringResultsById.put(inputFileId, new StringBuffer(currMessege.getBody() + "\n")); // if is absent
                 }
 
                 System.out.println("Number of resultbyid after adding: " + stringResultsById.size() + "\nthe cuurent stringBuilder is: " + stringResultsById.get(inputFileId).toString() + "\n");
