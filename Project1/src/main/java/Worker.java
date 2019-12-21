@@ -29,7 +29,7 @@ public class Worker {
 
         // Read the Queue names from the managerArgs file
         try {
-            reader = new BufferedReader(new FileReader("workerArgs"));
+            reader = new BufferedReader(new FileReader("workerArgs.txt"));
             receivedTasks = reader.readLine();
             completedTasks = reader.readLine();
         }
