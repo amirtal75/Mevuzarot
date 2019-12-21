@@ -26,10 +26,11 @@ public class Worker {
         BufferedReader reader = null;
         String receivedTasks = "";
         String completedTasks = "";
+        String path = "/home/amirtal/IdeaProjects/Localapp/src/main/java/";
 
         // Read the Queue names from the managerArgs file
         try {
-            reader = new BufferedReader(new FileReader("workerArgs.txt"));
+            reader = new BufferedReader(new FileReader(path + "workerArgs.txt"));
             receivedTasks = reader.readLine();
             completedTasks = reader.readLine();
         }
