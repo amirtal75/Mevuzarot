@@ -42,6 +42,7 @@ public class OutputThread implements Runnable {
             if (!currMessageQueue.isEmpty()){
                 Message currMessege = currMessageQueue.get(0);
                 System.out.println("Received message number " + i + " content: " + currMessege.getBody());
+                i++;
                 String[] resultContent = currMessege.getBody().split("@");
                 int inputFileId = Integer.parseInt(resultContent[0]);
                 //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
@@ -55,7 +56,8 @@ public class OutputThread implements Runnable {
                 else {
                     stringResultsById.put(inputFileId, new StringBuilder(currMessege.getBody() + "\n")); // if is absent
                 }
-                System.out.println("Number of resultbyid before trying to add" + stringResultsById.size() + "the cuurent stringBuilder is: " + stringResultsById.get(inputFileId).toString());
+
+                System.out.println("Number of resultbyid after adding: " + stringResultsById.size() + "\nthe cuurent stringBuilder is: " + stringResultsById.get(inputFileId).toString() + "\n");
 
                 InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
                 currInputFileObj.increaseOutputLines();
@@ -70,8 +72,10 @@ public class OutputThread implements Runnable {
                         String outputName = inputFilename + "$";
                         //added "$" to the name because I dont want exact names for the input file and output file
                         Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
+                        System.out.println("string builder content: " + stringResultsById.get(inputFileId).toString() + "\n");
                         writer.write(stringResultsById.get(inputFileId).toString());
                         writer.flush();
+
                         s3.upload(path, outputName);
                         System.out.println("sending finished output file to local app" + summeryFilesIndicatorQueue);
                         queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
@@ -93,7 +97,7 @@ public class OutputThread implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            i++;
+
         }
     }
 }
