@@ -73,7 +73,7 @@ public class Worker {
                     System.out.println("sending the result of worker to the completed queue: " + completedTasks);
                     queue.sendMessage(completedTasks, result);
                     //System.out.println("message was sent, deleting the task");
-                    //queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
+                    queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
