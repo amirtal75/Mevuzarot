@@ -54,7 +54,7 @@ public class LocalApp implements Runnable{
                     String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
                     String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
                     String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
-                    String buildProject = setWorkerPom + "sudo mvn install -o\n";
+                    String buildProject = setWorkerPom + "sudo -T 4 mvn install -o\n";
                     String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
                     String createManagerArgsFile = "sudo touch src/main/java/managerArgs.txt\n";

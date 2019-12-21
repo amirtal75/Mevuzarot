@@ -37,6 +37,7 @@ public class OutputThread implements Runnable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            System.out.println("received message from worker queue: " + currMessageQueue.isEmpty());
             if (!currMessageQueue.isEmpty()){
                 Message currMessege = currMessageQueue.get(0);
                 System.out.println("Received message content: " + currMessege.getBody());

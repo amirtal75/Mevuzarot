@@ -51,7 +51,7 @@ public class Manager {
         String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
         String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
-        String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
         String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
