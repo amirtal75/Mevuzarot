@@ -60,9 +60,9 @@ public class InputThread implements Runnable {
 
                 System.out.println("Downloading an object with key: " + inputFilename);
                 S3Object object = s3.downloadObject(inputFilename); //input file
-                /*BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));*/
-                System.out.println("fie to create tasks from:" + inputFilename);
-                BufferedReader inputFileFromLocalApp =  new BufferedReader(new FileReader(inputFilename));
+                BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                System.out.println("file to create tasks from:" + inputFilename);
+                /*BufferedReader inputFileFromLocalApp =  new BufferedReader(new FileReader(inputFilename));*/
                 String currLine = "";
                 String job = "";
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
