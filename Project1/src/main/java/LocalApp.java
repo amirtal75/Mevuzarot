@@ -152,7 +152,10 @@ public class LocalApp implements Runnable{
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
         for (String str : inputRepresentation) {
             String[] currReviewAttributes = str.split("@");
-            int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
+            //int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
+            int reviewSentiment = Integer.parseInt(currReviewAttributes[4]);
+            /*toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
+                    "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";*/
             toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
                     "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";
 //            html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + reviewText + "</h1>" +
