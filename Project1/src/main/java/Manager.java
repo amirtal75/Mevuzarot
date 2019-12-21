@@ -1,3 +1,4 @@
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.sqs.model.Message;
 
 import java.io.*;
@@ -6,10 +7,13 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Manager {
+    static AtomicInteger numberOfTasks = new AtomicInteger(0);
 
     public static void main(String[] args) throws Exception {
+
         BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
         writer.write("test");
         BufferedReader reader = null;
@@ -67,6 +71,11 @@ public class Manager {
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
+            if (numberOfTasks.get() % 150 == 0) {
+                Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
+                ec2.attachTags(instance,"worker");
+                System.out.println("created new worker instance: " + instance.getInstanceId());
+            }
 
             try {
                 //System.out.println("the local queue adress is : " + QueueUrlLocalApps);
@@ -76,7 +85,7 @@ public class Manager {
                     String messageContent = currMessege.getBody();
                     System.out.println("Received Message contents:" + messageContent);
 
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData));
+                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, numberOfTasks));
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
                     System.out.println("Received result from input thread, we need to delete the message");

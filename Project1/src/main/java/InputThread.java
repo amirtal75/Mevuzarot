@@ -26,13 +26,12 @@ public class InputThread implements Runnable {
     String myQueueUrl1; //queue for inputJobs
     static AtomicInteger idOfInputFile = new AtomicInteger(0);
      ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
-    static AtomicInteger numberOfTasks = new AtomicInteger(0);
+    AtomicInteger numberOfTasks = new AtomicInteger(0);
     EC2Object ec2;
     boolean toTerminate;
     String inputFilename;
-    String workerUserData;
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData) throws Exception {
+    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, AtomicInteger numberOfTasks) throws Exception {
         System.out.println("the recieving mtasks queue is " + myQueueUrl1);
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
@@ -42,7 +41,7 @@ public class InputThread implements Runnable {
         this.inputFilename = inputFileName;
         this.ec2 = new EC2Object();
         toTerminate = false;
-        this.workerUserData = workerUserData;
+        this.numberOfTasks = numberOfTasks;
     }
 
     public void run() {
@@ -68,12 +67,6 @@ public class InputThread implements Runnable {
                 String job = "";
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
                     System.out.println("current number of tasks is: " + numberOfTasks);
-                    if (numberOfTasks.get() % 150 == 0) {
-                        Instance instance = ec2.createInstance(1,1,this.workerUserData).get(0);
-                        ec2.attachTags(instance,"worker");
-                        System.out.println("created new worker instance: " + instance.getInstanceId());
-                    }
-
                     System.out.println(" Making a job from the current read line: " + currLine);
                     // Line content: (obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
                     currFileObject.increaseInputLines();
