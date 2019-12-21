@@ -40,6 +40,7 @@ public class Worker {
         }
         System.out.println("receivedTasks queue" + receivedTasks + ", completedTasks queue" + completedTasks);
         while (true) {
+            int i = 1;
             try {
                 currJobQueue = queue.recieveMessage(receivedTasks, 1, 10); // check about visibility
             }
@@ -65,6 +66,8 @@ public class Worker {
                // System.out.println("Review is sarcastic: " + isSarcastic);
                // String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
                 String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + sentiment;
+                System.out.println("number of result ; "+ i + "the result is " + result);
+                i++;
                 try {
                     queue.sendMessage(completedTasks, result);
                     System.out.println("message was sent, deleting the task");
