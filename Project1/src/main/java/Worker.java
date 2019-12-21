@@ -38,9 +38,10 @@ public class Worker {
         catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        System.out.println("receivedTasks queue" + receivedTasks + ", completedTasks queue" + completedTasks);
+        int i = 1;
+        System.out.println("receivedTasks queue" + receivedTasks + "\n completedTasks queue" + completedTasks);
         while (true) {
-            int i = 1;
+
             try {
                 currJobQueue = queue.recieveMessage(receivedTasks, 1, 10); // check about visibility
             }
@@ -49,7 +50,7 @@ public class Worker {
             }
             if(!currJobQueue.isEmpty()) {
                 Message currJob = currJobQueue.get(0);
-                System.out.println("Message Received: " + currJob.getBody());
+                System.out.println("Message Received: " + currJob.getBody() +"\n");
                 //inputFIleID + "@" + obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n");
                 String[] reviewAttributes = currJob.getBody().split("@");
                 String inputFileId = reviewAttributes[0];
@@ -69,9 +70,10 @@ public class Worker {
                 System.out.println("number of result ; "+ i + "the result is " + result);
                 i++;
                 try {
+                    System.out.println("sending the result of worker to the completed queue: " + completedTasks);
                     queue.sendMessage(completedTasks, result);
-                    System.out.println("message was sent, deleting the task");
-                    queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
+                    //System.out.println("message was sent, deleting the task");
+                    //queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
