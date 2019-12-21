@@ -48,8 +48,10 @@ public class OutputThread implements Runnable {
                 int inputFileId = Integer.parseInt(resultContent[0]);
                 //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
                 if (stringResultsById.containsKey(inputFileId)) {
+                    StringBuffer currStr = stringResultsById.get(inputFileId);
                     if (!arrayList.contains(resultContent[1])) {
-                        stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                        stringResultsById.putIfAbsent(inputFileId,currStr.append(currMessege.getBody() + "\n"));
+                        //stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
                         arrayList.add(resultContent[1]);
                     }
                 }
