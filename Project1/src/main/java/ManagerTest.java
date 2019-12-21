@@ -1,17 +1,3 @@
-import com.amazonaws.services.sqs.model.Message;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-
-public class ManagerTest {
-
-    public static void main(String[] args) throws Exception {
         //BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));;
 
         BufferedReader reader = null;
@@ -73,7 +59,7 @@ public class ManagerTest {
 
             try {
 
-                poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, "/home/amirtal/IdeaProjects/Project1/src/main/java/inputFile1.txt2ce70f41-021d-4c12-9db6-5c814212b313.txt", workerUserData));
+                poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, "/home/amirtal/IdeaProjects/Project1/src/main/java/inputFile1.txt2ce70f41-021d-4c12-9db6-5c814212b313.txt", new AtomicInteger(0)));
                 // Might need to add future
                 System.out.println("sleeping 60 sec for input thread to finish");
                 Thread.sleep(10000);
@@ -89,7 +75,3 @@ public class ManagerTest {
 
         /*poolForInput.shutdown();
         poolForOutput.shutdown();*/
-    }
-
-}
-
