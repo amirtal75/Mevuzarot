@@ -1,93 +1,102 @@
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.*;
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 
+public class Manager {
 
-//public class InputThread implements Runnable {
-public class InputThread implements Runnable {
+    public static void main(String[] args) throws Exception {
+       //BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));;
 
-    Queue queue;
-    String location;
-    String QueueUrlLocalApps;
-    List<Message> currMessageQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
-    S3Bucket s3;
-    String myQueueUrl1; //queue for inputJobs
-    static AtomicInteger idOfInputFile = new AtomicInteger(0);
-     ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
-    static AtomicInteger numberOfTasks = new AtomicInteger(0);
-    EC2Object ec2;
-    boolean toTerminate;
-    String inputFilename;
-    String workerUserData;
+        BufferedReader reader = null;
+        String QueueUrlLocalApps = "";
+        String summeryFilesIndicatorQueue = "";
+        // Read the Queue names from the managerArgs file
+        try{
+            reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
+            System.out.println("test");
+            QueueUrlLocalApps = reader.readLine();
+            summeryFilesIndicatorQueue = reader.readLine();
+            System.out.println("the local queue adress is : " + QueueUrlLocalApps);
+        } catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+        System.out.println();
+        System.out.println("In Manager:");
+        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData) throws Exception {
-        this.queue = new Queue();
-        QueueUrlLocalApps = queueUrlLocalApps;
-        this.s3 = new S3Bucket();
-        this.myQueueUrl1 = myQueueUrl1;
-        this.InputFileObjectById = inputFileObjectById;
-        this.inputFilename = inputFileName;
-        this.ec2 = new EC2Object();
-        toTerminate = false;
-        this.workerUserData = workerUserData;
-    }
+        // Variables Creation
+        boolean shouldTerminate = false;
+        ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById = new ConcurrentHashMap<Integer, InputFileObject>();
+        ArrayList<InputFileObject> InputFileObjectList = new ArrayList<InputFileObject>();//????
+        ConcurrentHashMap<Integer, StringBuilder> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
+        Queue queue = new Queue();
+        S3Bucket s3 = new S3Bucket();
+        EC2Object ec2 = new EC2Object();
 
-    public void run() {
+        // Create Queues
+        String myQueueUrl1 = queue.createQueue(); //queue for inputTask for workers
+        String myQueueUrl2 = queue.createQueue();//queue for outputTask from workers
+        System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
 
-        String currMessageRecieptHandle; // we need to hold a String for deleting the current message each time when we finish
-        System.out.println("In InputThread: " + Thread.currentThread());
+        // create user data dor workers
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "unzip master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
+        String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
+        String pushFirstArg =  createWorkerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
 
+        String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata;
+        System.out.println("Worker UserData: " + workerUserData);
 
-            InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename);
-            InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
-            System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(currFileObject));
+        // Create Thread Pools
+        System.out.println("Creating pools for Input Thread & Output Thread");
+        ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
+        ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
+
+        List<Message> currMessageQueue = null;
+
+        while (!shouldTerminate) {
 
             try {
-                // Check if need to create worker
+                System.out.println("the local queue adress is : " + QueueUrlLocalApps);
+                currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
+                if (currMessageQueue.size() > 0){
+                    Message currMessege = currMessageQueue.get(0);
+                    String messageContent = currMessege.getBody();
+                    System.out.println("Received Message contents:" + messageContent);
 
-                System.out.println("Downloading an object with key: " + inputFilename);
-                S3Object object = s3.downloadObject(inputFilename); //input file
-                /*BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));*/
-                System.out.println("fie to create tasks from:" + inputFilename);
-                BufferedReader inputFileFromLocalApp =  new BufferedReader(new FileReader(inputFilename));
-                String currLine = "";
-                String job = "";
-                while ((currLine = inputFileFromLocalApp.readLine()) != null) {
-                    System.out.println("current number of tasks is: " + numberOfTasks);
-                    if (numberOfTasks.get() % 453 == 0) {
-                        Instance instance = ec2.createInstance(1,1,this.workerUserData).get(0);
-                        System.out.println("created new worker instance: " + instance.getInstanceId());
+                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, workerUserData));
+                    // Might need to add future
+                    poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, QueueUrlLocalApps));
+                    System.out.println("Received result from input thread, we need to delete the message");
+                    queue.deleteMessage(myQueueUrl1, currMessege); // result = currMessag
                     }
 
-                    System.out.println(" Making a job from the current read line: " + currLine);
-                    // Line content: (obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +"\n"); // added rating******
-                    currFileObject.increaseInputLines();
-                    job = idOfInputFile + "@" + currLine;
-                    queue.sendMessage(myQueueUrl1, job);
-                    numberOfTasks.incrementAndGet();
-                    System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
-
+                else{
+                    Thread.sleep(3000);
                 }
-                currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-                System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
 
+            } catch (Exception e){
+                //System.out.println(e.getMessage());
             }
-            catch (Exception e) {
-                e.printStackTrace(); }
+        }
 
-
+        poolForInput.shutdown();
+        poolForOutput.shutdown();
     }
+
 }
+
