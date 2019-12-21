@@ -37,50 +37,51 @@ public class OutputThread implements Runnable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            Message currMessege = currMessageQueue.get(0);
-            System.out.println("Received message content: " + currMessege.getBody());
-            String[] resultContent = currMessege.getBody().split("@");
-            int inputFileId = Integer.parseInt(resultContent[0]);
-            //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
-            if (stringResultsById.containsKey(inputFileId))
-                stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
-            //check again what I sent to the local app
-            else {
-                stringResultsById.put(inputFileId, new StringBuilder()); // if is absent
+            if (!currMessageQueue.isEmpty()){
+                Message currMessege = currMessageQueue.get(0);
+                System.out.println("Received message content: " + currMessege.getBody());
+                String[] resultContent = currMessege.getBody().split("@");
+                int inputFileId = Integer.parseInt(resultContent[0]);
+                //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
+                if (stringResultsById.containsKey(inputFileId))
+                    stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                    //check again what I sent to the local app
+                else {
+                    stringResultsById.put(inputFileId, new StringBuilder()); // if is absent
                 }
 
-            InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
-            currInputFileObj.increaseOutputLines();
-            currInputFileObj.CheckAndSetAllWorkersDone();
-            System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
-            String inputFilename = currInputFileObj.getInputFilename();
+                InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
+                currInputFileObj.increaseOutputLines();
+                currInputFileObj.CheckAndSetAllWorkersDone();
+                System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
+                String inputFilename = currInputFileObj.getInputFilename();
 
-            if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
-                FileOutputStream outputFile = null;
+                if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
+                    FileOutputStream outputFile = null;
 
+                    try {
+                        String outputName = inputFilename + "$";
+                        //added "$" to the name because I dont want exact names for the input file and output file
+                        Writer writer = new BufferedWriter(new FileWriter(outputName)); //write to the output file
+                        writer.write(stringResultsById.get(inputFileId).toString());
+
+                        s3.upload("", outputName);
+                        System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
+                        queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 try {
-                    String outputName = inputFilename +"$";
-                    //added "$" to the name because I dont want exact names for the input file and output file
-                    Writer writer = new BufferedWriter(new FileWriter(outputName)); //write to the output file
-                    writer.write(stringResultsById.get(inputFileId).toString());
-
-                    s3.upload("",outputName);
-                    System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
-                    queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
+                    queue.deleteMessage(myQueueUrl2, currMessege);
                 }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
 
-                catch (IOException e) {
-                    e.printStackTrace(); }
-                 catch (Exception e) {
-                    e.printStackTrace(); }
-            }
-            try {
-                queue.deleteMessage(myQueueUrl2, currMessege);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 }

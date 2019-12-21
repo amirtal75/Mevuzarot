@@ -36,7 +36,6 @@ public class S3Bucket {
         this.s3 = AmazonS3ClientBuilder.defaultClient();
         this.bucketName = "amirandamitassignment";
         createBucket();
-        System.out.println("The Following bucket was created  " + this.bucketName);
     }
 
 
@@ -61,14 +60,12 @@ public class S3Bucket {
     }
 
     public Bucket createBucket(String newBucket) throws Exception {
-        System.out.println("Inside create bucket");
         Bucket bucket = null;
         if (s3.doesBucketExistV2(newBucket)) {
-            System.out.println("Bucket already exists\n");
+            //System.out.println("Bucket already exists\n");
         }
         else {
             try {
-                System.out.println("Creating bucket " + newBucket + "\n");
                 bucket = s3.createBucket(newBucket);
                 System.out.println("Created Bucket Details: \n" + bucket.toString());
 

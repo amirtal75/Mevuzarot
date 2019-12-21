@@ -33,15 +33,12 @@ public class Main {
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);*/
-        ec2.terminateInstances(null);
-        queue.sqs.deleteQueue(new DeleteQueueRequest());
+        //ec2.terminateInstances(null);
         //Instance createInstance = ec2.createInstance(1,1,userdata).get(0);
-
-        LocalApp localApp = new LocalApp("inputFile1.txt");
+        System.out.println(ec2.getInstances("manager").get(0).getInstanceId());;
+        /*LocalApp localApp = new LocalApp("inputFile1.txt");
         Thread app = new Thread(localApp);
-        app.start();
-
-        String[] inputFiles = {"inputFile1","inputFile2"};
+        app.start();*/
 
     }
 }

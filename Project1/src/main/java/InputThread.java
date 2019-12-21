@@ -67,8 +67,9 @@ public class InputThread implements Runnable {
                 String job = "";
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
                     System.out.println("current number of tasks is: " + numberOfTasks);
-                    if (numberOfTasks.get() % 453 == 0) {
+                    if (numberOfTasks.get() % 150 == 0) {
                         Instance instance = ec2.createInstance(1,1,this.workerUserData).get(0);
+                        ec2.attachTags(instance,"worker");
                         System.out.println("created new worker instance: " + instance.getInstanceId());
                     }
 

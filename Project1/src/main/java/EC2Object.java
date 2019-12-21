@@ -43,6 +43,7 @@ public class EC2Object {
         CreateTagsRequest tagsRequest = new CreateTagsRequest()
                 .withTags(new Tag(tagName,tagName))
                 .withResources(instance.getInstanceId());
+        ec2.createTags(tagsRequest);
 
     }
 

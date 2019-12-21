@@ -4,6 +4,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.services.batch.model.DescribeJobQueuesRequest;
+import com.amazonaws.services.batch.model.DescribeJobQueuesResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import com.amazonaws.services.ec2.model.TerminateInstancesResult;
@@ -208,10 +210,6 @@ public class Queue {
         }
 
         return credentialsProvider;
-    }
-
-    public void terminateQueues(ArrayList<String> queuelist){
-        sqs.deleteQueue(new DeleteQueueRequest());
     }
 
 }

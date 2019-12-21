@@ -64,7 +64,6 @@ public class LocalApp implements Runnable{
                     String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata;
                     System.out.println("In LocalAPP: " + Thread.currentThread());
                     System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
-                    System.out.println("UserData: " + userdata);
 
                     // First created instance = manager
                     Instance instance = ec2.createInstance(1, 1, userdata).get(0);
@@ -83,12 +82,22 @@ public class LocalApp implements Runnable{
                     // Create a parsed object from the input list
                     System.out.println("trying to parse the file " + path + inputFile);
                     inputList = parse(path + inputFile);
+                    System.out.println("\nNumber of reviews parsed: " + inputList.size());
                     String outputFilename = inputFile + UUID.randomUUID() + ".txt";
                     // Write the parsed object to a file
                     BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
                     for (parsedInputObject obj : inputList) {
-                        writer.write(obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n"); // added rating******
+                        //System.out.println(obj.getTitle() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n");
+                        String towrite = obj.getTitle() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n";
+                        try {
+                            writer.write(towrite); // added rating******
+                        } catch (Exception e){
+                            e.getMessage();
+                        }
                     }
+
+                    writer.flush();
+
                     s3.upload(path,outputFilename);
                     queue.sendMessage(QueueUrlLocalApps, outputFilename);
                     System.out.println("done parse");
@@ -164,27 +173,29 @@ public class LocalApp implements Runnable{
 
     }
 
-    private ArrayList<parsedInputObject> parse(String filename) {        System.out.println("in parse");
+    private ArrayList<parsedInputObject> parse(String filename) {
+        System.out.println("in parse");
         ArrayList<parsedInputObject> inputArray = new ArrayList<parsedInputObject>();
         Gson gson = new Gson();
         BufferedReader reader;
         ArrayList<Review> reviews;
         try {
             reader = new BufferedReader(new FileReader(filename));
-            System.out.println("file was opened");
+            //System.out.println("file was opened");
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println("current line is:" + line);
+                //System.out.println("current line is:" + line);
                 Book dataholder = gson.fromJson(line, Book.class);
-                System.out.println("gson done");
+                //System.out.println("gson done");
 
 
 
                 if (dataholder != null) {
-                    System.out.println("gson not null");
+                    //System.out.println("gson not null");
                     reviews = dataholder.getReviews();
-                    System.out.println("got reviews");
+                    //System.out.println("got reviews: " + !reviews.isEmpty());
                     for (int i = 0; i < reviews.size(); i++) {
+                        //System.out.println("title: " + dataholder.getTitle() + ", review: " + reviews.get(i).toString() );
                         inputArray.add(new parsedInputObject(dataholder.getTitle(), reviews.get(i)));
                     }
                 }
