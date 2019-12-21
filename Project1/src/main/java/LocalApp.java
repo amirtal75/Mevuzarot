@@ -47,7 +47,7 @@ public class LocalApp implements Runnable{
                     summeryFilesIndicatorQueueUrl = queue.createQueue();
                     // Manager userdata
                     String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
-                    String unzip = getProject + "unzip master.zip\n";
+                    String unzip = getProject + "sudo unzip -o master.zip\n";
                     String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
                     String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
                     String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";

@@ -19,7 +19,7 @@ public class Main {
         String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
         String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn -T 4 install\n";
-        String createAndRunProject = "sudo java -jar target/core-java-1.0-SNAPSHOT.jar\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
         String createManagerArgsFile = "touch src/main/java/managerArgs.txt\n";
         String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
@@ -39,9 +39,11 @@ public class Main {
         // ssh instructions
         // open new terminal window
         //cd Downloads
-        // ssh -i "projectKey.pem" ubuntu@ec2-34-212-30-5.us-west-2.compute.amazonaws.com
+        // ssh -i "projectKey.pem" ubuntu@ssh -i "projectKey.pem" root@ec2-34-214-234-234.us-west-2.compute.amazonaws.com
         // write yes and enter
-        //
-
+        // check instance log command = cat /var/log/cloud-init-output.log
+//
     }
 }
+
+//ssh -i "projectKey.pem" ubuntu@ec2-34-217-214-240.us-west-2.compute.amazonaws.com

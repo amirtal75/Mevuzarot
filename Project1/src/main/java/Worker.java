@@ -28,6 +28,7 @@ public class Worker {
         String completedTasks = "";
         String path = "/home/ubuntu//Mevuzarot-master/Project1/src/main/java/";
 
+
         // Read the Queue names from the managerArgs file
         try {
             reader = new BufferedReader(new FileReader(path + "workerArgs.txt"));
