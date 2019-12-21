@@ -136,7 +136,7 @@ public class EC2Object {
         // Convert userData script to base 64
         String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
         // ami image we created with various installations
-        String projectPrivateAmi = "ami-072633fa07c639ba7";
+        String projectPrivateAmi = "ami-0b6968e94a4a0e4cf";
         // create the project Key Pair
         createKeyPair("projectKey");
         // Create the project IAM Role
@@ -173,7 +173,11 @@ public class EC2Object {
                 instances) {
             instancesToTerminate.add(instance.getInstanceId());
         }
+        DeleteTagsRequest deleteTagsRequest = new DeleteTagsRequest()
+                .withResources(instancesToTerminate)
+                .withTags(new Tag("manager","manager"));
 
+        ec2.deleteTags(deleteTagsRequest);
         TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest(instancesToTerminate);
         if (!instances.isEmpty()) {
             TerminateInstancesResult result = this.ec2.terminateInstances(terminateRequest);
