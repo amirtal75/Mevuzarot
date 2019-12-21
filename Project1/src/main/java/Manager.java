@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 public class Manager {
 
     public static void main(String[] args) throws Exception {
-       //BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));;
-
+        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
+        writer.write("test");
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
         String summeryFilesIndicatorQueue = "";
