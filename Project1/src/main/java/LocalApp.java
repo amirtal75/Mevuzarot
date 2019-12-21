@@ -1,7 +1,4 @@
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.Tag;
-import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
 import com.google.gson.Gson;
@@ -38,7 +35,7 @@ public class LocalApp implements Runnable{
             S3Bucket s3 = new S3Bucket();
             s3.createBucket();
             Queue queue = new Queue();
-            String path = "/home/amirtal/IdeaProjects/Project1/src/main/java/";
+            String path = "/home/amirtal/IdeaProjects/Localapp/src/main/java/";
             // C:\Users\amithaim7\Documents\GitHub\Mevuzarot\Project1\src\main\java
             //Gson gson = new Gson();
            // Instance ec2Instance = null;

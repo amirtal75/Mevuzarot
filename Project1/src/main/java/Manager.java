@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
 
 public class Manager {
 

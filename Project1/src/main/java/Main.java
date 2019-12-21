@@ -1,8 +1,4 @@
 
-import com.amazonaws.services.sqs.model.DeleteQueueRequest;
-
-import java.util.ArrayList;
-
 public class Main {
 
 
@@ -33,12 +29,19 @@ public class Main {
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);*/
-        //ec2.terminateInstances(null);
+        ec2.terminateInstances(null);
         //Instance createInstance = ec2.createInstance(1,1,userdata).get(0);
         //System.out.println(ec2.getInstances("manager").get(0).getInstanceId());;
         LocalApp localApp = new LocalApp("inputFile1.txt");
         Thread app = new Thread(localApp);
         app.start();
+
+        // ssh instructions
+        // open new terminal window
+        //cd Downloads
+        // ssh -i "projectKey.pem" ubuntu@ec2-34-212-30-5.us-west-2.compute.amazonaws.com
+        // write yes and enter
+        //
 
     }
 }

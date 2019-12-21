@@ -2,6 +2,7 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.*;
 import java.util.ArrayList;
+
 import java.util.Base64;
 import java.util.List;
 
@@ -136,7 +137,7 @@ public class EC2Object {
         // Convert userData script to base 64
         String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
         // ami image we created with various installations
-        String projectPrivateAmi = "ami-0b6968e94a4a0e4cf";
+        String projectPrivateAmi = "ami-0730b3f13aed2017a";
         // create the project Key Pair
         createKeyPair("projectKey");
         // Create the project IAM Role
