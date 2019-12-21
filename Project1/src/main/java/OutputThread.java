@@ -52,8 +52,10 @@ public class OutputThread implements Runnable {
                 if (!completedreviewIDlist.contains(resultContent[1])) {
                     try {
                         writer.write(currMessege.getBody() + "\n");
+                        System.out.println("increasing output from: " + currInputFileObj.getOutputLines());
                         currInputFileObj.increaseOutputLines();
-                        currInputFileObj.CheckAndSetAllWorkersDone();
+                        System.out.println("after increase number og output lines: " + currInputFileObj.getOutputLines());
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -62,7 +64,7 @@ public class OutputThread implements Runnable {
                 }
                 
                     //check again what I sent to the local app
-
+                currInputFileObj.CheckAndSetAllWorkersDone();
                 System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
                 String inputFilename = currInputFileObj.getInputFilename();
 
