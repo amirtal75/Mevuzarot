@@ -122,7 +122,7 @@ public class LocalApp implements Runnable{
                                 S3Object outputObject = s3.downloadObject(currMessageName);
                                 BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
                                 String[] resultsToHTML = reader.readLine().split("\n");
-                                createHTML(resultsToHTML);
+                                createHTML(path,resultsToHTML);
                                 System.out.println("stopping localapp");
                                 summeryFileIsReady = true;
                                 queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
@@ -142,13 +142,13 @@ public class LocalApp implements Runnable{
 
     }
 
-        private static void createHTML(String[] inputRepresentation) throws IOException {
+        private static void createHTML(String path, String[] inputRepresentation) throws IOException {
 //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
         String toAdd;
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
         File HTMLfile = new File("Desktop");
         HTMLfile.mkdir();
-        BufferedWriter bw = new BufferedWriter(new FileWriter(HTMLfile));
+        BufferedWriter bw = new BufferedWriter(new FileWriter(path + HTMLfile));
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
         for (String str : inputRepresentation) {
             String[] currReviewAttributes = str.split("@");

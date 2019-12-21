@@ -1,3 +1,6 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,20 +14,32 @@ public class InputFileObject {
 
     AtomicInteger inputLines;
     AtomicInteger outputLines;
+    BufferedWriter writer = null;
 
 
     AtomicBoolean redAllLines; // finish to read all lines
     AtomicBoolean allWorkersDone; //all the workers finished
     String inputFilename;
 
-    public InputFileObject(int id,String inputFilename){
+    public InputFileObject(int id,String inputFilename, String path){
         this.id = id;
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
         redAllLines = new AtomicBoolean(false);
         allWorkersDone = new AtomicBoolean(false);
         this.inputFilename = inputFilename;
+        try {
+            this.writer = new BufferedWriter(new FileWriter(path +inputFilename+"$"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+    public
+    BufferedWriter getWriter() {
+        return writer;
+    }
+
     public AtomicInteger getInputLines() {
         return inputLines;
     }

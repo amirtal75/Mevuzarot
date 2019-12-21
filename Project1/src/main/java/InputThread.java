@@ -46,12 +46,12 @@ public class InputThread implements Runnable {
 
     public void run() {
 
-        String currMessageRecieptHandle; // we need to hold a String for deleting the current message each time when we finish
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         System.out.println("In InputThread: " + Thread.currentThread());
 
 
 
-            InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename);
+            InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename, path);
             InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
             System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(currFileObject));
 

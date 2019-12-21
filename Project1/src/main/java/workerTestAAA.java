@@ -21,16 +21,15 @@ public class workerTestAAA {
 
 
     public static void main(String[] args) throws IOException {
-
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         String inputFilename = "inputFile1.txt";
         int idOfInputFile = 0;
         idOfInputFile++;
-        InputFileObject currFileObject = new InputFileObject(idOfInputFile, inputFilename);
+        InputFileObject currFileObject = new InputFileObject(idOfInputFile, inputFilename,path);
         ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById = new ConcurrentHashMap<Integer,InputFileObject>();
         ArrayList<String> jobs = new ArrayList<String>();
         ArrayList<String> results = new ArrayList<String>();
         InputFileObjectById.putIfAbsent(idOfInputFile, currFileObject);
-        String path = "/home/amirtal/IdeaProjects/Project1/src/main/java/";
             // Create a parsed object from the input list
         System.out.println("trying to parse the file " + path + inputFilename);
             ArrayList<parsedInputObject> inputList = parse(path + inputFilename);
