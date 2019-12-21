@@ -73,7 +73,7 @@ public class OutputThread implements Runnable {
                         writer.write(stringResultsById.get(inputFileId).toString());
                         writer.flush();
                         s3.upload(path, outputName);
-                        System.out.println("sending finished output file to local app");
+                        System.out.println("sending finished output file to local app" + summeryFilesIndicatorQueue);
                         queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
                     } catch (IOException e) {
                         e.printStackTrace();
