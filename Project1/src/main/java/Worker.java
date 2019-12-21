@@ -57,16 +57,16 @@ public class Worker {
                 String reviewId = reviewAttributes[1];
                 String reviewText = reviewAttributes[2];
                 String reviewRating = reviewAttributes[3];
-                System.out.println("Finding sentiment");
+                System.out.println("Finding sentiment for the message: " + currJob.getBody() + "\n");
                 int sentiment = findSentiment(reviewText);
-               // System.out.println("Finding entities");
-               // String reviewEntities = getEntities(reviewText);
+                System.out.println("Finding entities");
+                String reviewEntities = getEntities(reviewText);
                 System.out.println("Sentiment found is: " + sentiment);
-               // System.out.println("Entities Discovered: " + reviewEntities);
+                System.out.println("Entities Discovered: " + reviewEntities);
                 isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
                // System.out.println("Review is sarcastic: " + isSarcastic);
-               // String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
-                String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + sentiment;
+                String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
+                //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + sentiment;
                 System.out.println("number of result ; "+ i + "the result is " + result);
                 i++;
                 try {
