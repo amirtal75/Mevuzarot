@@ -71,6 +71,7 @@ public class Manager {
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
+            System.out.println(" numberOfTasks: " + numberOfTasks.get());
             if (numberOfTasks.get() % 150 == 0) {
                 Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
                 ec2.attachTags(instance,"worker");
