@@ -10,10 +10,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Manager {
-    static AtomicInteger numberOfTasks = new AtomicInteger(0);
+
 
     public static void main(String[] args) throws Exception {
-
+        AtomicInteger numberOfTasks = new AtomicInteger(0);
         BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
         writer.write("test");
         BufferedReader reader = null;
@@ -71,8 +71,9 @@ public class Manager {
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
+            System.out.println(" numberOfTasks: " + numberOfTasks.get());
             if (numberOfTasks.get() % 150 == 0) {
-                System.out.println(" numberOfTasks: " + numberOfTasks.get());
+
                 Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
                 ec2.attachTags(instance,"worker");
                 System.out.println("created new worker instance: " + instance.getInstanceId());
