@@ -119,7 +119,7 @@ public class LocalApp implements Runnable{
 
                         for (String inputFile : inputFiles) {
                             if (currMessageName.indexOf(inputFile) != -1) {
-                                S3Object outputObject = s3.downloadObject(currMessageName + "$");
+                                S3Object outputObject = s3.downloadObject(currMessageName);
                                 BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
                                 String[] resultsToHTML = reader.readLine().split("\n");
                                 createHTML(resultsToHTML);
