@@ -37,7 +37,7 @@ public class Manager {
         boolean shouldTerminate = false;
         ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById = new ConcurrentHashMap<Integer, InputFileObject>();
         ArrayList<InputFileObject> InputFileObjectList = new ArrayList<InputFileObject>();//????
-        ConcurrentHashMap<Integer, StringBuilder> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
+        ConcurrentHashMap<Integer, StringBuffer> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
         Queue queue = new Queue();
         S3Bucket s3 = new S3Bucket();
         EC2Object ec2 = new EC2Object();
