@@ -58,7 +58,7 @@ public class Worker {
                 System.out.println("Finding sentiment");
                 int sentiment = findSentiment(reviewText);
                 System.out.println("Finding entities");
-                String reviewEntities = returnEntities(reviewText);
+                String reviewEntities = getEntities(reviewText);
                 System.out.println("Sentiment found is: " + sentiment);
                 System.out.println("Entities Discovered: " + reviewEntities);
                 isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
@@ -106,11 +106,11 @@ public class Worker {
     }
 
 
-    public static String returnEntities(String review) {
+    public static String getEntities(String review) {
 
-        StringBuilder result = new StringBuilder();
+
         Properties props = new Properties();
-        props.put("annotators", "tokenize , split, pos, lemma, ner");
+        props.put("annotators", "tokenize , ssplit, pos, lemma, ner");
         StanfordCoreNLP NERPipeline = new StanfordCoreNLP(props);
         // create an empty Annotation just with the given text
         Annotation document = new Annotation(review);
@@ -122,6 +122,7 @@ public class Worker {
         // a CoreMap is essentially a Map that uses class objects as keys and has values with custom types
         List<CoreMap> sentences = document.get(CoreAnnotations.SentencesAnnotation.class);
 
+        StringBuilder entities = new StringBuilder("[");
         for (CoreMap sentence : sentences) {
             // traversing the words in the current sentence
             // a CoreLabel is a CoreMap with additional token-specific methods
@@ -130,11 +131,11 @@ public class Worker {
                 String word = token.get(CoreAnnotations.TextAnnotation.class);
                 // this is the NER label of the token
                 String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
-                result.append("\t-" + word + ":" + ne + "$$"); // check if works
-
+                entities.append("\t-").append(word).append(":").append(ne).append(",");
             }
         }
-        return result.toString();
+        entities.append("]");
+        return entities.toString();
     }
 }
 
