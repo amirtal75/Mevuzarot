@@ -121,7 +121,14 @@ public class LocalApp implements Runnable{
                             if (currMessageName.indexOf(inputFile) != -1) {
                                 S3Object outputObject = s3.downloadObject(currMessageName);
                                 BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
-                                String[] resultsToHTML = reader.readLine().split("\n");
+
+                                StringBuilder stringBuilder = new StringBuilder();
+                                String line = "";
+                                while ((line = reader.readLine()) != null ){
+                                    stringBuilder.append(line+ "\n");
+                                }
+
+                                String[] resultsToHTML = stringBuilder.toString().split("\n");
                                 createHTML(path,resultsToHTML);
                                 System.out.println("stopping localapp");
                                 summeryFileIsReady = true;
@@ -142,36 +149,67 @@ public class LocalApp implements Runnable{
 
     }
 
-        private static void createHTML(String path, String[] inputRepresentation) throws IOException {
-//String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
-        String toAdd;
+    private static void createHTML(String path, String[] inputRepresentation) throws IOException {
+        //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
+
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
-        File HTMLfile = new File("Desktop");
-        HTMLfile.mkdir();
-        BufferedWriter bw = new BufferedWriter(new FileWriter(path + HTMLfile));
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
         for (String str : inputRepresentation) {
             String[] currReviewAttributes = str.split("@");
             //int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
             int reviewSentiment = Integer.parseInt(currReviewAttributes[4]);
+            String isSarcestic = "";
+            if(currReviewAttributes[2].equals("false")){
+                isSarcestic = "not sarcastic review";
+            }
+            else
+                isSarcestic = "sarcastic review";
             /*toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
                     "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";*/
-            toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
-                    "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";
-//            html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + reviewText + "</h1>" +
-//                    "<h1>" + reviewEntities + " " + currReviewAttributes[2] + "</h1>");
-            html.append(toAdd);
+            html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
+                    "<h1>" + isSarcestic + " " + reviewSentiment + "</h1>");
         }
-
         html.append("</body>\n" + "</html>");
-        try {
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("html_output.html"), "utf-8"));
-                writer.write(html.toString());
-            }
-        catch (IOException e) {
-            e.printStackTrace();}
 
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream("html_output.html"), "utf-8"))) {
+            writer.write(html.toString());
+        }
     }
+
+
+
+//    public static void main(String[] args) throws IOException {
+//        //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
+//        String[] inputRepresentation = {"1234","1111","false","the book is amazing , it was a pleasure to read it",
+//                "bbbbbbb","3" };
+//
+//        String inputFileId;
+//        String reviewId;
+//        String isSarcastic;
+//        String reviewText;
+//        String reviewEntities;
+//        int reviewSentiment;
+//
+//        String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
+//        StringBuilder html = new StringBuilder("<html>\n" + "<body>");
+//        //for (String str : inputRepresentation) {
+//        //String[] currReviewAttributes = str.split("@");
+//        inputFileId = inputRepresentation[0];
+//        reviewId = inputRepresentation[1]; // do we need to write it on the html file?
+//        isSarcastic = inputRepresentation[2];
+//        reviewText = inputRepresentation[3];
+//        reviewEntities = inputRepresentation[4];
+//        reviewSentiment = Integer.parseInt(inputRepresentation[5]);
+//        html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + reviewText + "</h1>" +
+//                "<h1>" + reviewEntities + " " + isSarcastic + "</h1>");
+//        html.append("</body>\n" + "</html>");
+//
+//        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+//                new FileOutputStream("html_output.html"), "utf-8"))) {
+//            writer.write(html.toString());
+//        }
+//    }
 
     private ArrayList<parsedInputObject> parse(String filename) {
         System.out.println("in parse");
