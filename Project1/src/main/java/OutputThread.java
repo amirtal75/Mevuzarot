@@ -71,7 +71,7 @@ public class OutputThread implements Runnable {
                         //added "$" to the name because I dont want exact names for the input file and output file
                         Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
                         writer.write(stringResultsById.get(inputFileId).toString());
-
+                        writer.flush();
                         s3.upload(path, outputName);
                         System.out.println("sending finished output file to local app");
                         queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
