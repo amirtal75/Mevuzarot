@@ -34,6 +34,7 @@ public class Worker {
             reader = new BufferedReader(new FileReader(path + "workerArgs.txt"));
             receivedTasks = reader.readLine();
             completedTasks = reader.readLine();
+            reader.close();
         }
         catch (IOException e) {
             System.out.println(e.getMessage());
@@ -113,7 +114,7 @@ public class Worker {
 
     public static String getEntities(String review) {
 
-
+        System.out.println("Crash test 0\n\n");
         Properties props = new Properties();
         props.put("annotators", "tokenize , ssplit, pos, lemma, ner");
         StanfordCoreNLP NERPipeline = new StanfordCoreNLP(props);
@@ -123,9 +124,13 @@ public class Worker {
         // run all Annotators on this text
         NERPipeline.annotate(document);
 
+        System.out.println("Crash test 1\n\n");
+
         // these are all the sentences in this document
         // a CoreMap is essentially a Map that uses class objects as keys and has values with custom types
         List<CoreMap> sentences = document.get(CoreAnnotations.SentencesAnnotation.class);
+
+        System.out.println("Crash test 2\n\n");
 
         StringBuffer entities = new StringBuffer("[");
         for (CoreMap sentence : sentences) {
