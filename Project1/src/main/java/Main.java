@@ -33,7 +33,7 @@ public class Main {
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         System.out.println("UserData: " + userdata);*/
-        ec2.terminateInstances(null);
+        //ec2.terminateInstances(null);
         //Instance createInstance = ec2.createInstance(1,1,userdata).get(0);
         //System.out.println(ec2.getInstances("manager").get(0).getInstanceId());;
         LocalApp localApp = new LocalApp("inputFile1.txt");

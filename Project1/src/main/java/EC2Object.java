@@ -144,7 +144,7 @@ public class EC2Object {
         //Create the request to run
         RunInstancesRequest request = new RunInstancesRequest(projectPrivateAmi, min, max);
         // define instance type
-        request.setInstanceType(InstanceType.T1Micro.toString());
+        request.setInstanceType(InstanceType.T2Micro.toString());
         // define the script to run in base 64
         request.withUserData(encodedUserData);
         // define the random key pair we created
