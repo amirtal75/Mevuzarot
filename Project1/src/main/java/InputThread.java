@@ -33,6 +33,7 @@ public class InputThread implements Runnable {
     String workerUserData;
 
     public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, String workerUserData) throws Exception {
+        System.out.println("the recieving mtasks queue is " + myQueueUrl1);
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket();
@@ -78,6 +79,7 @@ public class InputThread implements Runnable {
                     currFileObject.increaseInputLines();
                     job = idOfInputFile + "@" + currLine;
                     queue.sendMessage(myQueueUrl1, job);
+                    System.out.println("sending a task to the queue" + myQueueUrl1);
                     numberOfTasks.incrementAndGet();
                     System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
 
