@@ -28,8 +28,10 @@ public class OutputThread implements Runnable {
         this.stringResultsById = stringResultsById;
         toTerminate = false;
     }
-
+    int i =1;
     public void run() {
+        ArrayList<String> arrayList= new ArrayList<>();
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         System.out.println("In Output Thread: " + Thread.currentThread());
         while (!toTerminate) {
             try {
@@ -37,19 +39,23 @@ public class OutputThread implements Runnable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            System.out.println("received message from worker queue: " + currMessageQueue.isEmpty());
             if (!currMessageQueue.isEmpty()){
                 Message currMessege = currMessageQueue.get(0);
-                System.out.println("Received message content: " + currMessege.getBody());
+                System.out.println("Received message number " + i + " content: " + currMessege.getBody());
                 String[] resultContent = currMessege.getBody().split("@");
                 int inputFileId = Integer.parseInt(resultContent[0]);
                 //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
-                if (stringResultsById.containsKey(inputFileId))
-                    stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                if (stringResultsById.containsKey(inputFileId)) {
+                    if (!arrayList.contains(resultContent[1])) {
+                        stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                        arrayList.add(resultContent[1]);
+                    }
+                }
                     //check again what I sent to the local app
                 else {
-                    stringResultsById.put(inputFileId, new StringBuilder()); // if is absent
+                    stringResultsById.put(inputFileId, new StringBuilder(currMessege.getBody() + "\n")); // if is absent
                 }
+                System.out.println("Number of resultbyid before trying to add" + stringResultsById.size() + "the cuurent stringBuilder is: " + stringResultsById.get(inputFileId).toString());
 
                 InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
                 currInputFileObj.increaseOutputLines();
@@ -63,11 +69,11 @@ public class OutputThread implements Runnable {
                     try {
                         String outputName = inputFilename + "$";
                         //added "$" to the name because I dont want exact names for the input file and output file
-                        Writer writer = new BufferedWriter(new FileWriter(outputName)); //write to the output file
+                        Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
                         writer.write(stringResultsById.get(inputFileId).toString());
 
-                        s3.upload("", outputName);
-                        System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
+                        s3.upload(path, outputName);
+                        System.out.println("sending finished output file to local app");
                         queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -87,6 +93,7 @@ public class OutputThread implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            i++;
         }
     }
 }

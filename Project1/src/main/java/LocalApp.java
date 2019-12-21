@@ -58,7 +58,6 @@ public class LocalApp implements Runnable{
                     String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
                     String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueueUrl + " >> src/main/java/managerArgs.txt\n";
 
-                    //String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata;
                     String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
                     System.out.println("In LocalAPP: " + Thread.currentThread());
                     System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
