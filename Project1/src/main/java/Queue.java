@@ -129,7 +129,6 @@ public class Queue {
 
     public void deleteMessage(String queueUrl, Message message) throws Exception {
         try {
-            System.out.println("Deleting a message.\n");
             String messageRecieptHandle = message.getReceiptHandle();
             this.sqs.deleteMessage(new DeleteMessageRequest(queueUrl, messageRecieptHandle));
 
