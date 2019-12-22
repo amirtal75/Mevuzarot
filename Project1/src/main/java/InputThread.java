@@ -29,8 +29,9 @@ public class InputThread implements Runnable {
     EC2Object ec2;
     boolean toTerminate;
     String inputFilename;
+    String workerUserData;
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, AtomicInteger numberOfTasks) throws Exception {
+    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, AtomicInteger numberOfTasks, String workerUserData) throws Exception {
         System.out.println("the recieving mtasks queue is " + myQueueUrl1);
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
@@ -41,6 +42,7 @@ public class InputThread implements Runnable {
         this.ec2 = new EC2Object();
         toTerminate = false;
         this.numberOfTasks = numberOfTasks;
+        this.workerUserData = workerUserData;
     }
 
     public void run() {
@@ -64,6 +66,13 @@ public class InputThread implements Runnable {
                 /*BufferedReader inputFileFromLocalApp =  new BufferedReader(new FileReader(inputFilename));*/
                 String currLine = "";
                 String job = "";
+
+                if (numberOfTasks.get() % 150 == 0) {
+                    Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
+                    ec2.attachTags(instance,"worker");
+                    System.out.println("created new worker instance: " + instance.getInstanceId());
+                }
+
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
                     System.out.println("current number of tasks is: " + numberOfTasks);
                     System.out.println(" Making a job from the current read line: " + currLine);
