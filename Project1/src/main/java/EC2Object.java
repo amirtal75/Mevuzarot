@@ -169,6 +169,10 @@ public class EC2Object {
             instances = getInstances("");
         }
 
+        if (instances.size() == 0){
+            return 0;
+        }
+
         ArrayList<String> instancesToTerminate = new ArrayList<>();
         for (Instance instance:
                 instances) {
