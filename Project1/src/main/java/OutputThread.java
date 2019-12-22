@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OutputThread implements Runnable {
 
@@ -17,9 +18,10 @@ public class OutputThread implements Runnable {
     AmazonEC2 ec2;
     ConcurrentHashMap<Integer, StringBuilder> stringResultsById; // will be passed by manager(the refference) by constructor
     boolean toTerminate;
+    AtomicInteger numberOfCompletedTasks;
 
     public
-    OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String summeryFilesIndicatorQueue) throws Exception {
+    OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String summeryFilesIndicatorQueue, AtomicInteger numberOfCompletedTasks) throws Exception {
         this.queue = new Queue();
         this.myQueueUrl2 = myQueueUrl2;
         this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;
@@ -27,6 +29,7 @@ public class OutputThread implements Runnable {
         this.InputFileObjectById = inputFileObjectById;
         this.stringResultsById = stringResultsById;
         toTerminate = false;
+        this.numberOfCompletedTasks = numberOfCompletedTasks;
     }
 
     public
@@ -62,10 +65,11 @@ public class OutputThread implements Runnable {
 
                 try {
                     queue.deleteMessage(myQueueUrl2, currMessege);
+                    numberOfCompletedTasks.incrementAndGet();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
+                //System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
                 String inputFilename = currInputFileObj.getInputFilename();
 
             }
