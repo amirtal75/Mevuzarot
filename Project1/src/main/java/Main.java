@@ -14,10 +14,6 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         EC2Object ec2 = new EC2Object();
-        CreateTagsRequest tagsRequest = new CreateTagsRequest()
-                .withTags(new Tag("worker","worker"))
-                .withResources("i-0324745154e40431f");
-        ec2.getEc2().createTags(tagsRequest);
 
         // !!!!!!!!!!!!!! need to delete !!!!!!!!!!!!
         ec2.terminateInstances(null);
@@ -47,7 +43,7 @@ public class Main {
     private synchronized static void createManager(){
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
-
+        System.out.println(ec2.getInstances("manager").isEmpty());
         if (ec2.getInstances("manager").isEmpty()) {
             try {
                 System.out.println("Creating manager from local app");

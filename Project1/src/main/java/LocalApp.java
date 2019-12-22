@@ -31,7 +31,7 @@ public class LocalApp implements Runnable{
     }
 
     public void run() {
-        String delimiter = " #@#$%^& ";
+        String delimiter = " -@@@@@@@- ";
         try {
             boolean summeryFileIsReady = false;
             System.out.println("In local App " + Thread.currentThread().getId());
@@ -74,12 +74,10 @@ public class LocalApp implements Runnable{
 
                 System.out.println(" entering message loop ");
                 while (summeryFileIsReady == false) {
-                    System.out.println("inside loop");
             /*if (ec2.getInstances("manager").get(0).getState().getName().equals("terminated")){
                 System.out.println("Manager is dead !!!!!!!!!!!!!");
                 createManager(s3, ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
              }*/
-                    System.out.println("hi im here");
                     String currMessageName;
                     System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
                     List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl,1,1);
@@ -109,7 +107,6 @@ public class LocalApp implements Runnable{
                         }
 
                     }
-                    System.out.println("sleep local");
                    Thread.currentThread().sleep(3000);
 //            Thread.sleep(60);
                 }
@@ -122,7 +119,7 @@ public class LocalApp implements Runnable{
     }
 
     private static void createHTML(String filename, String[] inputRepresentation) throws IOException {
-        String delimiter = " #@#$%^& ";
+        String delimiter = " -@@@@@@@- ";
         //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment + delimiter + reviewLink;
         System.out.println("the size of the input representation is " + inputRepresentation.length);
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};

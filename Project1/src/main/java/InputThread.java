@@ -46,7 +46,7 @@ public class InputThread implements Runnable {
     }
 
     public void run() {
-        String delimiter = " #@#$%^& ";
+        String delimiter = " -@@@@@@@- ";
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         System.out.println("In InputThread: " + Thread.currentThread());
 

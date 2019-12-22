@@ -18,7 +18,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class Worker {
 
     public static void main(String[] args) throws InterruptedException {
-        String delimiter = " #@#$%^& ";
+        String delimiter = " -@@@@@@@- ";
         System.out.println("In Worker:\n");
         Queue queue = new Queue();
         List<Message> currJobQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
@@ -54,6 +54,7 @@ public class Worker {
                 System.out.println("Message Received: " + currJob.getBody() +"\n");
                 //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
                 String[] reviewAttributes = currJob.getBody().split(delimiter);
+                System.out.println("review attribues length: " + reviewAttributes.length);
                 String inputFileId = reviewAttributes[0];
                 String reviewId = reviewAttributes[1];
                 String reviewText = reviewAttributes[2];

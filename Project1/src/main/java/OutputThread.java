@@ -31,7 +31,7 @@ public class OutputThread implements Runnable {
 
     public
     void run() {
-        String delimiter = " #@#$%^& ";
+        String delimiter = " -@@@@@@@- ";
         ArrayList<String> completedreviewIDlist = new ArrayList<>();
         System.out.println("In Output Thread: " + Thread.currentThread());
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
