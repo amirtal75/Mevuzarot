@@ -209,15 +209,14 @@ public class EC2Object {
             for(Reservation reservation :
                     reservations) {
                 List<Instance> instances = reservation.getInstances();
-                if (tagName.equals("")) {
-                    instancesResult.addAll(instances);
-                }
-                else{
-                    for (Instance instance:
-                            instances ) {
-                        if (instance.getTags().contains(new Tag(tagName,tagName) ) && instance.getState().equals("running")){
-                            instancesResult.add(instance);
-                        }
+                for (Instance instance:
+                        instances ) {
+                    Tag tag = new Tag(tagName,tagName);
+                    if (tagName.equals("") && instance.getState().getName().equals("running")){
+                        instancesResult.add(instance);
+                    }
+                    else if (instance.getTags().contains(tag) && instance.getState().getName().equals("running")){
+                        instancesResult.add(instance);
                     }
                 }
             }
