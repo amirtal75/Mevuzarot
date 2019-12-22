@@ -34,50 +34,73 @@ public class OutputThread implements Runnable {
 
     public
     void run() {
+
         String delimiter = " -@@@@@@@- ";
         ArrayList<String> completedreviewIDlist = new ArrayList<>();
         System.out.println("In Output Thread: " + Thread.currentThread());
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         int numberOftasksworkedbythisOutputThread = 0;
+
+
         while (!toTerminate) {
+
+
             try {
                 currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 60); // check about visibility
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
             if (!currMessageQueue.isEmpty()) {
+
                 ++numberOftasksworkedbythisOutputThread;
                 System.out.println(" Num of tasks perform by this output thread: " + Thread.currentThread().getId() + " is: " + numberOftasksworkedbythisOutputThread);
+
                 Message currMessege = currMessageQueue.get(0);
                 // System.out.println("Received message content: " + currMessege.getBody());
+
                 String[] resultContent = currMessege.getBody().split(delimiter);
                 int inputFileId = Integer.parseInt(resultContent[0]);
+
                 //String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
-                InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
-                if (!completedreviewIDlist.contains(resultContent[1])) {
-                    if (stringResultsById.containsKey(inputFileId)) {
-                        StringBuffer builder = new StringBuffer(stringResultsById.get(inputFileId).toString());
-                        builder.append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
-                        stringResultsById.replace(inputFileId,builder);
-                        completedreviewIDlist.add(resultContent[1]);
-                        currInputFileObj.increaseOutputLines();
-                    }
-                    //check again what I sent to the local app
-                    else {
-                        stringResultsById.put(inputFileId, new StringBuffer(currMessege.getBody() + "\n")); // if is absent
-                        currInputFileObj.increaseOutputLines();
-                    }
-                    numberOfCompletedTasks.incrementAndGet();
-                }
 
-                try {
-                    queue.deleteMessage(myQueueUrl2, currMessege);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                //System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
-                String inputFilename = currInputFileObj.getInputFilename();
+                synchronized (this){
 
+                    InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
+                    String filename = currInputFileObj.getInputFilename();
+                    System.out.println("In Output Thread: The input file worked on in this task: " + filename);
+
+                    if (!completedreviewIDlist.contains(resultContent[1])) {
+                        System.out.println("In Output Thread: The current number of increaseOutputLines is: " + currInputFileObj.getOutputLines());
+                        System.out.println("In Output Thread: The current number of completed tasks is: " + numberOfCompletedTasks);
+                        if (stringResultsById.containsKey(inputFileId)) {
+                            System.out.println("In Output Thread: Working on existing string buffer");
+                            StringBuffer builder = stringResultsById.get(inputFileId);
+                            builder.append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                            completedreviewIDlist.add(resultContent[1]);
+
+                            System.out.println("In Output Thread: added a line to the existing builder of the file: " + filename);
+
+                            currInputFileObj.increaseOutputLines();
+                        }
+
+                        //check again what I sent to the local app
+                        else {
+                            stringResultsById.put(inputFileId, new StringBuffer(currMessege.getBody() + "\n")); // if is absent
+                            currInputFileObj.increaseOutputLines();
+                        }
+                        numberOfCompletedTasks.incrementAndGet();
+                        System.out.println("In Output Thread: Task completed and the current number of increaseOutputLines is: " + currInputFileObj.getOutputLines());
+                        System.out.println("In Output Thread: Task completed and the current number of completed tasks is: " + numberOfCompletedTasks);
+                        System.out.flush();
+                    }
+
+                    try {
+                        queue.deleteMessage(myQueueUrl2, currMessege);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
         System.out.println("Output Thread: " + Thread.currentThread().getId() + " finished running\n");

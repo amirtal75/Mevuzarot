@@ -31,11 +31,16 @@ public class S3Bucket {
     private String directoryName;
 
 
-    public S3Bucket() throws Exception {
-        this.directoryName = "assigment1";
-        this.s3 = AmazonS3ClientBuilder.defaultClient();
-        this.bucketName = "amirandamitassignment";
-        createBucket();
+    public S3Bucket() {
+
+        try{
+            this.directoryName = "assigment1";
+            this.s3 = AmazonS3ClientBuilder.defaultClient();
+            this.bucketName = "amirandamitassignment";
+            createBucket();
+        } catch(Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 
 
@@ -54,12 +59,19 @@ public class S3Bucket {
         return directoryName;
     }
 
-    public Bucket createBucket() throws Exception {
+    public Bucket createBucket() {
+        Bucket bucket = null;
+        try{
+            bucket = createBucket(this.bucketName);
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+        }
 
-        return createBucket(this.bucketName);
+        return bucket;
     }
 
     public Bucket createBucket(String newBucket) throws Exception {
+
         Bucket bucket = null;
         if (s3.doesBucketExistV2(newBucket)) {
             //System.out.println("Bucket already exists\n");

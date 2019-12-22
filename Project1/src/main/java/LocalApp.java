@@ -110,6 +110,8 @@ public class LocalApp implements Runnable{
                    Thread.currentThread().sleep(3000);
 //            Thread.sleep(60);
                 }
+                queue.deleteQueue(summeryFilesIndicatorQueueUrl);
+            queue.deleteQueue(QueueUrlLocalApps);
             System.out.println("ending the run");
         }
         catch (Exception e) {

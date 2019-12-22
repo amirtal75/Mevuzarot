@@ -1,37 +1,30 @@
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.model.*;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class InputThread implements Runnable {
+public class InputThread extends ManagerClassesSharedFunctions implements Runnable {
 
     Queue queue;
-    String location;
     String QueueUrlLocalApps;
     List<Message> currMessageQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
     S3Bucket s3;
     String myQueueUrl1; //queue for inputJobs
+    String myQueueUrl2; //queue for inputJobs
     static AtomicInteger idOfInputFile = new AtomicInteger(0);
      ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
     AtomicInteger numberOfTasks = new AtomicInteger(0);
     EC2Object ec2;
     boolean toTerminate;
     String inputFilename;
-    String workerUserData;
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, AtomicInteger numberOfTasks, String workerUserData) throws Exception {
+    public InputThread(String queueUrlLocalApps, String myQueueUrl1, String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, AtomicInteger numberOfTasks) {
         System.out.println("the recieving mtasks queue is " + myQueueUrl1);
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
@@ -42,7 +35,7 @@ public class InputThread implements Runnable {
         this.ec2 = new EC2Object();
         toTerminate = false;
         this.numberOfTasks = numberOfTasks;
-        this.workerUserData = workerUserData;
+        this.myQueueUrl2 = myQueueUrl2;
     }
 
     public void run() {
@@ -70,12 +63,7 @@ public class InputThread implements Runnable {
 
                 while ((currLine = inputFileFromLocalApp.readLine()) != null) {
                     //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
-                    if (numberOfTasks.get() % 80 == 0 && ec2. getInstances("").size()-1 <= numberOfTasks.get() / 80) {
-                        Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
-                        Thread.sleep(3);
-                        ec2.attachTags(instance,"worker");
-                        //System.out.println("created new worker instance: " + instance.getInstanceId());
-                    }
+                    createworker(myQueueUrl1,myQueueUrl2,numberOfTasks);
 
                     //System.out.println(" Making a job from the current read line: " + currLine);
                     // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
