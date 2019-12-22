@@ -45,11 +45,15 @@ public class OutputThread implements Runnable {
             String[] resultContent = currMessege.getBody().split("@");
             int inputFileId = Integer.parseInt(resultContent[0]);
             //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
-            if (stringResultsById.containsKey(inputFileId))
-                stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+            if (!completedreviewIDlist.contains(resultContent[1])) {
+                if (stringResultsById.containsKey(inputFileId)) {
+                    stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                    completedreviewIDlist.add(resultContent[1]);
+                }
                 //check again what I sent to the local app
-            else {
-                stringResultsById.put(inputFileId, new StringBuilder()); // if is absent
+                else {
+                    stringResultsById.put(inputFileId, new StringBuilder()); // if is absent
+                }
             }
 
             InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
@@ -60,8 +64,6 @@ public class OutputThread implements Runnable {
 
             if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
                 FileOutputStream outputFile = null;
-                if (!completedreviewIDlist.contains(resultContent[1])) {
-
                     try {
                         String outputName = inputFilename + "$";
                         //added "$" to the name because I dont want exact names for the input file and output file
@@ -85,5 +87,5 @@ public class OutputThread implements Runnable {
             }
         }
     }
-}
+
 
