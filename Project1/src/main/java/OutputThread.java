@@ -38,6 +38,7 @@ public class OutputThread implements Runnable {
         ArrayList<String> completedreviewIDlist = new ArrayList<>();
         System.out.println("In Output Thread: " + Thread.currentThread());
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
+        int numberOftasksworkedbythisOutputThread = 0;
         while (!toTerminate) {
             try {
                 currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 10); // check about visibility
@@ -45,6 +46,8 @@ public class OutputThread implements Runnable {
                 e.printStackTrace();
             }
             if (!currMessageQueue.isEmpty()) {
+                ++numberOftasksworkedbythisOutputThread;
+                System.out.println(" Num of tasks perform by this output thread: " + Thread.currentThread().getId() + " is: " + numberOftasksworkedbythisOutputThread);
                 Message currMessege = currMessageQueue.get(0);
                 // System.out.println("Received message content: " + currMessege.getBody());
                 String[] resultContent = currMessege.getBody().split(delimiter);
