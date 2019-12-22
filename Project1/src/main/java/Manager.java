@@ -62,10 +62,10 @@ public class Manager {
         String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n"+ "cd home/ubuntu/\n" + buildProject + filedata + createAndRunProject;
-        System.out.println("Worker UserData: " + workerUserData);
+        //System.out.println("Worker UserData: " + workerUserData);
 
         // Create Thread Pools
-        System.out.println("Creating pools for Input Thread & Output Thread");
+        //System.out.println("Creating pools for Input Thread & Output Thread");
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
@@ -86,14 +86,14 @@ public class Manager {
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
-                    System.out.println("Received Message contents:" + messageContent);
+                    //System.out.println("Received Message contents:" + messageContent);
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
                     poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, numberOfTasks, workerUserData));
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue));
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, summeryFilesIndicatorQueue));
-                    System.out.println("Received result from input thread, we need to delete the message");
+                    //System.out.println("Received result from input thread, we need to delete the message");
                     queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
                     }
 

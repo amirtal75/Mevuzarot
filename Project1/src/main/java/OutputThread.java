@@ -42,7 +42,7 @@ public class OutputThread implements Runnable {
             }
             if (!currMessageQueue.isEmpty()) {
                 Message currMessege = currMessageQueue.get(0);
-                System.out.println("Received message content: " + currMessege.getBody());
+                // System.out.println("Received message content: " + currMessege.getBody());
                 String[] resultContent = currMessege.getBody().split("@");
                 int inputFileId = Integer.parseInt(resultContent[0]);
                 //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
@@ -71,7 +71,7 @@ public class OutputThread implements Runnable {
                         String outputName = inputFilename + "$";
                         //added "$" to the name because I dont want exact names for the input file and output file
                         Writer writer = new BufferedWriter(new FileWriter(path+outputName)); //write to the output file
-                        System.out.println("\n\n\nStringbuilder contents: \n\n\n");
+                        //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
                         writer.write(stringResultsById.get(inputFileId).toString());
                         writer.flush();
                         s3.upload(path, outputName);

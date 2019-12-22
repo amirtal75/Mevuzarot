@@ -76,13 +76,12 @@ public class InputThread implements Runnable {
                         System.out.println("created new worker instance: " + instance.getInstanceId());
                     }
 
-                    System.out.println("current number of tasks is: " + numberOfTasks);
-                    System.out.println(" Making a job from the current read line: " + currLine);
+                    //System.out.println(" Making a job from the current read line: " + currLine);
                     // Line content: (obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
                     currFileObject.increaseInputLines();
                     job = idOfInputFile + "@" + currLine;
                     queue.sendMessage(myQueueUrl1, job);
-                    System.out.println("sending a task to the queue" + myQueueUrl1);
+                    //System.out.println("sending a task to the queue" + myQueueUrl1);
                     numberOfTasks.incrementAndGet();
                     System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
 
