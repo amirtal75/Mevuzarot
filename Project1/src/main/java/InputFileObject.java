@@ -60,11 +60,11 @@ public class InputFileObject {
         return allWorkersDone;
     }
 
-    public void increaseInputLines() {
+    public synchronized void increaseInputLines() {
         inputLines.getAndIncrement();
     }
 
-    public void increaseOutputLines() {
+    public synchronized void increaseOutputLines() {
         outputLines.getAndIncrement();
     }
 
@@ -76,8 +76,7 @@ public class InputFileObject {
         return inputFilename;
     }
 
-    public void setredAllLinesTrue() {
-
+    public synchronized void setredAllLinesTrue() {
         redAllLines.set(true);
     }
 
