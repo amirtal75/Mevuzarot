@@ -23,10 +23,9 @@ public class Manager {
         // Read the Queue names from the managerArgs file
         try{
             reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
-            System.out.println("test");
+
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
-            System.out.println("the local queue adress is : " + QueueUrlLocalApps);
         } catch (IOException e){
             System.out.println(e.getMessage());
         }
@@ -73,7 +72,7 @@ public class Manager {
 
         while (!shouldTerminate) {
             System.out.println(" Manager :numberOfTasks: " + numberOfTasks.get());
-
+            System.out.println(" Manager :numberOfCompletedTasks: " + numberOfCompletedTasks.get());
             if (numberOfTasks.get() % 80 == 0 && ec2. getInstances("").size()-1 <= numberOfTasks.get() / 80) {
                 Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
                 ec2.attachTags(instance,"worker");
