@@ -157,7 +157,7 @@ public class LocalApp implements Runnable{
         for (String str : inputRepresentation) {
             String[] currReviewAttributes = str.split("@");
             //int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
-            int reviewSentiment = Integer.parseInt(currReviewAttributes[4]);
+            int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
             String isSarcestic = "";
             if(currReviewAttributes[2].equals("false")){
                 isSarcestic = "not sarcastic review";
