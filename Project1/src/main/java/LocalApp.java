@@ -151,7 +151,7 @@ public class LocalApp implements Runnable{
 
     private static void createHTML(String path, String[] inputRepresentation) throws IOException {
         //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
-
+        System.out.println("the size of the input representation is " + inputRepresentation.length);
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
         for (String str : inputRepresentation) {
@@ -167,7 +167,7 @@ public class LocalApp implements Runnable{
             /*toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
                     "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";*/
             html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
-                    "<h1>" + isSarcestic + " " + reviewSentiment + "</h1>");
+                    "<h1>" + currReviewAttributes[4] +  "</h1>" + "<h1>" + isSarcestic + "</h1>");
         }
         html.append("</body>\n" + "</html>");
 
