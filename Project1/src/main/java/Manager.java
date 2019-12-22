@@ -89,6 +89,7 @@ public class Manager {
                     poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, numberOfTasks, workerUserData));
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, QueueUrlLocalApps, summeryFilesIndicatorQueue));
+                    poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, QueueUrlLocalApps, summeryFilesIndicatorQueue));
                     System.out.println("Received result from input thread, we need to delete the message");
                     queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
                     }
