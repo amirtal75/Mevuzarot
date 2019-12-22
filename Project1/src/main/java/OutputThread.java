@@ -16,12 +16,12 @@ public class OutputThread implements Runnable {
     S3Bucket s3;
     String myQueueUrl2; //queue for outputJobs , should be passed to workers as well
     AmazonEC2 ec2;
-    ConcurrentHashMap<Integer, StringBuilder> stringResultsById; // will be passed by manager(the refference) by constructor
+    ConcurrentHashMap<Integer, StringBuffer> stringResultsById; // will be passed by manager(the refference) by constructor
     boolean toTerminate;
     AtomicInteger numberOfCompletedTasks;
 
     public
-    OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String summeryFilesIndicatorQueue, AtomicInteger numberOfCompletedTasks) throws Exception {
+    OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String summeryFilesIndicatorQueue, AtomicInteger numberOfCompletedTasks) throws Exception {
         this.queue = new Queue();
         this.myQueueUrl2 = myQueueUrl2;
         this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;
@@ -56,7 +56,7 @@ public class OutputThread implements Runnable {
                 InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
                 if (!completedreviewIDlist.contains(resultContent[1])) {
                     if (stringResultsById.containsKey(inputFileId)) {
-                        StringBuilder builder = new StringBuilder(stringResultsById.get(inputFileId).toString());
+                        StringBuffer builder = new StringBuffer(stringResultsById.get(inputFileId).toString());
                         builder.append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
                         stringResultsById.replace(inputFileId,builder);
                         completedreviewIDlist.add(resultContent[1]);
@@ -64,7 +64,7 @@ public class OutputThread implements Runnable {
                     }
                     //check again what I sent to the local app
                     else {
-                        stringResultsById.put(inputFileId, new StringBuilder(currMessege.getBody() + "\n")); // if is absent
+                        stringResultsById.put(inputFileId, new StringBuffer(currMessege.getBody() + "\n")); // if is absent
                         currInputFileObj.increaseOutputLines();
                     }
                     numberOfCompletedTasks.incrementAndGet();
