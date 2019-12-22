@@ -215,7 +215,7 @@ public class EC2Object {
                 else{
                     for (Instance instance:
                             instances ) {
-                        if (instance.getTags().contains(new Tag(tagName,tagName))){
+                        if (instance.getTags().contains(new Tag(tagName,tagName) ) && instance.getState().equals("running")){
                             instancesResult.add(instance);
                         }
                     }
