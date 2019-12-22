@@ -73,7 +73,6 @@ public class Manager {
         while (!shouldTerminate) {
             System.out.println(" numberOfTasks: " + numberOfTasks.get());
             if (numberOfTasks.get() % 150 == 0) {
-
                 Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
                 ec2.attachTags(instance,"worker");
                 System.out.println("created new worker instance: " + instance.getInstanceId());
@@ -87,7 +86,7 @@ public class Manager {
                     String messageContent = currMessege.getBody();
                     System.out.println("Received Message contents:" + messageContent);
 
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, numberOfTasks));
+                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, numberOfTasks, workerUserData));
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, QueueUrlLocalApps, summeryFilesIndicatorQueue));
                     System.out.println("Received result from input thread, we need to delete the message");
