@@ -80,6 +80,7 @@ public class OutputThread implements Runnable {
 
             }
         }
+        System.out.println("Output Thread: " + Thread.currentThread().getId() + " finished running\n");
         }
     }
 
