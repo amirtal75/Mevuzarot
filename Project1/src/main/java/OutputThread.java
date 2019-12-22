@@ -59,13 +59,14 @@ public class OutputThread implements Runnable {
                     }
                     //check again what I sent to the local app
                     else {
-                        stringResultsById.put(inputFileId, new StringBuilder()); // if is absent
+                        stringResultsById.put(inputFileId, new StringBuilder(currMessege.getBody() + "\n")); // if is absent
+                        currInputFileObj.increaseOutputLines();
                     }
+                    numberOfCompletedTasks.incrementAndGet();
                 }
 
                 try {
                     queue.deleteMessage(myQueueUrl2, currMessege);
-                    numberOfCompletedTasks.incrementAndGet();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

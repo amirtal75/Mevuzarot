@@ -105,9 +105,11 @@ public class Manager {
             }
 
             for (InputFileObject currInputFileObj : InputFileObjectById.values()) {
-                System.out.println("manager : checking if there is a ready file");
+
                 currInputFileObj.CheckAndSetAllWorkersDone();
+                System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
                 if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
+                    System.out.println("in done loop");
                     FileOutputStream outputFile = null;
                     try {
                         String outputName = currInputFileObj.getInputFilename() + "$";
@@ -116,8 +118,9 @@ public class Manager {
                         //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
                         writer.write(stringResultsById.get(currInputFileObj.getId()).toString());
                         writer.flush();
+
+                        System.out.println("preparing to upload the completed file");
                         s3.upload(path, outputName);
-                        System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
                         queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
                     } catch (IOException e) {
                         e.printStackTrace();

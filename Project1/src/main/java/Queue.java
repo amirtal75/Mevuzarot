@@ -130,7 +130,9 @@ public class Queue {
     public void deleteMessage(String queueUrl, Message message) throws Exception {
         try {
             String messageRecieptHandle = message.getReceiptHandle();
-            this.sqs.deleteMessage(new DeleteMessageRequest(queueUrl, messageRecieptHandle));
+            DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(queueUrl, messageRecieptHandle);
+            DeleteMessageResult deleteMessageResult = this.sqs.deleteMessage(deleteMessageRequest);
+
 
         } catch (AmazonServiceException ase) {
             printServiceError(ase);
