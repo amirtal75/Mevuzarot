@@ -59,35 +59,14 @@ public class OutputThread implements Runnable {
                     }
                 }
 
-
-
-                currInputFileObj.CheckAndSetAllWorkersDone();
-                System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
-                String inputFilename = currInputFileObj.getInputFilename();
-
-                if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
-                    FileOutputStream outputFile = null;
-                    try {
-                        String outputName = inputFilename + "$";
-                        //added "$" to the name because I dont want exact names for the input file and output file
-                        Writer writer = new BufferedWriter(new FileWriter(path+outputName)); //write to the output file
-                        //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
-                        writer.write(stringResultsById.get(inputFileId).toString());
-                        writer.flush();
-                        s3.upload(path, outputName);
-                        System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
-                        queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
                 try {
                     queue.deleteMessage(myQueueUrl2, currMessege);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                System.out.println("All workers done: " + currInputFileObj.getAllWorkersDone().get());
+                String inputFilename = currInputFileObj.getInputFilename();
+
             }
         }
         }

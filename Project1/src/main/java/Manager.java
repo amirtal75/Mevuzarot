@@ -14,9 +14,8 @@ public class Manager {
 
     public static void main(String[] args) throws Exception {
         AtomicInteger numberOfTasks = new AtomicInteger(0);
-        BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<Integer, StringBuilder> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
-        writer.write("test");
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
         String summeryFilesIndicatorQueue = "";
@@ -86,7 +85,7 @@ public class Manager {
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
-                    //System.out.println("Received Message contents:" + messageContent);
+                    System.out.println("Name of file from local app:" + messageContent);
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
                     poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, numberOfTasks, workerUserData));
@@ -103,6 +102,29 @@ public class Manager {
 
             } catch (Exception e){
                 //System.out.println(e.getMessage());
+            }
+
+            for (InputFileObject currInputFileObj : InputFileObjectById.values()) {
+                currInputFileObj.CheckAndSetAllWorkersDone();
+                if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
+                    FileOutputStream outputFile = null;
+                    try {
+                        String outputName = currInputFileObj.getInputFilename() + "$";
+                        //added "$" to the name because I dont want exact names for the input file and output file
+                        Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
+                        //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
+                        writer.write(stringResultsById.get(currInputFileObj.getId()).toString());
+                        writer.flush();
+                        s3.upload(path, outputName);
+                        System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
+                        queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
             }
         }
 
