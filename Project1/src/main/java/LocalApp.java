@@ -85,7 +85,8 @@ public class LocalApp implements Runnable{
                     BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
                     for (parsedInputObject obj : inputList) {
                         //System.out.println(obj.getTitle() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n");
-                        String towrite = obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n";
+                        String towrite = obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating()
+                                + obj.getReview().getLink() + "\n"; /// added obj.getReview().getLink();
                         try {
                             writer.write(towrite); // added rating******
                         } catch (Exception e){
@@ -150,7 +151,7 @@ public class LocalApp implements Runnable{
     }
 
     private static void createHTML(String path, String[] inputRepresentation) throws IOException {
-        //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
+        //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment + "@" + reviewLink;
         System.out.println("the size of the input representation is " + inputRepresentation.length);
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
@@ -167,7 +168,8 @@ public class LocalApp implements Runnable{
             /*toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
                     "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";*/
             html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
-                    "<h1>" + currReviewAttributes[4] +  "</h1>" + "<h1>" + isSarcestic + "</h1>");
+                    "<h1>" + currReviewAttributes[4] +  "</h1>" + "<h1>" + isSarcestic + "</h1>" +
+                        "<h1>" + "<a href=" + currReviewAttributes[6] +  ">" + "visit" + "</a>");
         }
         html.append("</body>\n" + "</html>");
 
