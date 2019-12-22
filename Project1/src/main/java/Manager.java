@@ -15,6 +15,7 @@ public class Manager {
     public static void main(String[] args) throws Exception {
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         BufferedWriter writer = new BufferedWriter(new FileWriter("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/log.txt"));
+        ConcurrentHashMap<Integer, StringBuilder> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
         writer.write("test");
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
@@ -37,7 +38,7 @@ public class Manager {
         boolean shouldTerminate = false;
         ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById = new ConcurrentHashMap<Integer, InputFileObject>();
         ArrayList<InputFileObject> InputFileObjectList = new ArrayList<InputFileObject>();//????
-        ConcurrentHashMap<Integer, StringBuffer> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
+//        ConcurrentHashMap<Integer, StringBuffer> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
         Queue queue = new Queue();
         S3Bucket s3 = new S3Bucket();
         EC2Object ec2 = new EC2Object();
@@ -86,10 +87,11 @@ public class Manager {
                     String messageContent = currMessege.getBody();
                     System.out.println("Received Message contents:" + messageContent);
 
+                    //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
                     poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, messageContent, numberOfTasks, workerUserData));
                     // Might need to add future
-                    poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, QueueUrlLocalApps, summeryFilesIndicatorQueue));
-                    poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, QueueUrlLocalApps, summeryFilesIndicatorQueue));
+                    poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue));
+                    poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, summeryFilesIndicatorQueue));
                     System.out.println("Received result from input thread, we need to delete the message");
                     queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
                     }
