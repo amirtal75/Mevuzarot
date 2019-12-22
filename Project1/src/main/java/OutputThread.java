@@ -41,7 +41,7 @@ public class OutputThread implements Runnable {
         int numberOftasksworkedbythisOutputThread = 0;
         while (!toTerminate) {
             try {
-                currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 10); // check about visibility
+                currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 60); // check about visibility
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -56,7 +56,9 @@ public class OutputThread implements Runnable {
                 InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
                 if (!completedreviewIDlist.contains(resultContent[1])) {
                     if (stringResultsById.containsKey(inputFileId)) {
-                        stringResultsById.get(inputFileId).append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                        StringBuilder builder = new StringBuilder(stringResultsById.get(inputFileId).toString());
+                        builder.append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                        stringResultsById.replace(inputFileId,builder);
                         completedreviewIDlist.add(resultContent[1]);
                         currInputFileObj.increaseOutputLines();
                     }

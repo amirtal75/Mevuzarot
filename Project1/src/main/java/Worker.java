@@ -44,7 +44,7 @@ public class Worker {
         while (true) {
 
             try {
-                currJobQueue = queue.recieveMessage(receivedTasks, 1, 10); // check about visibility
+                currJobQueue = queue.recieveMessage(receivedTasks, 1, 60); // check about visibility
             }
             catch (Exception e) {
                 e.printStackTrace();
