@@ -71,7 +71,7 @@ public class Manager {
         List<Message> currMessageQueue = null;
 
         while (!shouldTerminate) {
-            System.out.println(" numberOfTasks: " + numberOfTasks.get());
+            System.out.println(" Manager :numberOfTasks: " + numberOfTasks.get());
 
             if (numberOfTasks.get() % 80 == 0 && ec2. getInstances("").size()-1 <= numberOfTasks.get() / 80) {
                 Instance instance = ec2.createInstance(1,1,workerUserData).get(0);
@@ -105,6 +105,7 @@ public class Manager {
             }
 
             for (InputFileObject currInputFileObj : InputFileObjectById.values()) {
+                System.out.println("manager : checking if there is a ready file");
                 currInputFileObj.CheckAndSetAllWorkersDone();
                 if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
                     FileOutputStream outputFile = null;

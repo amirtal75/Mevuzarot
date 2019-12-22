@@ -1,3 +1,4 @@
+import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.Tag;
 import edu.stanford.nlp.ling.tokensregex.types.Tags;
@@ -13,15 +14,17 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         EC2Object ec2 = new EC2Object();
+        CreateTagsRequest tagsRequest = new CreateTagsRequest()
+                .withTags(new Tag("worker","worker"))
+                .withResources("i-0324745154e40431f");
+        ec2.getEc2().createTags(tagsRequest);
 
         // !!!!!!!!!!!!!! need to delete !!!!!!!!!!!!
         ec2.terminateInstances(null);
 
-
-
         Queue queue = new Queue();
-        summeryFilesIndicatorQueueUrl = queue.createQueue();
         QueueUrlLocalApps = queue.createQueue();
+        summeryFilesIndicatorQueueUrl = queue.createQueue();
 
         createManager();
 
@@ -48,8 +51,7 @@ public class Main {
         if (ec2.getInstances("manager").isEmpty()) {
             try {
                 System.out.println("Creating manager from local app");
-                QueueUrlLocalApps = queue.createQueue();
-                summeryFilesIndicatorQueueUrl = queue.createQueue();
+
                 // Manager userdata
                 String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
                 String unzip = getProject + "sudo unzip -o master.zip\n";

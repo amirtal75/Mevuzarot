@@ -31,6 +31,7 @@ public class LocalApp implements Runnable{
     }
 
     public void run() {
+        String delimiter = " #@#$%^& ";
         try {
             boolean summeryFileIsReady = false;
             System.out.println("In local App " + Thread.currentThread().getId());
@@ -53,8 +54,9 @@ public class LocalApp implements Runnable{
                     // Write the parsed object to a file
                     BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
                     for (parsedInputObject obj : inputList) {
-                        //System.out.println(obj.getTitle() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n");
-                        String towrite = obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "@"
+
+                        //System.out.println(obj.getTitle() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + "\n");
+                        String towrite = obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + delimiter
                                 + obj.getReview().getLink() + "\n"; /// added obj.getReview().getLink();
                         try {
                             writer.write(towrite); // added rating******
@@ -84,7 +86,7 @@ public class LocalApp implements Runnable{
                     System.out.println("the message is : " + messages.isEmpty());
                     System.out.println("after receving message " + messages.size());
                     for (Message msg : messages) {
-                        currMessageName = msg.getBody().split("@")[0]; // the input file name
+                        currMessageName = msg.getBody().split(delimiter)[0]; // the input file name
                         System.out.println("the output file name is: " + currMessageName);
 
                         for (String inputFile : inputFiles) {
@@ -120,12 +122,13 @@ public class LocalApp implements Runnable{
     }
 
     private static void createHTML(String filename, String[] inputRepresentation) throws IOException {
-        //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment + "@" + reviewLink;
+        String delimiter = " #@#$%^& ";
+        //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment + delimiter + reviewLink;
         System.out.println("the size of the input representation is " + inputRepresentation.length);
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
         for (String str : inputRepresentation) {
-            String[] currReviewAttributes = str.split("@");
+            String[] currReviewAttributes = str.split(delimiter);
             //int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
             int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
             String isSarcestic = "";

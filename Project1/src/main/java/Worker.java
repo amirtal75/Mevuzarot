@@ -18,7 +18,7 @@ import edu.stanford.nlp.util.CoreMap;
 public class Worker {
 
     public static void main(String[] args) throws InterruptedException {
-
+        String delimiter = " #@#$%^& ";
         System.out.println("In Worker:\n");
         Queue queue = new Queue();
         List<Message> currJobQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
@@ -52,8 +52,8 @@ public class Worker {
             if(!currJobQueue.isEmpty()) {
                 Message currJob = currJobQueue.get(0);
                 System.out.println("Message Received: " + currJob.getBody() +"\n");
-                //inputFIleID + "@" + obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
-                String[] reviewAttributes = currJob.getBody().split("@");
+                //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
+                String[] reviewAttributes = currJob.getBody().split(delimiter);
                 String inputFileId = reviewAttributes[0];
                 String reviewId = reviewAttributes[1];
                 String reviewText = reviewAttributes[2];
@@ -67,8 +67,8 @@ public class Worker {
                 isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
                 String reviewLink = reviewAttributes[4];
                // System.out.println("Review is sarcastic: " + isSarcastic);
-                String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment +"@" + reviewLink;
-                //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + sentiment;
+                String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment +delimiter + reviewLink;
+                //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + sentiment;
                 System.out.println("number of result ; "+ i + "the result is " + result);
                 i++;
                 try {

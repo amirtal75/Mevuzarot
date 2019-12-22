@@ -31,6 +31,7 @@ public class OutputThread implements Runnable {
 
     public
     void run() {
+        String delimiter = " #@#$%^& ";
         ArrayList<String> completedreviewIDlist = new ArrayList<>();
         System.out.println("In Output Thread: " + Thread.currentThread());
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
@@ -43,9 +44,9 @@ public class OutputThread implements Runnable {
             if (!currMessageQueue.isEmpty()) {
                 Message currMessege = currMessageQueue.get(0);
                 // System.out.println("Received message content: " + currMessege.getBody());
-                String[] resultContent = currMessege.getBody().split("@");
+                String[] resultContent = currMessege.getBody().split(delimiter);
                 int inputFileId = Integer.parseInt(resultContent[0]);
-                //String result = inputFileId + "@" + reviewId + "@" + currIndicator + "@" + reviewText + "@" + reviewEntities +"@"+ sentiment;
+                //String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
                 InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
                 if (!completedreviewIDlist.contains(resultContent[1])) {
                     if (stringResultsById.containsKey(inputFileId)) {
