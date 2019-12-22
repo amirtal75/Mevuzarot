@@ -11,19 +11,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LocalApp implements Runnable{
 
-    static String summeryFilesIndicatorQueueUrl;
-    static String QueueUrlLocalApps;
+    String summeryFilesIndicatorQueueUrl;
+    String QueueUrlLocalApps;
     ArrayList<String> inputFiles;
     static AtomicBoolean restartManager = new AtomicBoolean(false); // is needed?
 
-    public LocalApp(String inputFiles) {
+    public LocalApp(String inputFiles, String QueueUrlLocalApps, String summeryFilesIndicatorQueueUrl) {
         ArrayList<String> files = new ArrayList<>();
         files.add(inputFiles);
         this.inputFiles = files;
+        this.summeryFilesIndicatorQueueUrl = summeryFilesIndicatorQueueUrl;
+        this.QueueUrlLocalApps = QueueUrlLocalApps;
     }
 
-    public LocalApp(ArrayList<String> inputFiles) {
+    public LocalApp(ArrayList<String> inputFiles, String QueueUrlLocalApps, String summeryFilesIndicatorQueueUrl) {
         this.inputFiles = inputFiles;
+        this.summeryFilesIndicatorQueueUrl = summeryFilesIndicatorQueueUrl;
+        this.QueueUrlLocalApps = QueueUrlLocalApps;
     }
 
     public void run() {
@@ -37,42 +41,7 @@ public class LocalApp implements Runnable{
             Queue queue = new Queue();
             String path = "/home/amirtal/IdeaProjects/Localapp/src/main/java/";
             // C:\Users\amithaim7\Documents\GitHub\Mevuzarot\Project1\src\main\java
-            //Gson gson = new Gson();
-           // Instance ec2Instance = null;
-            System.out.println("get result: "+ec2.getInstances("manager")) ;
-            if (ec2.getInstances("manager").isEmpty()) {
-                try {
-                    System.out.println("Creating manager from local app");
-                    QueueUrlLocalApps = queue.createQueue();
-                    summeryFilesIndicatorQueueUrl = queue.createQueue();
-                    // Manager userdata
-                    String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
-                    String unzip = getProject + "sudo unzip -o master.zip\n";
-                    String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
-                    String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
-                    String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
-                    String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
-                    String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
-                    String createManagerArgsFile = "sudo touch src/main/java/managerArgs.txt\n";
-                    String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
-                    String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueueUrl + " >> src/main/java/managerArgs.txt\n";
-
-                    String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
-                    System.out.println("In LocalAPP: " + Thread.currentThread());
-                    System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
-
-                    // First created instance = manager
-                    Instance instance = ec2.createInstance(1, 1, userdata).get(0);
-                    ec2.attachTags(instance, "manager");
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-
-            else System.out.println("manager not created");
                 // Go over the list of input files
                 ArrayList<parsedInputObject> inputList = new ArrayList<>();
                 for (String inputFile : inputFiles) {
@@ -111,7 +80,7 @@ public class LocalApp implements Runnable{
                     System.out.println("hi im here");
                     String currMessageName;
                     System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
-                    List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl);
+                    List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl,1,1);
                     System.out.println("the message is : " + messages.isEmpty());
                     System.out.println("after receving message " + messages.size());
                     for (Message msg : messages) {
@@ -130,7 +99,7 @@ public class LocalApp implements Runnable{
                                 }
 
                                 String[] resultsToHTML = stringBuilder.toString().split("\n");
-                                createHTML(path,resultsToHTML);
+                                createHTML(currMessageName,resultsToHTML);
                                 System.out.println("stopping localapp");
                                 summeryFileIsReady = true;
                                 queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
@@ -150,7 +119,7 @@ public class LocalApp implements Runnable{
 
     }
 
-    private static void createHTML(String path, String[] inputRepresentation) throws IOException {
+    private static void createHTML(String filename, String[] inputRepresentation) throws IOException {
         //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment + "@" + reviewLink;
         System.out.println("the size of the input representation is " + inputRepresentation.length);
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
@@ -174,44 +143,10 @@ public class LocalApp implements Runnable{
         html.append("</body>\n" + "</html>");
 
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream("html_output.html"), "utf-8"))) {
+                new FileOutputStream(filename+".html"), "utf-8"))) {
             writer.write(html.toString());
         }
     }
-
-
-
-//    public static void main(String[] args) throws IOException {
-//        //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
-//        String[] inputRepresentation = {"1234","1111","false","the book is amazing , it was a pleasure to read it",
-//                "bbbbbbb","3" };
-//
-//        String inputFileId;
-//        String reviewId;
-//        String isSarcastic;
-//        String reviewText;
-//        String reviewEntities;
-//        int reviewSentiment;
-//
-//        String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
-//        StringBuilder html = new StringBuilder("<html>\n" + "<body>");
-//        //for (String str : inputRepresentation) {
-//        //String[] currReviewAttributes = str.split("@");
-//        inputFileId = inputRepresentation[0];
-//        reviewId = inputRepresentation[1]; // do we need to write it on the html file?
-//        isSarcastic = inputRepresentation[2];
-//        reviewText = inputRepresentation[3];
-//        reviewEntities = inputRepresentation[4];
-//        reviewSentiment = Integer.parseInt(inputRepresentation[5]);
-//        html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + reviewText + "</h1>" +
-//                "<h1>" + reviewEntities + " " + isSarcastic + "</h1>");
-//        html.append("</body>\n" + "</html>");
-//
-//        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-//                new FileOutputStream("html_output.html"), "utf-8"))) {
-//            writer.write(html.toString());
-//        }
-//    }
 
     private ArrayList<parsedInputObject> parse(String filename) {
         System.out.println("in parse");
