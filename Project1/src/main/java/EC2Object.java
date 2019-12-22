@@ -133,7 +133,7 @@ public class EC2Object {
      * @param userdata - the script to launch for each instance
      * @return the number of instances created
      */
-    public ArrayList<Instance> createInstance(int min, int max, String userdata){
+    public ArrayList<Instance> createInstance(int min, int max, String userdata) throws Exception{
         // Convert userData script to base 64
         String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
         // ami image we created with various installations
@@ -154,7 +154,14 @@ public class EC2Object {
         IamInstanceProfileSpecification specification = new IamInstanceProfileSpecification().withName("projectRole");
         request.withIamInstanceProfile(specification);
         // run the instance with the above defined request
-        RunInstancesResult instancesResult = this.ec2.runInstances(request);
+        RunInstancesResult instancesResult = null;
+        try{
+            instancesResult = this.ec2.runInstances(request);
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+            return new ArrayList<Instance>();
+        }
+
         return new ArrayList<Instance> ( instancesResult.getReservation().getInstances());
     }
 
