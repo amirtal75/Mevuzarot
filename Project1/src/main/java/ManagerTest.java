@@ -74,7 +74,7 @@ public class ManagerTest {
 
             try {
 
-                poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, "/home/amirtal/IdeaProjects/Project1/src/main/java/inputFile1.txt2ce70f41-021d-4c12-9db6-5c814212b313.txt", new AtomicInteger(0),workerUserData);
+                poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, InputFileObjectById, "/home/amirtal/IdeaProjects/Project1/src/main/java/inputFile1.txt2ce70f41-021d-4c12-9db6-5c814212b313.txt", new AtomicInteger(0),workerUserData));
                 // Might need to add future
                 System.out.println("sleeping 60 sec for input thread to finish");
                 Thread.sleep(10000);
