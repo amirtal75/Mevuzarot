@@ -14,30 +14,44 @@ import java.util.Properties;
 public class Main1 {
 
     public static void main(String[] args) throws IOException {
-        String inputLines = "R14D3WP6J91DCU@Amir went on vacation to USA.@5\n" +
-                "R1RUXYHCSZSHJ0@Cute lift-the-flap book. My 9 month old loves it!@5\n" +
-                "R367OTNJ8I36FS@I can't say much about this except that it was a gift for a great granddaughter.  My granddaughter tells me that she reads this to her eighteen month old daughter, and they both enjoy it enough to share it over and over again.  I read it too and found it a fun story.@5\n" +
-                "RJ62XWHGDIF7@As soon as I got this package, I gave it to my 18 month old son to open and he made me read it to him about a dozen times. He loves it! He's obsessed with his belly button, so this is the perfect book for him. He's also obsessed with peek-a-boo, so he loves lifting the flaps. It was a definite hit!@5\n" +
-                "R1L8O7RM8DD6J3@The book is sturdy and well made. My baby likes to carry her books around and they are routinely dropped. It has held up really well. She loves the flaps and finding the hands, feet, etc. My only critique is that the body parts that are highlighted are the smallest item on the whole page. As a visual representation for teaching a child it seems weird that the focal points are not scaled to be more familiarly identifiable.@4\n" +
-                "RGMH5ROASTBS8@Well-made children's book that an child will love.@5\n" +
-                "RW6ORU2M3C461@I bought this book for a newborn. She loved when our parents read to her as an infant. She's now almost two and loves playing with it herself. I got it based on the positive reviews. I'm so glad I did. Will buy it again and highly recommend@5\n" +
-                "R3R9QKZ61DMKGF@This gift was liked by the child and parents.@5\n" +
-                "R3GCFAIUL8BI3Y@This book is adorable. My toddler loves it.@5\n" +
-                "R1IKZK5S0DCKZ0@My daughter loves lifting the flaps herself! She's almost a year. Great colorful pictures. I'm never disappointed with Karen Katz!@5\n";
-
-        String[] lines = inputLines.split("\n");
-        String review = "";
-        String entities = "";
-        for (String line :
-             lines) {
-            review = line.split("@")[1];
-            entities = getEntities(review);
-            System.out.println(entities + "\n");
+        BufferedReader bufferedReader = new BufferedReader(new FileReader("/home/amirtal/Downloads/inputFile1.txta5e7c589-d2ab-4c5d-9f63-7c7cadec1525.txt$"));
+        String line = ";";
+        StringBuilder stringBuilder = new StringBuilder();
+        while ((line = bufferedReader.readLine())!= null){
+            stringBuilder.append(line+"\n");
         }
 
-
+        String[] lines = stringBuilder.toString().split("\n");
+        createHTML(lines);
     }
+    private static void createHTML(String[] inputRepresentation) throws IOException {
+        //String result = inputFileId + "@" + reviewId + "@" + isSarcastic + "@" + reviewText + "@" + reviewEntities + "@" + sentiment;
+        System.out.println("the size of the input representation is " + inputRepresentation.length);
+        String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
+        StringBuilder html = new StringBuilder("<html>\n" + "<body>");
+        for (String str : inputRepresentation) {
+            String[] currReviewAttributes = str.split("@");
+            System.out.println("size of array: " + currReviewAttributes.length);
+            //int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
+            int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
+            String isSarcestic = "";
+            if(currReviewAttributes[2].equals("false")){
+                isSarcestic = "not sarcastic review";
+            }
+            else
+                isSarcestic = "sarcastic review";
+            /*toAdd = "<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
+                    "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";*/
+            html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
+                    "<h1>" + isSarcestic + " " + reviewSentiment + "</h1>");
+        }
+        html.append("</body>\n" + "</html>");
 
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream("html_output.html"), "utf-8"))) {
+            writer.write(html.toString());
+        }
+    }
     public static int findSentiment(String review) {
 
         Properties props = new Properties();
