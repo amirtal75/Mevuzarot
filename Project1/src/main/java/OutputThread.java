@@ -36,6 +36,7 @@ public class OutputThread implements Runnable {
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         while (!toTerminate) {
             try {
+                System.out.println("In Output Thread, trying to recieve message: " + Thread.currentThread());
                 currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 10); // check about visibility
             } catch (Exception e) {
                 e.printStackTrace();
