@@ -85,7 +85,7 @@ public class LocalApp implements Runnable{
                     BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
                     for (parsedInputObject obj : inputList) {
                         //System.out.println(obj.getTitle() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "\n");
-                        String towrite = obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating()
+                        String towrite = obj.getReview().getId() + "@" + obj.getReview().getText() + "@" + obj.getReview().getRating() + "@"
                                 + obj.getReview().getLink() + "\n"; /// added obj.getReview().getLink();
                         try {
                             writer.write(towrite); // added rating******
