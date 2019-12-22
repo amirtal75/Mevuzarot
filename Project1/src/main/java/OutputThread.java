@@ -71,8 +71,9 @@ public class OutputThread implements Runnable {
                         String outputName = inputFilename + "$";
                         //added "$" to the name because I dont want exact names for the input file and output file
                         Writer writer = new BufferedWriter(new FileWriter(path+outputName)); //write to the output file
+                        System.out.println("\n\n\nStringbuilder contents: \n\n\n");
                         writer.write(stringResultsById.get(inputFileId).toString());
-
+                        writer.flush();
                         s3.upload(path, outputName);
                         System.out.println("Upload finised test: " + s3.downloadObject(outputName).getObjectContent().toString());
                         queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
