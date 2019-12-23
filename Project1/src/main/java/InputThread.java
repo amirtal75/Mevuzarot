@@ -56,9 +56,10 @@ public class InputThread implements Runnable {
                 synchronized (this) {
                     int instanceSize = ec2. getInstances("").size();
                     int tasknumber = numberOfTasks.get();
-                    if ( tasknumber% 80 == 0 && (instanceSize - 1) <= (tasknumber / 80)) {
+                    if ( (tasknumber% 80) == 0 && (instanceSize - 1) <= (tasknumber / 80)) {
                         createworker(myQueueUrl1, myQueueUrl2, tasknumber,instanceSize);
                     }
+                    else System.out.println("no need to create worker");
                     job = currFileObject.getId() + delimiter + currLine;
                     queue.sendMessage(myQueueUrl1, job);
                 }
