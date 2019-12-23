@@ -62,42 +62,38 @@ public class Manager extends ManagerClassesSharedFunctions{
             System.out.println("Manager number Of Tasks sent to workers are: " +numberOfTasks.get());
             System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
 
-            try {
 
-                // Recieve message from local app queue
-                currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
+            // Recieve message from local app queue
+            currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
 
-                if (currMessageQueue.size() > 0){
-                    Message currMessege = currMessageQueue.get(0);
-                    String[] messageContent = currMessege.getBody().split("@");
-                    int numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
-                    numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfLinesInTheLocalAppFile + numberOfReceivedtasksFromTotalOfLocals.get());
+            if (currMessageQueue.size() > 0){
+                Message currMessege = currMessageQueue.get(0);
+                String[] messageContent = currMessege.getBody().split("@");
+                int numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
+                numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfLinesInTheLocalAppFile + numberOfReceivedtasksFromTotalOfLocals.get());
 
-                    System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
-                    S3Object object = s3.downloadObject(messageContent[0]); //input file
-                    idOfInputFile.getAndIncrement();
+                System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
+                S3Object object = s3.downloadObject(messageContent[0]); //input file
+                idOfInputFile.getAndIncrement();
 
-                    // Create input file object
-                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path, Integer.parseInt(messageContent[1]), object);
+                // Create input file object
+                InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path, Integer.parseInt(messageContent[1]), object);
 
-                    // calculate number of threads to open
-                    int dividor = (numberOfThreadsToOpenPerFileFromLocalApp + 1) * 100;
-                    int numberOfThreadsToLaunch = Math.abs(numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get()) / dividor;
-                    System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
+                // calculate number of threads to open
+                int dividor = (numberOfThreadsToOpenPerFileFromLocalApp + 1) * 100;
+                int numberOfThreadsToLaunch = Math.abs(numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get()) / dividor;
+                System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
 
-                    // open input and output threads for a file from local app
-                    for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
-                        System.out.println("Manager: id of input file: " + newFile.getId());
-                        new Thread(new InputThread(QueueUrlLocalApps, workerJobQueue, completedTasksQueue,newFile, numberOfTasks)).start();
-                        new Thread(new OutputThread(completedTasksQueue, summeryFilesIndicatorQueue, newFile, numberOfCompletedTasks)).start();
-                    }
+                // open input and output threads for a file from local app
+                for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
+                    System.out.println("Manager: id of input file: " + newFile.getId());
+                    new Thread(new InputThread(QueueUrlLocalApps, workerJobQueue, completedTasksQueue,newFile, numberOfTasks)).start();
+                    new Thread(new OutputThread(completedTasksQueue, summeryFilesIndicatorQueue, newFile, numberOfCompletedTasks)).start();
                 }
+            }
 
-                else{
-                    Thread.sleep(3000);
-                }
-
-            } catch (Exception e){
+            else{
+                Thread.sleep(3000);
             }
         }
     }
