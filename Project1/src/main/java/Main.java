@@ -45,8 +45,13 @@ public class Queue {
 
     public String createQueue(String queueName) {
         EC2Object ec2 = new EC2Object();
-
-        GetQueueUrlResult result = sqs.getQueueUrl(queueName);
+        GetQueueUrlResult result;
+        try {
+            result = sqs.getQueueUrl(queueName);
+        } catch (Exception ase) {
+            result = null;
+        }
+        
         if ( result != null){
             System.out.println("the " + queueName + " queue already exists" );
             if (!ec2.getInstances("manager").isEmpty()){
