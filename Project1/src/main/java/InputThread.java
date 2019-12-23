@@ -49,8 +49,9 @@ public class InputThread implements Runnable {
     }
 
     public void run() {
-        String delimiter = " -@@@@@@@- ";
+
         System.out.println("In InputThread: " + Thread.currentThread());
+        String delimiter = " -@@@@@@@- ";
             
         
 
@@ -59,9 +60,8 @@ public class InputThread implements Runnable {
             String currLine = "";
             String job = "";
 
-
             while ((currLine = bufferedReader.readLine()) != null) {
-                //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
+                System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename() + "\ncurrent line from the buffer: " + currLine);
                 int instanceSize = ec2. getInstances("").size();
 
                 synchronized (this) {
