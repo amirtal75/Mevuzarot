@@ -36,12 +36,11 @@ public class InputThread implements Runnable {
         toTerminate = false;
         this.numberOfTasks = numberOfTasks;
         this.myQueueUrl2 = myQueueUrl2;
-        System.out.println("Created new output Thread: " + Thread.currentThread().getId());
+        System.out.println("Created new inputt Thread: " + Thread.currentThread().getId());
     }
 
     public void run() {
         String delimiter = " -@@@@@@@- ";
-        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         System.out.println("In InputThread: " + Thread.currentThread());
             
         
@@ -63,11 +62,15 @@ public class InputThread implements Runnable {
 
                 //System.out.println(" Making a job from the current read line: " + currLine);
                 // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
-                currFileObject.increaseInputLines();
+
                 job = currFileObject.getId() + delimiter + currLine;
                 queue.sendMessage(myQueueUrl1, job);
+
                 //System.out.println("sending a task to the queue" + myQueueUrl1);
-                numberOfTasks.incrementAndGet();
+                synchronized (this) {
+                    currFileObject.increaseInputLines();
+                    numberOfTasks.incrementAndGet();
+                }
                 System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
 
             }
