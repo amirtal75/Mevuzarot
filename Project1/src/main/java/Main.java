@@ -11,14 +11,19 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         EC2Object ec2 = new EC2Object();
-
-        // !!!!!!!!!!!!!! need to delete !!!!!!!!!!!!
+        Queue queue = new Queue();
+        // !!!!!!!!!!!!!! need to delete following lines !!!!!!!!!!!!
         ec2.terminateInstances(null);
         Thread.sleep(1000);
+        queue.purgeQueue("QueueUrlLocalApps");
+        queue.purgeQueue("summeryFilesIndicatorQueue");
+        queue.purgeQueue("workerJobQueue");
+        queue.purgeQueue("completedTasksQueue");
+
 
         List<Instance> instances = ec2.getInstances("manager");
         if(instances.isEmpty()){
-            createManager(ec2, instances);
+            createManager(queue, ec2, instances);
             Thread.sleep(1000);
         }
 
@@ -42,7 +47,7 @@ public class Main {
 //
     }
 
-    private static void createManager(EC2Object ec2, List<Instance> instances){
+    private static void createManager(Queue queue, EC2Object ec2, List<Instance> instances){
 
         System.out.println("No Manager Active, setting up the server");
 
@@ -69,9 +74,8 @@ public class Main {
 
         ec2.attachTags(instance, "manager");
 
-        Queue queue = new Queue();
         queue.createQueue("QueueUrlLocalApps", true);
-        queue.createQueue("summeryFilesIndicatorQueueUrl", true);
+        queue.createQueue("summeryFilesIndicatorQueue", true);
         queue.createQueue("workerJobQueue", true);
         queue.createQueue("completedTasksQueue", true);
 

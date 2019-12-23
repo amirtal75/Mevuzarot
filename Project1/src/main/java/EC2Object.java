@@ -235,11 +235,9 @@ public class EC2Object {
                     Boolean run = instance.getState().getName().equals("running");
                     Boolean pend = instance.getState().getName().equals("pending");
                     if ( (tagName.equals("") || tagName == null) && ( run || pend )){
-                        System.out.println("inside emptyTagname");
                         instancesResult.add(instance);
                     }
                     else if (instance.getTags().contains(tag) && (run || pend)){
-                        System.out.println("inside tagname:" +tagName);
                         instancesResult.add(instance);
                     }
                 }

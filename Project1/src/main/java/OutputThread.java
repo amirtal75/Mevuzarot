@@ -29,7 +29,7 @@ public class OutputThread extends ManagerSuperClass implements Runnable {
 
         while (!currFileObject.getAllWorkersDone().get()) {
 
-            System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
+
 
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 3); // check about visibility
             if (!messagefromCompletedTasksQueue.isEmpty()) {
@@ -44,6 +44,7 @@ public class OutputThread extends ManagerSuperClass implements Runnable {
 
                 // The place to check
                 if (resultContent[0].equals(currFileObject.getId())) {
+                    System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1]);
                     numberOfCompletedTasks.incrementAndGet();
                     queue.deleteMessage(completedTasksQueue, currMessege);
