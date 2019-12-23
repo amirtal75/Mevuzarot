@@ -85,7 +85,7 @@ public class Manager{
                     System.out.println("ID before: " + idOfInputFile.get());
                     idOfInputFile.getAndIncrement();
                     System.out.println("ID after: " + idOfInputFile.get());
-                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path);
+                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),measageContent[0],path);
 
                     InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
                     System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
