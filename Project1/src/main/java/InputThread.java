@@ -25,27 +25,16 @@ public class InputThread implements Runnable {
     BufferedReader bufferedReader;
 
     public InputThread(String queueUrlLocalApps, String myQueueUrl1, String myQueueUrl2, InputFileObject currFileObject,BufferedReader bufferedReader, AtomicInteger numberOfTasks) {
-        System.out.println("2");
         this.queue = new Queue();
-        System.out.println("3");
         QueueUrlLocalApps = queueUrlLocalApps;
-        System.out.println("4");
         this.s3 = new S3Bucket();
-        System.out.println("5");
         this.myQueueUrl1 = myQueueUrl1;
-        System.out.println("6");
         this.currFileObject = currFileObject;
-        System.out.println("7");
         this.bufferedReader = bufferedReader;
-        System.out.println("8");
         this.ec2 = new EC2Object();
-        System.out.println("9");
         toTerminate = false;
-        System.out.println("10");
         this.numberOfTasks = numberOfTasks;
-        System.out.println("11");
         this.myQueueUrl2 = myQueueUrl2;
-        System.out.println("Created new inputt Thread: " + Thread.currentThread().getId());
     }
 
     public void run() {
