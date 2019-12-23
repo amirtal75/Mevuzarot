@@ -25,16 +25,25 @@ public class InputThread implements Runnable {
     BufferedReader bufferedReader;
 
     public InputThread(String queueUrlLocalApps, String myQueueUrl1, String myQueueUrl2, InputFileObject currFileObject,BufferedReader bufferedReader, AtomicInteger numberOfTasks) {
-        System.out.println("the recieving mtasks queue is " + myQueueUrl1);
+        System.out.println("2");
         this.queue = new Queue();
+        System.out.println("3");
         QueueUrlLocalApps = queueUrlLocalApps;
+        System.out.println("4");
         this.s3 = new S3Bucket();
+        System.out.println("5");
         this.myQueueUrl1 = myQueueUrl1;
+        System.out.println("6");
         this.currFileObject = currFileObject;
+        System.out.println("7");
         this.bufferedReader = bufferedReader;
+        System.out.println("8");
         this.ec2 = new EC2Object();
+        System.out.println("9");
         toTerminate = false;
+        System.out.println("10");
         this.numberOfTasks = numberOfTasks;
+        System.out.println("11");
         this.myQueueUrl2 = myQueueUrl2;
         System.out.println("Created new inputt Thread: " + Thread.currentThread().getId());
     }
@@ -54,9 +63,10 @@ public class InputThread implements Runnable {
             while ((currLine = bufferedReader.readLine()) != null) {
                 //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
                 int instanceSize = ec2. getInstances("").size();
-                if (numberOfTasks.get() % 80 == 0 && instanceSize-1 <= numberOfTasks.get() / 80){
-                    synchronized (this){
-                        createworker(myQueueUrl1,myQueueUrl2,numberOfTasks);
+
+                synchronized (this) {
+                    if (numberOfTasks.get() % 80 == 0 && instanceSize - 1 <= numberOfTasks.get() / 80) {
+                        createworker(myQueueUrl1, myQueueUrl2, numberOfTasks);
                     }
                 }
 
@@ -71,7 +81,7 @@ public class InputThread implements Runnable {
                     currFileObject.increaseInputLines();
                     numberOfTasks.incrementAndGet();
                 }
-                System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
+                System.out.println("Input id: " + currFileObject.getId() + " number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
 
             }
             currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
