@@ -9,13 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class OutputThread implements Runnable {
 
     InputFileObject currFileObject;
-    String myQueueUrl2; //queue for outputJobs , should be passed to workers as well
+    String completedTasksQueue; //queue for outputJobs , should be passed to workers as well
     boolean toTerminate;
     AtomicInteger numberOfCompletedTasks;
     String summeryFilesIndicatorQueue;
 
-    public OutputThread(String myQueueUrl2, String summeryFilesIndicatorQueue, InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
-        this.myQueueUrl2 = myQueueUrl2;
+    public OutputThread(String completedTasksQueue, String summeryFilesIndicatorQueue, InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
+        this.completedTasksQueue = completedTasksQueue;
         this.currFileObject = currFileObject;
         toTerminate = false;
         this.numberOfCompletedTasks = numberOfCompletedTasks;
@@ -35,7 +35,7 @@ public class OutputThread implements Runnable {
 
             System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
 
-            messagefromCompletedTasksQueue = queue.recieveMessage(myQueueUrl2, 1, 60); // check about visibility
+            messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
             if (!messagefromCompletedTasksQueue.isEmpty()) {
 
                 Message currMessege = messagefromCompletedTasksQueue.get(0);
@@ -45,7 +45,7 @@ public class OutputThread implements Runnable {
                 // The place to check
                 currFileObject.appendToBuffer(currMessege.getBody(),resultContent[1] );
                 numberOfCompletedTasks.incrementAndGet();
-                queue.deleteMessage(myQueueUrl2, currMessege);
+                queue.deleteMessage(completedTasksQueue, currMessege);
             }
         }
 

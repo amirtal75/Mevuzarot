@@ -1,4 +1,7 @@
+import com.amazonaws.services.s3.model.S3Object;
+
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,7 +19,7 @@ public class InputFileObject {
     String inputFilename;
     ConcurrentHashMap<Integer, String> iDsOfProcessedReviews;
 
-    public InputFileObject(int id,String inputFilename, String path, int numberoffilelines, BufferedReader reader){
+    public InputFileObject(int id,String inputFilename, String path, int numberoffilelines, S3Object object){
         this.id = new AtomicInteger(id);
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
@@ -24,7 +27,7 @@ public class InputFileObject {
         allWorkersDone = new AtomicBoolean(false);
         this.inputFilename = inputFilename;
         this.numberoffilelines = numberoffilelines;
-        this.reader = reader;
+        this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
         this.stringBuffer = new StringBuffer();
     }
 

@@ -43,12 +43,22 @@ public class Queue {
         return sqs;
     }
 
-    public String createQueue() {
+    public String createQueue(String queueName) {
+        EC2Object ec2 = new EC2Object();
+
+        GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest().withQueueName(queueName);
+        GetQueueUrlResult result = sqs.getQueueUrl(queueUrlRequest);
+        if ( result != null){
+            System.out.println("the " + queueName + " queue already exists" );
+            if (!ec2.getInstances("manager").isEmpty()){
+                sqs.purgeQueue(new PurgeQueueRequest().withQueueUrl(result.getQueueUrl()));
+            }
+            return  result.getQueueUrl();
+        }
 
         String queueUrl = "";
         try {
-            String queueName = "MyQueue"+ UUID.randomUUID();
-            System.out.println("Creating a new SQS queue called " +queueName);
+            System.out.println("Creating a new SQS queue called " + queueName);
             CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
             return this.sqs.createQueue(createQueueRequest).getQueueUrl();
 

@@ -1,5 +1,7 @@
 import com.amazonaws.services.ec2.model.Instance;
 
+import java.util.List;
+
 public class Main {
 
     static String summeryFilesIndicatorQueueUrl;
@@ -14,13 +16,14 @@ public class Main {
         ec2.terminateInstances(null);
         Thread.sleep(1000);
 
-        Queue queue = new Queue();
-        QueueUrlLocalApps = queue.createQueue();
-        summeryFilesIndicatorQueueUrl = queue.createQueue();
-        while (ec2.getInstances("").size() == 0){
-            createManager();
+        List<Instance> instances = ec2.getInstances("manager");
+        if(instances.isEmpty()){
+            createManager(ec2, instances);
             Thread.sleep(1000);
         }
+
+        QueueUrlLocalApps = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
+        summeryFilesIndicatorQueueUrl = "https://sqs.us-west-2.amazonaws.com/002041186709/summeryFilesIndicatorQueueUrl";
 
 
         LocalApp localApp = new LocalApp("inputFile1.txt", QueueUrlLocalApps, summeryFilesIndicatorQueueUrl);
@@ -39,41 +42,36 @@ public class Main {
 //
     }
 
-    private synchronized static void createManager(){
-        EC2Object ec2 = new EC2Object();
+    private static void createManager(EC2Object ec2, List<Instance> instances){
+
         Queue queue = new Queue();
-        System.out.println(ec2.getInstances("manager").isEmpty());
-        if (ec2.getInstances("manager").isEmpty()) {
-            try {
-                System.out.println("Creating manager from local app");
+        queue.createQueue(QueueUrlLocalApps);
+        queue.createQueue(summeryFilesIndicatorQueueUrl);
 
-                // Manager userdata
-                String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
-                String unzip = getProject + "sudo unzip -o master.zip\n";
-                String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
-                String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
-                String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
-                String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
-                String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
+        System.out.println("No Manager Active, setting up the server");
 
-                String createManagerArgsFile = "sudo touch src/main/java/managerArgs.txt\n";
-                String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
-                String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueueUrl + " >> src/main/java/managerArgs.txt\n";
+        // Manager userdata
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "sudo unzip -o master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
-                String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
-                System.out.println("In LocalAPP: " + Thread.currentThread());
-                System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
+        String createManagerArgsFile = "sudo touch src/main/java/managerArgs.txt\n";
+        String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueueUrl + " >> src/main/java/managerArgs.txt\n";
 
-                // First created instance = manager
-                Instance instance = ec2.createInstance(1, 1, userdata).get(0);
-                System.out.println("created the manger: " + instance.getInstanceId());
-                ec2.attachTags(instance, "manager");
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
+        System.out.println("In LocalAPP: " + Thread.currentThread());
+        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
+
+        // First created instance = manager
+        Instance instance = ec2.createInstance(1, 1, userdata).get(0);
+        System.out.println("created the manger: " + instance.getInstanceId());
+
+        ec2.attachTags(instance, "manager");
+
     }
 }
-
-//ssh -i "projectKey.pem" ubuntu@ec2-34-217-214-240.us-west-2.compute.amazonaws.com
