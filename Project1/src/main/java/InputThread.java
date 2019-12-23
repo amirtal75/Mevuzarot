@@ -93,12 +93,15 @@ public class InputThread implements Runnable {
         System.out.println("current number of tasks is: " + numberOfTasks);
         System.out.println("tasksDivides is " + tasksDivides);
         System.out.println("(numberOfTasks / 80) is" + (numberOfTasks / 80));
+        int tasks = numberOfTasks/80;
+        Boolean condition = tasksDivides == false && workerinstances < (tasks);
+        System.out.println("Condition is: " +condition);
         EC2Object ec2 = new EC2Object();
         if (instanceSize > 16){
             return;
         }
 
-        if ( tasksDivides == false && workerinstances < (numberOfTasks / 80)){
+        if ( condition){
             return;
         }
 
@@ -122,7 +125,7 @@ public class InputThread implements Runnable {
             // to save time receiving tasks we start one worker
             Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
             ec2.attachTags(instance, "worker");
-            System.out.println("created new worker instance: " + instance.getInstanceId());
+            System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
         } catch (Exception e){
             System.out.println(e.getMessage());
         }

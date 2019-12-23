@@ -153,12 +153,15 @@ public class Manager{
         System.out.println("current number of tasks is: " + numberOfTasks);
         System.out.println("tasksDivides is " + tasksDivides);
         System.out.println("(numberOfTasks / 80) is" + (numberOfTasks / 80));
+        int tasks = numberOfTasks/80;
+        Boolean condition = tasksDivides == false && workerinstances < (tasks);
+        System.out.println("Condition is: " +condition);
         EC2Object ec2 = new EC2Object();
         if (instanceSize > 16){
             return;
         }
 
-        if ( tasksDivides == false && workerinstances < (numberOfTasks / 80)){
+        if ( condition){
             return;
         }
 
