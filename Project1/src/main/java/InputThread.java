@@ -39,7 +39,7 @@ public class InputThread implements Runnable {
 
     public void run() {
 
-        System.out.println("In InputThread: " + Thread.currentThread());
+        //System.out.println("In InputThread: " + Thread.currentThread());
         String delimiter = " -@@@@@@@- ";
             
         
@@ -50,31 +50,31 @@ public class InputThread implements Runnable {
             String job = "";
 
             while ((currLine = bufferedReader.readLine()) != null) {
-                System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
+                //System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
 
 
                 synchronized (this) {
                     int instanceSize = ec2. getInstances("").size();
-                    if (numberOfTasks.get() % 80 == 0 && (instanceSize - 1) <= (numberOfTasks.get() / 80)) {
-                        System.out.println((instanceSize -1) + (numberOfTasks.get()/80));
-                        createworker(myQueueUrl1, myQueueUrl2, numberOfTasks,instanceSize);
+                    int tasknumber = numberOfTasks.get();
+                    if ( tasknumber% 80 == 0 && (instanceSize - 1) <= (tasknumber / 80)) {
+                        createworker(myQueueUrl1, myQueueUrl2, tasknumber,instanceSize);
                     }
                     job = currFileObject.getId() + delimiter + currLine;
                     queue.sendMessage(myQueueUrl1, job);
                 }
 
-                //System.out.println(" Making a job from the current read line: " + currLine);
+                ////System.out.println(" Making a job from the current read line: " + currLine);
                 // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
 
 
 
-                //System.out.println("sending a task to the queue" + myQueueUrl1);
+                ////System.out.println("sending a task to the queue" + myQueueUrl1);
                 synchronized (this) {
                     currFileObject.increaseInputLines();
                     numberOfTasks.incrementAndGet();
-                    System.out.println("Input id: " + currFileObject.getId() + " number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
+                    //System.out.println("Input id: " + currFileObject.getId() + " number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
                     currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-                    System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
+                    //System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
                 }
 
             }
@@ -85,13 +85,14 @@ public class InputThread implements Runnable {
             e.printStackTrace(); 
         }
 
-        System.out.println("InputThread: " + Thread.currentThread() + " finished running");
+        //System.out.println("InputThread: " + Thread.currentThread() + " finished running");
     }
 
-    public static void createworker(String myQueueUrl1, String myQueueUrl2, AtomicInteger numberOfTasks, int instanceSize){
-
+    public static void createworker(String myQueueUrl1, String myQueueUrl2, int numberOfTasks, int instanceSize){
+        System.out.println("\n\n\n\n\ncreating worker when the current number of instances is: " + instanceSize);
+        System.out.println("current number of tasks is: " + numberOfTasks);
         EC2Object ec2 = new EC2Object();
-        if (numberOfTasks.get() % 80 != 0 && instanceSize-1 > numberOfTasks.get() / 80){
+        if ((numberOfTasks % 80) != 0 && (instanceSize-1) > (numberOfTasks / 80)){
             return;
         }
 
