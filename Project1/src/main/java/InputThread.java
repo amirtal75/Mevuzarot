@@ -95,7 +95,7 @@ public class InputThread implements Runnable {
             return;
         }
 
-        if ((numberOfTasks % 80) != 0 && (instanceSize-1) > (numberOfTasks / 80)){
+        if ((numberOfTasks % 80) != 0 && (instanceSize-1) < (numberOfTasks / 80)){
             return;
         }
 
