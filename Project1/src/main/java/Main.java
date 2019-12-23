@@ -45,8 +45,8 @@ public class Main {
     private static void createManager(EC2Object ec2, List<Instance> instances){
 
         Queue queue = new Queue();
-        queue.createQueue(QueueUrlLocalApps);
-        queue.createQueue(summeryFilesIndicatorQueueUrl);
+        String QueueUrlLocalApps = queue.createQueue("QueueUrlLocalApps");
+        String summeryFilesIndicatorQueueUrl = queue.createQueue("summeryFilesIndicatorQueueUrl");
 
         System.out.println("No Manager Active, setting up the server");
 
