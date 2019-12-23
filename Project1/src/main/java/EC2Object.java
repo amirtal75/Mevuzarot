@@ -212,36 +212,37 @@ public class EC2Object {
         while(notdone) {
             try {
                 response = this.ec2.describeInstances(request);
+                List<Reservation> reservations = response.getReservations();
+
+                for(Reservation reservation :
+                        reservations) {
+                    List<Instance> instances = reservation.getInstances();
+                    for (Instance instance:
+                            instances ) {
+                        Tag tag = new Tag(tagName,tagName);
+                        if (tagName.equals("") && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
+                            instancesResult.add(instance);
+                        }
+                        else if (instance.getTags().contains(tag) && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
+                            System.out.println();
+                            instancesResult.add(instance);
+                        }
+                    }
+                }
+                request.setNextToken(response.getNextToken());
+
+                if(response.getNextToken() == null) {
+                    notdone = false;
+                }
             } catch (Exception e){
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(1000);
                     return getInstances(tagName);
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
                 }
             }
-            List<Reservation> reservations = response.getReservations();
 
-            for(Reservation reservation :
-                    reservations) {
-                List<Instance> instances = reservation.getInstances();
-                for (Instance instance:
-                        instances ) {
-                    Tag tag = new Tag(tagName,tagName);
-                    if (tagName.equals("") && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
-                        instancesResult.add(instance);
-                    }
-                    else if (instance.getTags().contains(tag) && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
-                        System.out.println();
-                        instancesResult.add(instance);
-                    }
-                }
-            }
-            request.setNextToken(response.getNextToken());
-
-            if(response.getNextToken() == null) {
-                notdone = false;
-            }
         }
         return  instancesResult;
     }
