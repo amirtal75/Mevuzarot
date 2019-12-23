@@ -230,7 +230,7 @@ public class EC2Object {
                 for (Instance instance:
                         instances ) {
                     Tag tag = new Tag(tagName,tagName);
-                    if (tagName.equals("") && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
+                    if (tagName.equals("") || tagName == null && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
                         instancesResult.add(instance);
                     }
                     else if (instance.getTags().contains(tag) && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
