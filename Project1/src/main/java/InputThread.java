@@ -32,12 +32,12 @@ public class InputThread extends ManagerSuperClass implements Runnable {
         String job = "";
         while (!currFileObject.getRedAllLines().get()) {
 
-            System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
+            //System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
 
             try {
                 currLine = bufferedReader.readLine();
             } catch (IOException e) {
-                System.out.println(e.getMessage());
+                //System.out.println(e.getMessage());
             }
 
             if (currLine != null){
@@ -46,7 +46,7 @@ public class InputThread extends ManagerSuperClass implements Runnable {
                     job = currFileObject.getId() + delimiter + currLine;
                     queue.sendMessage(workerJobQueue, job);
                 }
-                // System.out.println(" Making a job from the current read line: " + currLine);
+                // //System.out.println(" Making a job from the current read line: " + currLine);
                 // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
 
                 currFileObject.increaseInputLines();
