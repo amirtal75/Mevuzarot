@@ -161,7 +161,7 @@ public class Manager{
             return;
         }
 
-        if ( condition){
+        if ( condition == false){
             return;
         }
 
@@ -185,11 +185,9 @@ public class Manager{
             // to save time receiving tasks we start one worker
             Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
             ec2.attachTags(instance, "worker");
-            System.out.println("created new worker instance: " + instance.getInstanceId());
+            System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
         } catch (Exception e){
             System.out.println(e.getMessage());
         }
     }
-
 }
-

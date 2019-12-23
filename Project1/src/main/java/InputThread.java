@@ -101,7 +101,7 @@ public class InputThread implements Runnable {
             return;
         }
 
-        if ( condition){
+        if ( condition == false){
             return;
         }
 
