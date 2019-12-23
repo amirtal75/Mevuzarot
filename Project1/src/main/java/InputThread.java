@@ -87,7 +87,8 @@ public class InputThread implements Runnable {
     }
 
     public synchronized static void createworker(String myQueueUrl1, String myQueueUrl2, int numberOfTasks, int instanceSize){
-
+        int workerinstances = instanceSize - 1;
+        Boolean tasksDivides = (numberOfTasks % 80) == 0;
         System.out.println("\n\n\n\n\ncreating worker when the current number of instances is: " + instanceSize);
         System.out.println("current number of tasks is: " + numberOfTasks);
         EC2Object ec2 = new EC2Object();
@@ -95,7 +96,7 @@ public class InputThread implements Runnable {
             return;
         }
 
-        if ((numberOfTasks % 80) != 0 && (instanceSize-1) < (numberOfTasks / 80)){
+        if ( tasksDivides && workerinstances < (numberOfTasks / 80)){
             return;
         }
 
