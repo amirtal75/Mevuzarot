@@ -51,21 +51,22 @@ public class InputThread implements Runnable {
 
             while ((currLine = bufferedReader.readLine()) != null) {
                 System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
-                int instanceSize = ec2. getInstances("").size();
+
 
                 synchronized (this) {
+                    int instanceSize = ec2. getInstances("").size();
                     if (numberOfTasks.get() % 80 == 0 && (instanceSize - 1) <= (numberOfTasks.get() / 80)) {
                         System.out.println((instanceSize -1) + (numberOfTasks.get()/80));
-                        createworker(myQueueUrl1, myQueueUrl2, numberOfTasks);
+                        createworker(myQueueUrl1, myQueueUrl2, numberOfTasks,instanceSize);
                     }
-
+                    job = currFileObject.getId() + delimiter + currLine;
+                    queue.sendMessage(myQueueUrl1, job);
                 }
 
                 //System.out.println(" Making a job from the current read line: " + currLine);
                 // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
 
-                job = currFileObject.getId() + delimiter + currLine;
-                queue.sendMessage(myQueueUrl1, job);
+
 
                 //System.out.println("sending a task to the queue" + myQueueUrl1);
                 synchronized (this) {
@@ -87,10 +88,9 @@ public class InputThread implements Runnable {
         System.out.println("InputThread: " + Thread.currentThread() + " finished running");
     }
 
-    public static void createworker(String myQueueUrl1, String myQueueUrl2, AtomicInteger numberOfTasks){
+    public static void createworker(String myQueueUrl1, String myQueueUrl2, AtomicInteger numberOfTasks, int instanceSize){
 
         EC2Object ec2 = new EC2Object();
-        int instanceSize = ec2. getInstances("").size();
         if (numberOfTasks.get() % 80 != 0 && instanceSize-1 > numberOfTasks.get() / 80){
             return;
         }

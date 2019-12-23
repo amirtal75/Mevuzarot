@@ -16,21 +16,21 @@ public class Manager{
     public static void main(String[] args) throws Exception {
 
         int numberOfReceivedtasksFromTotalOfLocals = 0;
-        System.out.println("In Manager:");
+        //System.out.println("In Manager:");
 
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
         String myQueueUrl1 = queue.createQueue(); //queue for inputTask for workers
         String myQueueUrl2 = queue.createQueue();//queue for outputTask from workers
-        System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
+        //System.out.println("Worker Receiving Queue: " + myQueueUrl1 + ", Task Results Queue: " + myQueueUrl2);
 
 
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
         AtomicInteger idOfInputFile = new AtomicInteger(0);
 
-        createworker(myQueueUrl1,myQueueUrl2, numberOfTasks);
-        System.out.println("Created the first worker");
+        createworker(myQueueUrl1,myQueueUrl2, numberOfTasks, ec2.getInstances(null).size());
+        //System.out.println("Created the first worker");
 
         S3Bucket s3 = new S3Bucket();
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
@@ -49,10 +49,10 @@ public class Manager{
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
         }
 
-        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
+        //System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Create Thread Pools
         int numberOfInputThreads = 0;
@@ -64,11 +64,8 @@ public class Manager{
 
         while (!shouldTerminate) {
 
-            System.out.println(" Manager :numberOfTasks: " + numberOfTasks.get());
-            System.out.println(" Manager :numberOfCompletedTasks: " + numberOfCompletedTasks.get());
-
-            // create worker if needed
-            createworker(myQueueUrl1, myQueueUrl2, numberOfTasks);
+            //System.out.println(" Manager :numberOfTasks: " + numberOfTasks.get());
+            //System.out.println(" Manager :numberOfCompletedTasks: " + numberOfCompletedTasks.get());
 
             try {
 
@@ -79,25 +76,25 @@ public class Manager{
                     String[] messageContent = currMessege.getBody().split("@");
                     numberOfReceivedtasksFromTotalOfLocals += Integer.parseInt(messageContent[1]);
 
-                    System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
+                    //System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
                     S3Object object = s3.downloadObject(messageContent[0]); //input file
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                    System.out.println("ID before: " + idOfInputFile.get());
+                    //System.out.println("ID before: " + idOfInputFile.get());
                     idOfInputFile.getAndIncrement();
-                    System.out.println("ID after: " + idOfInputFile.get());
+                    //System.out.println("ID after: " + idOfInputFile.get());
                     InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path, Integer.parseInt(messageContent[1]));
 
                     InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
-                    System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
+                    //System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String QueueUrlLocalApps
                     int dividor = (numberOfInputThreads+1) * 100;
-                    System.out.println("dividor: " + dividor);
+                    //System.out.println("dividor: " + dividor);
                     int numberOfInputThreadsToLaunch = Math.abs(numberOfReceivedtasksFromTotalOfLocals - numberOfTasks.get()) / dividor;
-                    System.out.println("numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals + ", numberOfTasks performed is: " +numberOfTasks.get());
-                    System.out.println("Number of input threads to launch is: " +numberOfInputThreadsToLaunch);
+                    //System.out.println("numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals + ", numberOfTasks performed is: " +numberOfTasks.get());
+                    //System.out.println("Number of input threads to launch is: " +numberOfInputThreadsToLaunch);
                     for (int i = 0; i < numberOfInputThreadsToLaunch; ++i ){
-                        System.out.println("Manager: id of input file: " + newFile.getId());
+                        //System.out.println("Manager: id of input file: " + newFile.getId());
                        new Thread(new InputThread(QueueUrlLocalApps, myQueueUrl1, myQueueUrl2,newFile, bufferedReader, numberOfTasks)).start();
                     }
 
@@ -105,7 +102,6 @@ public class Manager{
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue,numberOfCompletedTasks));
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById, stringResultsById, summeryFilesIndicatorQueue,numberOfCompletedTasks));
 
-                    //System.out.println("Received result from input thread, we need to delete the message");
                     queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
                     }
 
@@ -115,22 +111,21 @@ public class Manager{
 
                 // Chechk for done files
                 for (InputFileObject currInputFileObj : InputFileObjectById.values()) {
-                    System.out.println("Upload loop check:\n");
-                    System.out.println("Input FIle: " + currInputFileObj.getInputFilename() + "input: " + currInputFileObj.getInputLines() + "output: " + currInputFileObj.getOutputLines() + "done: " + currInputFileObj.getAllWorkersDone());
+                    //System.out.println("Upload loop check:\n");
+                    //System.out.println("Input FIle: " + currInputFileObj.getInputFilename() + "input: " + currInputFileObj.getInputLines() + "output: " + currInputFileObj.getOutputLines() + "done: " + currInputFileObj.getAllWorkersDone());
                     currInputFileObj.CheckAndSetAllWorkersDone();
-                    System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
+                    //System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
                     if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
-                        System.out.println("in done loop");
+                        //System.out.println("in done loop");
                         FileOutputStream outputFile = null;
                         try {
                             String outputName = currInputFileObj.getInputFilename() + "$";
                             //added "$" to the name because I dont want exact names for the input file and output file
                             Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
-                            //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
                             writer.write(stringResultsById.get(currInputFileObj.getId()).toString());
                             writer.flush();
 
-                            System.out.println("preparing to upload the completed file");
+                            //System.out.println("preparing to upload the completed file");
                             s3.upload(path, outputName);
                             queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
                         } catch (IOException e) {
@@ -146,15 +141,14 @@ public class Manager{
                 poolForOutput.shutdown();
 
             } catch (Exception e){
-                //System.out.println(e.getMessage());
             }
         }
     }
 
-    public static void createworker(String myQueueUrl1, String myQueueUrl2, AtomicInteger numberOfTasks){
-
+    public static void createworker(String myQueueUrl1, String myQueueUrl2, AtomicInteger numberOfTasks, int instanceSize){
+        System.out.println((instanceSize -1) + (numberOfTasks.get()/80));
         EC2Object ec2 = new EC2Object();
-        int instanceSize = ec2. getInstances("").size();
+        instanceSize = ec2. getInstances("").size();
         if (numberOfTasks.get() % 80 == 0 && (instanceSize - 1) <= (numberOfTasks.get() / 80)) {
             return;
         }
@@ -179,9 +173,9 @@ public class Manager{
             // to save time receiving tasks we start one worker
             Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
             ec2.attachTags(instance, "worker");
-            System.out.println("created new worker instance: " + instance.getInstanceId());
+            //System.out.println("created new worker instance: " + instance.getInstanceId());
         } catch (Exception e){
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
         }
     }
 
