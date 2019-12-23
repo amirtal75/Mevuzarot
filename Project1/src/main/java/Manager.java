@@ -1,4 +1,5 @@
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
 
 import java.io.*;
@@ -24,6 +25,7 @@ public class Manager{
 
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
+        AtomicInteger idOfInputFile = new AtomicInteger(0);
 
         createworker(myQueueUrl1,myQueueUrl2, numberOfTasks);
         System.out.println("Created the first worker");
@@ -71,10 +73,16 @@ public class Manager{
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
-                    System.out.println("Name of file from local app:" + messageContent);
+
+                    System.out.println("Downloading an object with key: " + messageContent);
+                    S3Object object = s3.downloadObject(messageContent); //input file
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent,path);
+                    InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
+                    System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String QueueUrlLocalApps
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, myQueueUrl2,InputFileObjectById, messageContent, numberOfTasks));
+                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, myQueueUrl2,newFile, bufferedReader, numberOfTasks));
 
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue,numberOfCompletedTasks));
