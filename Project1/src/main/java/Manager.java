@@ -85,19 +85,13 @@ public class Manager extends ManagerClassesSharedFunctions{
                     int numberOfThreadsToLaunch = Math.abs(numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get()) / dividor;
                     System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
 
-                    // open input threads for a file from local app
+                    // open input and output threads for a file from local app
                     for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
                         System.out.println("Manager: id of input file: " + newFile.getId());
-                       new Thread(new InputThread(QueueUrlLocalApps, workerJobQueue, completedTasksQueue,newFile, numberOfTasks)).start();
+                        new Thread(new InputThread(QueueUrlLocalApps, workerJobQueue, completedTasksQueue,newFile, numberOfTasks)).start();
+                        new Thread(new OutputThread(completedTasksQueue, summeryFilesIndicatorQueue, newFile, numberOfCompletedTasks)).start();
                     }
-
-
-                    // Done with input threads, preparing the output threads
-                    // Might need to add future
-                        new Thread(new OutputThread(completedTasksQueue, summeryFilesIndicatorQueue, newFile, numberOfCompletedTasks));
-
-                    queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
-                    }
+                }
 
                 else{
                     Thread.sleep(3000);
