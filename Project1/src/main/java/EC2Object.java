@@ -230,10 +230,12 @@ public class EC2Object {
                 for (Instance instance:
                         instances ) {
                     Tag tag = new Tag(tagName,tagName);
-                    if (tagName.equals("") || tagName == null && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
+                    Boolean run = instance.getState().getName().equals("running");
+                    Boolean pend = instance.getState().getName().equals("pending");
+                    if (tagName.equals("") || tagName == null && ( run || pend )){
                         instancesResult.add(instance);
                     }
-                    else if (instance.getTags().contains(tag) && (instance.getState().getName().equals("running") || instance.getState().getName().equals("pending"))){
+                    else if (instance.getTags().contains(tag) && (run || pend)){
                         System.out.println();
                         instancesResult.add(instance);
                     }
