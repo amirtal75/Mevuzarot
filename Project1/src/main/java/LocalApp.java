@@ -68,7 +68,7 @@ public class LocalApp implements Runnable{
                     writer.flush();
 
                     s3.upload(path,outputFilename);
-                    queue.sendMessage(QueueUrlLocalApps, outputFilename);
+                    queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size());
                     System.out.println("done parse");
                 }
 
@@ -79,10 +79,10 @@ public class LocalApp implements Runnable{
                 createManager(s3, ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
              }*/
                     String currMessageName;
-                    System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
+                    //System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
                     List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl,1,1);
-                    System.out.println("the message is : " + messages.isEmpty());
-                    System.out.println("after receving message " + messages.size());
+                    //System.out.println("the message is : " + messages.isEmpty());
+                    //System.out.println("after receving message " + messages.size());
                     for (Message msg : messages) {
                         currMessageName = msg.getBody().split(delimiter)[0]; // the input file name
                         System.out.println("the output file name is: " + currMessageName);
@@ -110,8 +110,7 @@ public class LocalApp implements Runnable{
                    Thread.currentThread().sleep(3000);
 //            Thread.sleep(60);
                 }
-                queue.deleteQueue(summeryFilesIndicatorQueueUrl);
-            queue.deleteQueue(QueueUrlLocalApps);
+
             System.out.println("ending the run");
         }
         catch (Exception e) {
@@ -123,7 +122,7 @@ public class LocalApp implements Runnable{
     private static void createHTML(String filename, String[] inputRepresentation) throws IOException {
         String delimiter = " -@@@@@@@- ";
         //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment + delimiter + reviewLink;
-        System.out.println("the size of the input representation is " + inputRepresentation.length);
+        //System.out.println("the size of the input representation is " + inputRepresentation.length);
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
         for (String str : inputRepresentation) {

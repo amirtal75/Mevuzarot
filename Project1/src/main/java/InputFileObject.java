@@ -15,19 +15,20 @@ public class InputFileObject {
     AtomicInteger inputLines;
     AtomicInteger outputLines;
     BufferedWriter writer = null;
-
+    private int numberoffilelines= 0;
 
     AtomicBoolean redAllLines; // finish to read all lines
     AtomicBoolean allWorkersDone; //all the workers finished
     String inputFilename;
 
-    public InputFileObject(int id,String inputFilename, String path){
+    public InputFileObject(int id,String inputFilename, String path, int numberoffilelines){
         this.id = id;
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
         redAllLines = new AtomicBoolean(false);
         allWorkersDone = new AtomicBoolean(false);
         this.inputFilename = inputFilename;
+        this.numberoffilelines = numberoffilelines;
         try {
             this.writer = new BufferedWriter(new FileWriter(path +inputFilename+"$"));
         } catch (IOException e) {
@@ -60,15 +61,15 @@ public class InputFileObject {
         return allWorkersDone;
     }
 
-    public synchronized void increaseInputLines() {
+    public void increaseInputLines() {
         inputLines.getAndIncrement();
     }
 
-    public synchronized void increaseOutputLines() {
+    public void increaseOutputLines() {
         outputLines.getAndIncrement();
     }
 
-    public synchronized  void  CheckAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
+    public void  CheckAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
         allWorkersDone.compareAndSet(false , (redAllLines.get() & (inputLines.get() == outputLines.get())));
     }
 
@@ -76,8 +77,10 @@ public class InputFileObject {
         return inputFilename;
     }
 
-    public synchronized void setredAllLinesTrue() {
-        redAllLines.set(true);
+    public void setredAllLinesTrue() {
+        if (numberoffilelines == inputLines.get()) {
+            redAllLines.set(true);
+        }
     }
 
     public String toString(){

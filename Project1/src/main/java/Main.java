@@ -67,6 +67,7 @@ public class Main {
 
                 // First created instance = manager
                 Instance instance = ec2.createInstance(1, 1, userdata).get(0);
+                System.out.println("created the manger: " + instance.getInstanceId());
                 ec2.attachTags(instance, "manager");
             }
             catch (Exception e) {

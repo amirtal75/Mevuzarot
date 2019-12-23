@@ -79,13 +79,13 @@ public class Manager{
                     String[] messageContent = currMessege.getBody().split("@");
                     numberOfReceivedtasksFromTotalOfLocals += Integer.parseInt(messageContent[1]);
 
-                    System.out.println("Downloading an object with key: " + messageContent[0]);
+                    System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
                     S3Object object = s3.downloadObject(messageContent[0]); //input file
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                     System.out.println("ID before: " + idOfInputFile.get());
                     idOfInputFile.getAndIncrement();
                     System.out.println("ID after: " + idOfInputFile.get());
-                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path);
+                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path, Integer.parseInt(messageContent[1]));
 
                     InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
                     System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
@@ -155,7 +155,7 @@ public class Manager{
 
         EC2Object ec2 = new EC2Object();
         int instanceSize = ec2. getInstances("").size();
-        if (numberOfTasks.get() % 80 != 0 && instanceSize-1 > numberOfTasks.get() / 80){
+        if (numberOfTasks.get() % 80 == 0 && (instanceSize - 1) <= (numberOfTasks.get() / 80)) {
             return;
         }
 

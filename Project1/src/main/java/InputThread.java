@@ -50,13 +50,15 @@ public class InputThread implements Runnable {
             String job = "";
 
             while ((currLine = bufferedReader.readLine()) != null) {
-                System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename() + "\ncurrent line from the buffer: " + currLine);
+                System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
                 int instanceSize = ec2. getInstances("").size();
 
                 synchronized (this) {
-                    if (numberOfTasks.get() % 80 == 0 && instanceSize - 1 <= numberOfTasks.get() / 80) {
+                    if (numberOfTasks.get() % 80 == 0 && (instanceSize - 1) <= (numberOfTasks.get() / 80)) {
+                        System.out.println((instanceSize -1) + (numberOfTasks.get()/80));
                         createworker(myQueueUrl1, myQueueUrl2, numberOfTasks);
                     }
+
                 }
 
                 //System.out.println(" Making a job from the current read line: " + currLine);
@@ -69,19 +71,20 @@ public class InputThread implements Runnable {
                 synchronized (this) {
                     currFileObject.increaseInputLines();
                     numberOfTasks.incrementAndGet();
+                    System.out.println("Input id: " + currFileObject.getId() + " number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
+                    currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
+                    System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
                 }
-                System.out.println("Input id: " + currFileObject.getId() + " number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
 
             }
-            currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-            System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
+
 
         }
         catch (Exception e) {
             e.printStackTrace(); 
         }
 
-
+        System.out.println("InputThread: " + Thread.currentThread() + " finished running");
     }
 
     public static void createworker(String myQueueUrl1, String myQueueUrl2, AtomicInteger numberOfTasks){

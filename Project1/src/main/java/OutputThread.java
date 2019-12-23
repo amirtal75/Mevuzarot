@@ -92,7 +92,6 @@ public class OutputThread implements Runnable {
                         numberOfCompletedTasks.incrementAndGet();
                         System.out.println("In Output Thread: Task completed and the current number of increaseOutputLines is: " + currInputFileObj.getOutputLines());
                         System.out.println("In Output Thread: Task completed and the current number of completed tasks is: " + numberOfCompletedTasks);
-                        System.out.flush();
                     }
 
                     try {
