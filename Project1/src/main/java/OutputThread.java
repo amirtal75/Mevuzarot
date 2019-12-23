@@ -16,15 +16,15 @@ public class OutputThread extends ManagerSuperClass implements Runnable {
         this.currFileObject = currFileObject;
         toTerminate = false;
         this.numberOfCompletedTasks = numberOfCompletedTasks;
+        System.out.println("In Output Thread constructor: " );
     }
 
-    public
-    void run() {
+    public void run() {
         S3Bucket s3= new S3Bucket();
         Queue queue = new Queue();
         List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
-        System.out.println("In Output Thread: " );
+        System.out.println("In Output Thread run: " );
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
 
         while (!currFileObject.getAllWorkersDone().get()) {
