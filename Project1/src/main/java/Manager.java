@@ -17,8 +17,8 @@ public class Manager extends ManagerClassesSharedFunctions{
 
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
-        String workerJobQueue = queue.createQueue("workerJobQueue"); //queue for inputTask for workers
-        String completedTasksQueue = queue.createQueue("completedTasksQueue");//queue for outputTask from workers
+        String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
+        String completedTasksQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/completedTasksQueue";
         System.out.println("Worker Receiving Queue: " + workerJobQueue + ", Task Results Queue: " + completedTasksQueue);
 
 
@@ -32,20 +32,10 @@ public class Manager extends ManagerClassesSharedFunctions{
         S3Bucket s3 = new S3Bucket();
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<Integer, StringBuffer> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
-        BufferedReader reader = null;
         String QueueUrlLocalApps = "";
         String summeryFilesIndicatorQueue = "";
+
         boolean shouldTerminate = false;
-
-        // Read the Queue names from the managerArgs file
-        try{
-            reader = new BufferedReader(new FileReader("/home/ubuntu/Mevuzarot-master/Project1/src/main/java/managerArgs.txt"));
-
-            QueueUrlLocalApps = reader.readLine();
-            summeryFilesIndicatorQueue = reader.readLine();
-        } catch (IOException e){
-            System.out.println(e.getMessage());
-        }
 
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
