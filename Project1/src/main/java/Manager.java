@@ -29,7 +29,7 @@ public class Manager{
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
         AtomicInteger idOfInputFile = new AtomicInteger(0);
 
-        createworker(myQueueUrl1,myQueueUrl2, numberOfTasks, ec2.getInstances(null).size());
+        createworker(myQueueUrl1,myQueueUrl2, numberOfTasks, ec2.getInstances("").size());
         //System.out.println("Created the first worker");
 
         S3Bucket s3 = new S3Bucket();
