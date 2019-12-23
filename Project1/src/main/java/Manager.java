@@ -27,7 +27,7 @@ public class Manager{
 
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
-
+        AtomicInteger idOfInputFile = new AtomicInteger(0);
 
         createworker(myQueueUrl1,myQueueUrl2, numberOfTasks);
         System.out.println("Created the first worker");
@@ -55,7 +55,6 @@ public class Manager{
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Create Thread Pools
-        int idOfInputFile = 1;
         int numberOfInputThreads = 0;
         int numberOfOutputThreads = 0;
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
@@ -83,11 +82,12 @@ public class Manager{
                     System.out.println("Downloading an object with key: " + messageContent[0]);
                     S3Object object = s3.downloadObject(messageContent[0]); //input file
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                    System.out.println("ID before: " + idOfInputFile);
-                    InputFileObject newFile = new InputFileObject(idOfInputFile,messageContent[0],path);
-                    InputFileObjectById.putIfAbsent(idOfInputFile, newFile); //add the currFileObject with his special id
-                    ++idOfInputFile;
-                    System.out.println("ID after: " + idOfInputFile);
+                    System.out.println("ID before: " + idOfInputFile.get());
+                    idOfInputFile.getAndIncrement();
+                    System.out.println("ID after: " + idOfInputFile.get());
+                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path);
+
+                    InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
                     System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String QueueUrlLocalApps
