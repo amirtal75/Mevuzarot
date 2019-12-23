@@ -7,8 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Manager extends ManagerClassesSharedFunctions{
-
+public class Manager extends ManagerSuperClass{
 
     public static void main(String[] args) throws Exception {
 
@@ -17,8 +16,6 @@ public class Manager extends ManagerClassesSharedFunctions{
 
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
-        String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
-        String completedTasksQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/completedTasksQueue";
         System.out.println("Worker Receiving Queue: " + workerJobQueue + ", Task Results Queue: " + completedTasksQueue);
 
 
@@ -32,17 +29,10 @@ public class Manager extends ManagerClassesSharedFunctions{
         S3Bucket s3 = new S3Bucket();
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<Integer, StringBuffer> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
-        String QueueUrlLocalApps = "";
-        String summeryFilesIndicatorQueue = "";
 
         boolean shouldTerminate = false;
 
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
-
-        // Create Thread Pools
-        int numberOfThreadsToOpenPerFileFromLocalApp = 0;
-        ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
-        ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
         List<Message> currMessageQueue = null;
 
@@ -70,15 +60,14 @@ public class Manager extends ManagerClassesSharedFunctions{
                 InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent[0],path, Integer.parseInt(messageContent[1]), object);
 
                 // calculate number of threads to open
-                int dividor = (numberOfThreadsToOpenPerFileFromLocalApp + 1) * 100;
-                int numberOfThreadsToLaunch = Math.abs(numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get()) / dividor;
+                int numberOfThreadsToLaunch = (Math.abs(numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get()) / 50) + 1;
                 System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
 
                 // open input and output threads for a file from local app
                 for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
                     System.out.println("Manager: id of input file: " + newFile.getId());
-                    new Thread(new InputThread(QueueUrlLocalApps, workerJobQueue, completedTasksQueue,newFile, numberOfTasks)).start();
-                    new Thread(new OutputThread(completedTasksQueue, summeryFilesIndicatorQueue, newFile, numberOfCompletedTasks)).start();
+                    new Thread(new InputThread(newFile, numberOfTasks)).start();
+                    new Thread(new OutputThread(newFile, numberOfCompletedTasks)).start();
                 }
             }
 

@@ -3,30 +3,24 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class InputThread extends ManagerClassesSharedFunctions implements Runnable {
+public class InputThread extends ManagerSuperClass implements Runnable {
 
     Queue queue;
-    String QueueUrlLocalApps;
     S3Bucket s3;
-    String workerJobQueue; //queue for inputJobs
-    String completedTasksQueue; //queue for inputJobs
     InputFileObject currFileObject; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
     AtomicInteger numberOfTasks = new AtomicInteger(0);
     EC2Object ec2;
     boolean toTerminate;
     BufferedReader bufferedReader;
 
-    public InputThread(String queueUrlLocalApps, String workerJobQueue, String completedTasksQueue, InputFileObject currFileObject, AtomicInteger numberOfTasks) {
+    public InputThread(InputFileObject currFileObject, AtomicInteger numberOfTasks) {
         this.queue = new Queue();
-        QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket();
-        this.workerJobQueue = workerJobQueue;
         this.currFileObject = currFileObject;
         this.bufferedReader = currFileObject.getReader();
         this.ec2 = new EC2Object();
         toTerminate = false;
         this.numberOfTasks = numberOfTasks;
-        this.completedTasksQueue = completedTasksQueue;
     }
 
     public void run() {

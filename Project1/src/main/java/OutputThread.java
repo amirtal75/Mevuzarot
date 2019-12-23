@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class OutputThread implements Runnable {
+public class OutputThread extends ManagerSuperClass implements Runnable {
 
     InputFileObject currFileObject;
     String completedTasksQueue; //queue for outputJobs , should be passed to workers as well
@@ -14,7 +14,7 @@ public class OutputThread implements Runnable {
     AtomicInteger numberOfCompletedTasks;
     String summeryFilesIndicatorQueue;
 
-    public OutputThread(String completedTasksQueue, String summeryFilesIndicatorQueue, InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
+    public OutputThread(InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
         this.completedTasksQueue = completedTasksQueue;
         this.currFileObject = currFileObject;
         toTerminate = false;
