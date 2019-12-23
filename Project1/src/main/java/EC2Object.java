@@ -207,10 +207,21 @@ public class EC2Object {
     public ArrayList<Instance> getInstances(String tagName){
         DescribeInstancesRequest request = new DescribeInstancesRequest();
         boolean notdone = true;
-
+        DescribeInstancesResult response= null;
         ArrayList<Instance> instancesResult= new ArrayList<>();
         while(notdone) {
-            DescribeInstancesResult response = this.ec2.describeInstances(request);
+            try {
+                response = this.ec2.describeInstances(request);
+
+            } catch (Exception e){
+                try {
+                    Thread.sleep(1000);
+                    return getInstances(tagName);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
             List<Reservation> reservations = response.getReservations();
 
             for(Reservation reservation :
@@ -233,6 +244,7 @@ public class EC2Object {
             if(response.getNextToken() == null) {
                 notdone = false;
             }
+
         }
         return  instancesResult;
     }
