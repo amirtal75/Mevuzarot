@@ -55,9 +55,10 @@ public class Queue {
         if ( result != null){
             System.out.println("the " + queueName + " queue already exists" );
             if (!ec2.getInstances("manager").isEmpty()){
+                System.out.println("purging the queue: " + queueName);
                 sqs.purgeQueue(new PurgeQueueRequest().withQueueUrl(result.getQueueUrl()));
+                return  result.getQueueUrl();
             }
-            return  result.getQueueUrl();
         }
 
         String queueUrl = "";
