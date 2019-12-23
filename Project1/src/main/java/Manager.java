@@ -27,7 +27,7 @@ public class Manager{
 
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
-        AtomicInteger idOfInputFile = new AtomicInteger(1);
+
 
         createworker(myQueueUrl1,myQueueUrl2, numberOfTasks);
         System.out.println("Created the first worker");
@@ -55,6 +55,7 @@ public class Manager{
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Create Thread Pools
+        int idOfInputFile = 1;
         int numberOfInputThreads = 0;
         int numberOfOutputThreads = 0;
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
@@ -82,12 +83,16 @@ public class Manager{
                     System.out.println("Downloading an object with key: " + messageContent[0]);
                     S3Object object = s3.downloadObject(messageContent[0]); //input file
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                    InputFileObject newFile = new InputFileObject(idOfInputFile.getAndIncrement(),messageContent[0],path);
-                    InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
+                    System.out.println("ID before: " + idOfInputFile);
+                    InputFileObject newFile = new InputFileObject(idOfInputFile,messageContent[0],path);
+                    InputFileObjectById.putIfAbsent(idOfInputFile, newFile); //add the currFileObject with his special id
+                    ++idOfInputFile;
+                    System.out.println("ID after: " + idOfInputFile);
                     System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String QueueUrlLocalApps
                     int dividor = (numberOfInputThreads+1) * 50;
+                    System.out.println("dividor: " + dividor);
                     int numberOfInputThreadsToLaunch = Math.abs(numberOfReceivedtasksFromTotalOfLocals - numberOfTasks.get()) / dividor;
                     System.out.println("numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals + ", numberOfTasks performed is: " +numberOfTasks.get());
                     System.out.println("Number of input threads to launch is: " +numberOfInputThreadsToLaunch);
