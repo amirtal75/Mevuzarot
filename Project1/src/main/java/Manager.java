@@ -97,6 +97,7 @@ public class Manager{
                     System.out.println("numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals + ", numberOfTasks performed is: " +numberOfTasks.get());
                     System.out.println("Number of input threads to launch is: " +numberOfInputThreadsToLaunch);
                     for (int i = 0; i < numberOfInputThreadsToLaunch; ++i ){
+                        System.out.println("Manager: id of input file: " + newFile.getId());
                         poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, myQueueUrl2,newFile, bufferedReader, numberOfTasks));
                     }
 
