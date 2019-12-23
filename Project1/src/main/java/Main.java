@@ -51,7 +51,7 @@ public class Queue {
         } catch (Exception ase) {
             result = null;
         }
-        
+
         if ( result != null){
             System.out.println("the " + queueName + " queue already exists" );
             if (!ec2.getInstances("manager").isEmpty()){
@@ -66,11 +66,13 @@ public class Queue {
             CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
             return this.sqs.createQueue(createQueueRequest).getQueueUrl();
 
-        } catch (AmazonServiceException ase) {
-            printServiceError(ase);
-
-        } catch (AmazonClientException ace) {
-            printClientError(ace);
+        } catch (Exception ase) {
+            try {
+                Thread.sleep(60000);
+                createQueue(queueName);
+            } catch (InterruptedException e) {
+                System.out.println("got queue exception");
+            }
         }
         return queueUrl;
 
@@ -88,8 +90,6 @@ public class Queue {
         } catch (AmazonServiceException ase) {
             printServiceError(ase);
 
-        } catch (AmazonClientException ace) {
-            printClientError(ace);
         }
     }
 
