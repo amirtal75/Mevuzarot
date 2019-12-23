@@ -18,21 +18,20 @@ public class InputThread implements Runnable {
     S3Bucket s3;
     String myQueueUrl1; //queue for inputJobs
     String myQueueUrl2; //queue for inputJobs
-    static AtomicInteger idOfInputFile = new AtomicInteger(0);
-     ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
+    InputFileObject currFileObject; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
     AtomicInteger numberOfTasks = new AtomicInteger(0);
     EC2Object ec2;
     boolean toTerminate;
-    String inputFilename;
+    BufferedReader bufferedReader;
 
-    public InputThread(String queueUrlLocalApps, String myQueueUrl1, String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, AtomicInteger numberOfTasks) {
+    public InputThread(String queueUrlLocalApps, String myQueueUrl1, String myQueueUrl2, InputFileObject currFileObject,BufferedReader bufferedReader, AtomicInteger numberOfTasks) {
         System.out.println("the recieving mtasks queue is " + myQueueUrl1);
         this.queue = new Queue();
         QueueUrlLocalApps = queueUrlLocalApps;
         this.s3 = new S3Bucket();
         this.myQueueUrl1 = myQueueUrl1;
-        this.InputFileObjectById = inputFileObjectById;
-        this.inputFilename = inputFileName;
+        this.currFileObject = currFileObject;
+        this.bufferedReader = bufferedReader;
         this.ec2 = new EC2Object();
         toTerminate = false;
         this.numberOfTasks = numberOfTasks;
@@ -44,51 +43,41 @@ public class InputThread implements Runnable {
         String delimiter = " -@@@@@@@- ";
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         System.out.println("In InputThread: " + Thread.currentThread());
+            
+        
+
+        try {
+            // Check if need to create worker
+            String currLine = "";
+            String job = "";
 
 
-
-            InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename, path);
-            InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
-            System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(currFileObject));
-
-            try {
-                // Check if need to create worker
-
-                System.out.println("Downloading an object with key: " + inputFilename);
-                S3Object object = s3.downloadObject(inputFilename); //input file
-                BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                System.out.println("file to create tasks from:" + inputFilename);
-                /*BufferedReader inputFileFromLocalApp =  new BufferedReader(new FileReader(inputFilename));*/
-                String currLine = "";
-                String job = "";
-
-
-                while ((currLine = inputFileFromLocalApp.readLine()) != null) {
-                    //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
-                    int instanceSize = ec2. getInstances("").size();
-                    if (numberOfTasks.get() % 80 == 0 && instanceSize-1 <= numberOfTasks.get() / 80){
-                        synchronized (this){
-                            createworker(myQueueUrl1,myQueueUrl2,numberOfTasks);
-                        }
+            while ((currLine = bufferedReader.readLine()) != null) {
+                //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
+                int instanceSize = ec2. getInstances("").size();
+                if (numberOfTasks.get() % 80 == 0 && instanceSize-1 <= numberOfTasks.get() / 80){
+                    synchronized (this){
+                        createworker(myQueueUrl1,myQueueUrl2,numberOfTasks);
                     }
-
-
-                    //System.out.println(" Making a job from the current read line: " + currLine);
-                    // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
-                    currFileObject.increaseInputLines();
-                    job = idOfInputFile + delimiter + currLine;
-                    queue.sendMessage(myQueueUrl1, job);
-                    //System.out.println("sending a task to the queue" + myQueueUrl1);
-                    numberOfTasks.incrementAndGet();
-                    System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
-
                 }
-                currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-                System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
+
+                //System.out.println(" Making a job from the current read line: " + currLine);
+                // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
+                currFileObject.increaseInputLines();
+                job = currFileObject.getId() + delimiter + currLine;
+                queue.sendMessage(myQueueUrl1, job);
+                //System.out.println("sending a task to the queue" + myQueueUrl1);
+                numberOfTasks.incrementAndGet();
+                System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
 
             }
-            catch (Exception e) {
-                e.printStackTrace(); }
+            currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
+            System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
+
+        }
+        catch (Exception e) {
+            e.printStackTrace(); 
+        }
 
 
     }
