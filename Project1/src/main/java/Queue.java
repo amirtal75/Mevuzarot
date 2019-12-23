@@ -45,15 +45,20 @@ public class Queue {
 
     public String createQueue(String queueName) {
         EC2Object ec2 = new EC2Object();
+        GetQueueUrlResult result;
+        try {
+            result = sqs.getQueueUrl(queueName);
+        } catch (Exception ase) {
+            result = null;
+        }
 
-        GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest().withQueueName(queueName);
-        GetQueueUrlResult result = sqs.getQueueUrl(queueUrlRequest);
         if ( result != null){
             System.out.println("the " + queueName + " queue already exists" );
             if (!ec2.getInstances("manager").isEmpty()){
+                System.out.println("purging the queue: " + queueName);
                 sqs.purgeQueue(new PurgeQueueRequest().withQueueUrl(result.getQueueUrl()));
+                return  result.getQueueUrl();
             }
-            return  result.getQueueUrl();
         }
 
         String queueUrl = "";
@@ -62,11 +67,13 @@ public class Queue {
             CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
             return this.sqs.createQueue(createQueueRequest).getQueueUrl();
 
-        } catch (AmazonServiceException ase) {
-            printServiceError(ase);
-
-        } catch (AmazonClientException ace) {
-            printClientError(ace);
+        } catch (Exception ase) {
+            try {
+                Thread.sleep(60000);
+                createQueue(queueName);
+            } catch (InterruptedException e) {
+                System.out.println("got queue exception");
+            }
         }
         return queueUrl;
 
@@ -84,8 +91,6 @@ public class Queue {
         } catch (AmazonServiceException ase) {
             printServiceError(ase);
 
-        } catch (AmazonClientException ace) {
-            printClientError(ace);
         }
     }
 
