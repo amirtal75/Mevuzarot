@@ -1,15 +1,9 @@
-
-import java.io.*;
-
-
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import java.io.File;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon S3 using
@@ -28,13 +22,10 @@ public class S3Bucket {
 
     private AmazonS3 s3 = null;
     private String bucketName;
-    private String directoryName;
-
 
     public S3Bucket() {
 
         try{
-            this.directoryName = "assigment1";
             this.s3 = AmazonS3ClientBuilder.defaultClient();
             this.bucketName = "amirandamitassignment";
             createBucket();
@@ -44,42 +35,22 @@ public class S3Bucket {
     }
 
 
-    public
-    AmazonS3 getS3() {
+    public AmazonS3 getS3() {
         return s3;
     }
 
-    public
-    String getBucketName() {
-        return bucketName;
+    public String getBucketName() {return bucketName;}
+
+    public void createBucket() {
+        createBucket(bucketName);
     }
 
-    public
-    String getDirectoryName() {
-        return directoryName;
-    }
+    public void createBucket(String newBucket){
 
-    public Bucket createBucket() {
-        Bucket bucket = null;
-        try{
-            bucket = createBucket(this.bucketName);
-        } catch (Exception e){
-            System.out.println(e.getMessage());
-        }
-
-        return bucket;
-    }
-
-    public Bucket createBucket(String newBucket) throws Exception {
-
-        Bucket bucket = null;
-        if (s3.doesBucketExistV2(newBucket)) {
-            //System.out.println("Bucket already exists\n");
-        }
-        else {
+        if (!s3.doesBucketExistV2(newBucket)) {
             try {
-                bucket = s3.createBucket(newBucket);
-                System.out.println("Created Bucket Details: \n" + bucket.toString());
+                s3.createBucket(newBucket);
+                System.out.println("Created Bucket Details: \n" + bucketName);
 
             } catch (AmazonServiceException ase) {
                 printServiceError(ase);
@@ -88,10 +59,9 @@ public class S3Bucket {
                 printClientError(ace);
             }
         }
-        return bucket;
     }
 
-    public void listBuckets() throws Exception {
+    public void listBuckets(){
         try {
             System.out.println("Listing buckets");
             for (Bucket bucket : s3.listBuckets()) {
@@ -107,7 +77,7 @@ public class S3Bucket {
         }
     }
 
-    public void upload(String path, String filename) throws Exception {
+    public void upload(String path, String filename){
         System.out.println("trying to upload the file: " + filename);
         System.out.println(" to the bucket" + this.bucketName);
 
@@ -129,7 +99,7 @@ public class S3Bucket {
         }
     }
 
-    public S3Object downloadObject(String key) throws Exception {
+    public S3Object downloadObject(String key) {
         S3Object answer = null;
         try {
             System.out.println("Downloading an object");
@@ -153,7 +123,7 @@ public class S3Bucket {
      * use the AmazonS3.listNextBatchOfObjects(...) operation to retrieve
      * additional results.
      */
-    public void listObjects() throws Exception {
+    public void listObjects() {
 
         try {
             System.out.println("Listing objects");
@@ -174,7 +144,7 @@ public class S3Bucket {
         }
     }
 
-    public void cleanBucket() throws Exception {
+    public void cleanBucket() {
 
         try {
             System.out.println("deleting objects");
@@ -191,10 +161,12 @@ public class S3Bucket {
 
         } catch (AmazonClientException ace) {
             printClientError(ace);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    public void deleteObject(String key) throws Exception {
+    public void deleteObject(String key){
         try {
             System.out.println("Deleting an object\n");
             this.s3.deleteObject(this.bucketName, key);
@@ -207,7 +179,7 @@ public class S3Bucket {
         }
     }
 
-    public void deleteBucket() throws Exception {
+    public void deleteBucket(){
         try {
             System.out.println("Deleting bucket " + this.bucketName + "\n");
             this.s3.deleteBucket(this.bucketName);
@@ -218,25 +190,6 @@ public class S3Bucket {
         } catch (AmazonClientException ace) {
             printClientError(ace);
         }
-    }
-
-    /**
-     * Displays the contents of the specified input stream as text.
-     *
-     * @param input
-     *            The input stream to display as text.
-     *
-     * @throws IOException
-     */
-    private static void getTextInputStream(InputStream input) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-        while (true) {
-            String line = reader.readLine();
-            if (line == null) break;
-
-            System.out.println("    " + line);
-        }
-        System.out.println();
     }
 
     private void printServiceError(AmazonServiceException ase){

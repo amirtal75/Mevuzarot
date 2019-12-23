@@ -34,7 +34,7 @@ public class LocalApp implements Runnable{
         String delimiter = " -@@@@@@@- ";
         try {
             boolean summeryFileIsReady = false;
-            System.out.println("In local App " + Thread.currentThread().getId());
+            //System.out.println("In local App " + Thread.currentThread().getId());
             // Create objects and bucket
             EC2Object ec2 = new EC2Object();
             S3Bucket s3 = new S3Bucket();
@@ -47,9 +47,9 @@ public class LocalApp implements Runnable{
                 ArrayList<parsedInputObject> inputList = new ArrayList<>();
                 for (String inputFile : inputFiles) {
                     // Create a parsed object from the input list
-                    System.out.println("trying to parse the file " + path + inputFile);
+                    //System.out.println("trying to parse the file " + path + inputFile);
                     inputList = parse(path + inputFile);
-                    System.out.println("\nNumber of reviews parsed: " + inputList.size());
+                    //System.out.println("\nNumber of reviews parsed: " + inputList.size());
                     String outputFilename = inputFile + UUID.randomUUID() + ".txt";
                     // Write the parsed object to a file
                     BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
@@ -61,7 +61,7 @@ public class LocalApp implements Runnable{
                         try {
                             writer.write(towrite); // added rating******
                         } catch (Exception e){
-                            e.getMessage();
+                            System.out.println(e.getMessage());
                         }
                     }
 
@@ -69,13 +69,13 @@ public class LocalApp implements Runnable{
 
                     s3.upload(path,outputFilename);
                     queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size());
-                    System.out.println("done parse");
+                    //System.out.println("done parse");
                 }
 
-                System.out.println(" entering message loop ");
+                //System.out.println(" entering message loop ");
                 while (summeryFileIsReady == false) {
             /*if (ec2.getInstances("manager").get(0).getState().getName().equals("terminated")){
-                System.out.println("Manager is dead !!!!!!!!!!!!!");
+                //System.out.println("Manager is dead !!!!!!!!!!!!!");
                 createManager(s3, ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
              }*/
                     String currMessageName;
@@ -85,7 +85,7 @@ public class LocalApp implements Runnable{
                     //System.out.println("after receving message " + messages.size());
                     for (Message msg : messages) {
                         currMessageName = msg.getBody().split(delimiter)[0]; // the input file name
-                        System.out.println("the output file name is: " + currMessageName);
+                        //System.out.println("the output file name is: " + currMessageName);
 
                         for (String inputFile : inputFiles) {
                             if (currMessageName.indexOf(inputFile) != -1) {
@@ -100,7 +100,7 @@ public class LocalApp implements Runnable{
 
                                 String[] resultsToHTML = stringBuilder.toString().split("\n");
                                 createHTML(currMessageName,resultsToHTML);
-                                System.out.println("stopping localapp");
+                                //System.out.println("stopping localapp");
                                 summeryFileIsReady = true;
                                 queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
                             }
@@ -111,7 +111,7 @@ public class LocalApp implements Runnable{
 //            Thread.sleep(60);
                 }
 
-            System.out.println("ending the run");
+            //System.out.println("ending the run");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -150,7 +150,7 @@ public class LocalApp implements Runnable{
     }
 
     private ArrayList<parsedInputObject> parse(String filename) {
-        System.out.println("in parse");
+        //System.out.println("in parse");
         ArrayList<parsedInputObject> inputArray = new ArrayList<parsedInputObject>();
         Gson gson = new Gson();
         BufferedReader reader;
@@ -171,7 +171,7 @@ public class LocalApp implements Runnable{
                     reviews = dataholder.getReviews();
                     //System.out.println("got reviews: " + !reviews.isEmpty());
                     for (int i = 0; i < reviews.size(); i++) {
-                        System.out.println("title: " + dataholder.getTitle() + ", review: " + reviews.get(i).toString() );
+                        //System.out.println("title: " + dataholder.getTitle() + ", review: " + reviews.get(i).toString() );
                         inputArray.add(new parsedInputObject(dataholder.getTitle(), reviews.get(i)));
                     }
                 }

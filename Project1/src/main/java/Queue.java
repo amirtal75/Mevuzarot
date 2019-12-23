@@ -43,7 +43,7 @@ public class Queue {
         return sqs;
     }
 
-    public String createQueue() throws Exception {
+    public String createQueue() {
 
         String queueUrl = "";
         try {
@@ -63,7 +63,7 @@ public class Queue {
 
     }
 
-    public void listQueue() throws Exception {
+    public void listQueue() {
 
         try {
             System.out.println("Listing all queues in your account.\n");
@@ -79,7 +79,7 @@ public class Queue {
         }
     }
 
-    public void sendMessage(String queueUrl, String message) throws Exception {
+    public void sendMessage(String queueUrl, String message) {
 
         try {
             this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
@@ -91,12 +91,12 @@ public class Queue {
         }
     }
 
-    public List<Message> recieveMessage(String queueUrl) throws Exception {
+    public List<Message> recieveMessage(String queueUrl) {
 
         return recieveMessage(queueUrl, 1, 30);
     }
 
-    public List<Message> recieveMessage(String queueUrl, int numOfMessages, int Visibility) throws Exception {
+    public List<Message> recieveMessage(String queueUrl, int numOfMessages, int Visibility){
 
         try {
             ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
@@ -113,7 +113,7 @@ public class Queue {
         return null;
     }
 
-    public void printMessage(Message message) throws Exception{
+    public void printMessage(Message message){
         System.out.println("  Message");
         System.out.println("    MessageId:     " + message.getMessageId());
         System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
@@ -127,7 +127,7 @@ public class Queue {
         System.out.println();
     }
 
-    public void deleteMessage(String queueUrl, Message message) throws Exception {
+    public void deleteMessage(String queueUrl, Message message) {
         try {
             String messageRecieptHandle = message.getReceiptHandle();
             DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(queueUrl, messageRecieptHandle);

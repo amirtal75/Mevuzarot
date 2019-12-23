@@ -133,7 +133,7 @@ public class EC2Object {
      * @param userdata - the script to launch for each instance
      * @return the number of instances created
      */
-    public ArrayList<Instance> createInstance(int min, int max, String userdata) throws Exception{
+    public ArrayList<Instance> createInstance(int min, int max, String userdata){
         // Convert userData script to base 64
         String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
         // ami image we created with various installations
@@ -215,6 +215,7 @@ public class EC2Object {
 
             } catch (Exception e){
                 try {
+                    System.out.println("Ec2 Exception");
                     Thread.sleep(1000);
                     return getInstances(tagName);
                 } catch (InterruptedException ex) {

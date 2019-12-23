@@ -1,9 +1,4 @@
-import com.amazonaws.services.ec2.model.CreateTagsRequest;
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.Tag;
-import edu.stanford.nlp.ling.tokensregex.types.Tags;
-
-import java.util.List;
 
 public class Main {
 
@@ -17,12 +12,16 @@ public class Main {
 
         // !!!!!!!!!!!!!! need to delete !!!!!!!!!!!!
         ec2.terminateInstances(null);
+        Thread.sleep(1000);
 
         Queue queue = new Queue();
         QueueUrlLocalApps = queue.createQueue();
         summeryFilesIndicatorQueueUrl = queue.createQueue();
+        while (ec2.getInstances("").size() == 0){
+            createManager();
+            Thread.sleep(1000);
+        }
 
-        createManager();
 
         LocalApp localApp = new LocalApp("inputFile1.txt", QueueUrlLocalApps, summeryFilesIndicatorQueueUrl);
         Thread app = new Thread(localApp);

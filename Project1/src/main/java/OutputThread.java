@@ -1,109 +1,71 @@
-import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.sqs.model.Message;
-
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class OutputThread implements Runnable {
 
-    String summeryFilesIndicatorQueue;
-    Queue queue;
-    ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById;
-    List<Message> currMessageQueue = new ArrayList<Message>();
-    S3Bucket s3;
+    InputFileObject currFileObject;
     String myQueueUrl2; //queue for outputJobs , should be passed to workers as well
-    AmazonEC2 ec2;
-    ConcurrentHashMap<Integer, StringBuffer> stringResultsById; // will be passed by manager(the refference) by constructor
     boolean toTerminate;
     AtomicInteger numberOfCompletedTasks;
+    String summeryFilesIndicatorQueue;
 
-    public
-    OutputThread(String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String summeryFilesIndicatorQueue, AtomicInteger numberOfCompletedTasks) throws Exception {
-        this.queue = new Queue();
+    public OutputThread(String myQueueUrl2, String summeryFilesIndicatorQueue, InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
         this.myQueueUrl2 = myQueueUrl2;
-        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;
-        this.s3 = new S3Bucket();
-        this.InputFileObjectById = inputFileObjectById;
-        this.stringResultsById = stringResultsById;
+        this.currFileObject = currFileObject;
         toTerminate = false;
         this.numberOfCompletedTasks = numberOfCompletedTasks;
+        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;
     }
 
     public
     void run() {
-
+        S3Bucket s3= new S3Bucket();
+        Queue queue = new Queue();
+        List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
-        ArrayList<String> completedreviewIDlist = new ArrayList<>();
-       //System.out.println("In Output Thread: " + Thread.currentThread());
+        System.out.println("In Output Thread: " );
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
-        int numberOftasksworkedbythisOutputThread = 0;
 
+        while (!currFileObject.getAllWorkersDone().get()) {
 
-        while (!toTerminate) {
+            System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
 
+            messagefromCompletedTasksQueue = queue.recieveMessage(myQueueUrl2, 1, 60); // check about visibility
+            if (!messagefromCompletedTasksQueue.isEmpty()) {
 
-            try {
-                currMessageQueue = queue.recieveMessage(myQueueUrl2, 1, 60); // check about visibility
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            if (!currMessageQueue.isEmpty()) {
-
-                ++numberOftasksworkedbythisOutputThread;
-               //System.out.println(" Num of tasks perform by this output thread: " + Thread.currentThread().getId() + " is: " + numberOftasksworkedbythisOutputThread);
-
-                Message currMessege = currMessageQueue.get(0);
-                ////System.out.println("Received message content: " + currMessege.getBody());
-
+                Message currMessege = messagefromCompletedTasksQueue.get(0);
                 String[] resultContent = currMessege.getBody().split(delimiter);
-                int inputFileId = Integer.parseInt(resultContent[0]);
-
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
 
-                synchronized (this){
-
-                    InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
-                    String filename = currInputFileObj.getInputFilename();
-                   //System.out.println("In Output Thread: The input file worked on in this task: " + filename);
-
-                    if (!completedreviewIDlist.contains(resultContent[1])) {
-                       //System.out.println("In Output Thread: The current number of increaseOutputLines is: " + currInputFileObj.getOutputLines());
-                       //System.out.println("In Output Thread: The current number of completed tasks is: " + numberOfCompletedTasks);
-                        if (stringResultsById.containsKey(inputFileId)) {
-                           //System.out.println("In Output Thread: Working on existing string buffer");
-                            StringBuffer builder = stringResultsById.get(inputFileId);
-                            builder.append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
-                            completedreviewIDlist.add(resultContent[1]);
-
-                           //System.out.println("In Output Thread: added a line to the existing builder of the file: " + filename);
-
-                            currInputFileObj.increaseOutputLines();
-                        }
-
-                        //check again what I sent to the local app
-                        else {
-                            stringResultsById.put(inputFileId, new StringBuffer(currMessege.getBody() + "\n")); // if is absent
-                            currInputFileObj.increaseOutputLines();
-                        }
-                        numberOfCompletedTasks.incrementAndGet();
-                       //System.out.println("In Output Thread: Task completed and the current number of increaseOutputLines is: " + currInputFileObj.getOutputLines());
-                       //System.out.println("In Output Thread: Task completed and the current number of completed tasks is: " + numberOfCompletedTasks);
-                    }
-
-                    try {
-                        queue.deleteMessage(myQueueUrl2, currMessege);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                // The place to check
+                currFileObject.appendToBuffer(currMessege.getBody(),resultContent[1] );
+                numberOfCompletedTasks.incrementAndGet();
+                queue.deleteMessage(myQueueUrl2, currMessege);
             }
         }
-       //System.out.println("Output Thread: " + Thread.currentThread().getId() + " finished running\n");
+
+        synchronized (this){
+            if (currFileObject.getAllWorkersDone().get()){
+                try {
+                    String outputName = currFileObject.getInputFilename() + "$";
+                    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
+                    bufferedWriter.write(currFileObject.getBuffer().toString());
+                    bufferedWriter.flush();
+                    s3.upload(path, outputName);
+                    queue.sendMessage(summeryFilesIndicatorQueue, outputName);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
+        System.out.println("Output Thread: " + Thread.currentThread().getId() + " finished running\n");
     }
+}
 
 

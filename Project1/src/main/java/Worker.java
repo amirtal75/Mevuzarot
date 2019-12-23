@@ -1,10 +1,3 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.lang.StringBuffer;
 import com.amazonaws.services.sqs.model.Message;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -14,6 +7,12 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class Worker {
 
@@ -21,9 +20,9 @@ public class Worker {
         String delimiter = " -@@@@@@@- ";
         System.out.println("In Worker:\n");
         Queue queue = new Queue();
-        List<Message> currJobQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
+        List<Message> currJobQueue = new ArrayList<>(); //at each moment holds one message from the sqs
         boolean isSarcastic;
-        BufferedReader reader = null;
+        BufferedReader reader;
         String receivedTasks = "";
         String completedTasks = "";
         String path = "/home/ubuntu//Mevuzarot-master/Project1/src/main/java/";
@@ -84,7 +83,7 @@ public class Worker {
             }
             else{
                 System.out.println("Queus is empty");
-                Thread.currentThread().sleep(6000);
+                Thread.sleep(1000);
                 break;
             }
         }
@@ -134,7 +133,7 @@ public class Worker {
 
         System.out.println("Crash test 2\n\n");
 
-        StringBuffer entities = new StringBuffer("[");
+        StringBuilder entities = new StringBuilder().append("[");
         for (CoreMap sentence : sentences) {
             // traversing the words in the current sentence
             // a CoreLabel is a CoreMap with additional token-specific methods
