@@ -35,6 +35,7 @@ public class OutputThread extends ManagerSuperClass implements Runnable {
             if (!messagefromCompletedTasksQueue.isEmpty()) {
 
                 Message currMessege = messagefromCompletedTasksQueue.get(0);
+                System.out.println("message from worker: " + currMessege.getBody());
                 String[] resultContent = currMessege.getBody().split(delimiter);
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
 
