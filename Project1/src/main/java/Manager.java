@@ -14,6 +14,8 @@ public class Manager{
 
 
     public static void main(String[] args) throws Exception {
+
+        int numberOfReceivedtasksFromTotalOfLocals = 0;
         System.out.println("In Manager:");
 
         EC2Object ec2 = new EC2Object();
@@ -53,6 +55,8 @@ public class Manager{
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
         // Create Thread Pools
+        int numberOfInputThreads = 0;
+        int numberOfOutputThreads = 0;
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
@@ -72,17 +76,23 @@ public class Manager{
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
-                    String messageContent = currMessege.getBody();
+                    String[] messageContent = currMessege.getBody().split("@");
+                    numberOfReceivedtasksFromTotalOfLocals += Integer.parseInt(messageContent[1]);
 
-                    System.out.println("Downloading an object with key: " + messageContent);
-                    S3Object object = s3.downloadObject(messageContent); //input file
+                    System.out.println("Downloading an object with key: " + messageContent[0]);
+                    S3Object object = s3.downloadObject(messageContent[0]); //input file
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                    InputFileObject newFile = new InputFileObject(idOfInputFile.getAndIncrement(),messageContent,path);
+                    InputFileObject newFile = new InputFileObject(idOfInputFile.getAndIncrement(),messageContent[0],path);
                     InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
                     System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String QueueUrlLocalApps
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, myQueueUrl2,newFile, bufferedReader, numberOfTasks));
+                    int numberOfInputThreadsToLaunch = Math.abs( (numberOfInputThreads * 50) - (numberOfReceivedtasksFromTotalOfLocals - numberOfTasks.get() ));
+                    System.out.println("numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals + ", numberOfTasks performed is: " +numberOfTasks.get());
+                    System.out.println("Number of input threads to launch is: " +numberOfInputThreadsToLaunch);
+                    for (int i = 0; i < numberOfInputThreadsToLaunch; ++i ){
+                        poolForInput.execute(new InputThread(QueueUrlLocalApps, myQueueUrl1, myQueueUrl2,newFile, bufferedReader, numberOfTasks));
+                    }
 
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(myQueueUrl2, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue,numberOfCompletedTasks));
