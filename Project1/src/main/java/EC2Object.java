@@ -220,7 +220,6 @@ public class EC2Object {
                     ex.printStackTrace();
                 }
             }
-            response = this.ec2.describeInstances(request);
             List<Reservation> reservations = response.getReservations();
 
             for(Reservation reservation :
