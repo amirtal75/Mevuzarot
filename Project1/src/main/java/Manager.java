@@ -25,7 +25,7 @@ public class Manager{
 
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
-        AtomicInteger idOfInputFile = new AtomicInteger(0);
+        AtomicInteger idOfInputFile = new AtomicInteger(1);
 
         createworker(myQueueUrl1,myQueueUrl2, numberOfTasks);
         System.out.println("Created the first worker");
@@ -77,7 +77,7 @@ public class Manager{
                     System.out.println("Downloading an object with key: " + messageContent);
                     S3Object object = s3.downloadObject(messageContent); //input file
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                    InputFileObject newFile = new InputFileObject(idOfInputFile.get(),messageContent,path);
+                    InputFileObject newFile = new InputFileObject(idOfInputFile.getAndIncrement(),messageContent,path);
                     InputFileObjectById.putIfAbsent(idOfInputFile.get(), newFile); //add the currFileObject with his special id
                     System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
 
