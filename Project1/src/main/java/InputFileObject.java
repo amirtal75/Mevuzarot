@@ -39,11 +39,12 @@ public class InputFileObject {
 
     public void appendToBuffer (String messageFromQueue, String reviewID) {
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
-
+        System.out.println("checking if reviewWasprocessedBefore: " + reviewWasprocessedBefore);
+        String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
         if (!reviewWasprocessedBefore) {
-            this.stringBuffer.append(messageFromQueue + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+            this.stringBuffer.append(toAppend);
             this.iDsOfProcessedReviews.put(outputLines.get(), reviewID);
-            outputLines.incrementAndGet();
+            this.outputLines.incrementAndGet();
         }
     }
 

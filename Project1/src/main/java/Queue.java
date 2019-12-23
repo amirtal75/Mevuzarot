@@ -3,6 +3,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
@@ -15,7 +16,6 @@ import com.amazonaws.services.sqs.model.*;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon SQS using the
@@ -34,17 +34,37 @@ public class Queue {
 
     public AmazonSQS sqs = null;
 
-    public Queue() {
 
+    public Queue() {
         this.sqs = AmazonSQSClientBuilder.defaultClient();
     }
+
     public
     AmazonSQS getSqs() {
         return sqs;
     }
 
-    public String createQueue(String queueName) {
-        EC2Object ec2 = new EC2Object();
+    public void purgeQueue(String queueName){
+        String queueURL = "https://sqs.us-west-2.amazonaws.com/002041186709/" + queueName;
+        PurgeQueueRequest purgeQueueRequest = new PurgeQueueRequest().withQueueUrl(queueURL);
+        try{
+            sqs.purgeQueue(purgeQueueRequest);
+        } catch (Exception e){
+            if (e.getMessage().contains("Only one PurgeQueue operation on QueueUrlLocalApps is allowed every 60 seconds")){
+                System.out.println("The queue was alredy purged in the last minute and we need to wait 60 seconds");
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException ex) {
+                    System.out.println("Purge Queue Exception");
+                    ex.printStackTrace();
+                }
+                sqs.purgeQueue(purgeQueueRequest);
+            }
+        }
+    }
+
+    public String createQueue(String queueName, boolean managerExists) {
+        System.out.println("managerExists " + managerExists);
         GetQueueUrlResult result;
         try {
             result = sqs.getQueueUrl(queueName);
@@ -54,11 +74,13 @@ public class Queue {
 
         if ( result != null){
             System.out.println("the " + queueName + " queue already exists" );
-            if (!ec2.getInstances("manager").isEmpty()){
+            queueName = result.getQueueUrl();
+            if (!managerExists){
                 System.out.println("purging the queue: " + queueName);
-                sqs.purgeQueue(new PurgeQueueRequest().withQueueUrl(result.getQueueUrl()));
+                purgeQueue(queueName);
                 return  result.getQueueUrl();
             }
+            return queueName;
         }
 
         String queueUrl = "";
@@ -69,15 +91,16 @@ public class Queue {
 
         } catch (Exception ase) {
             try {
-                Thread.sleep(60000);
-                createQueue(queueName);
+                if(ase.getMessage().contains("You must wait 60 seconds after deleting a queue before you can create another with the same name")){
+                    System.out.println("The queue was just deleted in the last minute and we need to wait 60 seconds");
+                    Thread.sleep(60000);
+                    createQueue(queueName, managerExists);
+                }
             } catch (InterruptedException e) {
                 System.out.println("got queue exception");
             }
         }
         return queueUrl;
-
-
     }
 
     public void listQueue() {
@@ -187,39 +210,4 @@ public class Queue {
                 "being able to access the network.");
         System.out.println("Error Message: " + ace.getMessage());
     }
-
-    private AWSStaticCredentialsProvider getMyCredentials(){
-        AWSStaticCredentialsProvider credentialsProvider = null;
-        try{
-            credentialsProvider = new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials());
-        } catch (Exception e){
-            AWSSecurityTokenService stsClient = AWSSecurityTokenServiceClientBuilder.standard()
-                    .withCredentials(new ProfileCredentialsProvider())
-                    .withRegion("us-west-2")
-                    .build();
-
-            // Start a session.
-            GetSessionTokenRequest getSessionTokenRequest = new GetSessionTokenRequest().withDurationSeconds(3500);
-            // The duration can be set to more than 3600 seconds only if temporary
-            // credentials are requested by an IAM user rather than an account owner.
-            AssumeRoleResult sessionTokenResult = stsClient
-                    .assumeRole(new AssumeRoleRequest().withRoleArn("arn:aws:iam::002041186709:role/projectRole"));
-            System.out.println(sessionTokenResult.getCredentials().getAccessKeyId());
-            Credentials sessionCredentials = sessionTokenResult
-                    .getCredentials()
-                    .withSessionToken(sessionTokenResult.getCredentials().getSessionToken())
-                    .withExpiration(sessionTokenResult.getCredentials().getExpiration());
-
-            // Package the temporary security credentials as a BasicSessionCredentials object
-            // for an Amazon S3 client object to use.
-            BasicSessionCredentials basicSessionCredentials = new BasicSessionCredentials(
-                    sessionCredentials.getAccessKeyId(), sessionCredentials.getSecretAccessKey(),
-                    sessionCredentials.getSessionToken());
-
-            credentialsProvider = new AWSStaticCredentialsProvider(basicSessionCredentials);
-        }
-
-        return credentialsProvider;
-    }
-
 }

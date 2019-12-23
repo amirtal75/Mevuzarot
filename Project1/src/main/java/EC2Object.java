@@ -205,6 +205,7 @@ public class EC2Object {
      *          If the the tag is empty string, then return all instances.
      */
     public ArrayList<Instance> getInstances(String tagName){
+
         DescribeInstancesRequest request = new DescribeInstancesRequest();
         boolean notdone = true;
         DescribeInstancesResult response= null;
@@ -215,7 +216,7 @@ public class EC2Object {
 
             } catch (Exception e){
                 try {
-                    System.out.println("Ec2 Exception");
+                    System.out.println("Ec2 describe Exception");
                     Thread.sleep(1000);
                     return getInstances(tagName);
                 } catch (InterruptedException ex) {
@@ -234,10 +235,11 @@ public class EC2Object {
                     Boolean run = instance.getState().getName().equals("running");
                     Boolean pend = instance.getState().getName().equals("pending");
                     if ( (tagName.equals("") || tagName == null) && ( run || pend )){
+                        System.out.println("inside emptyTagname");
                         instancesResult.add(instance);
                     }
                     else if (instance.getTags().contains(tag) && (run || pend)){
-                        System.out.println();
+                        System.out.println("inside tagname:" +tagName);
                         instancesResult.add(instance);
                     }
                 }

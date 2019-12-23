@@ -31,18 +31,23 @@ public class OutputThread extends ManagerSuperClass implements Runnable {
 
             System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
 
-            messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
+            messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 3); // check about visibility
             if (!messagefromCompletedTasksQueue.isEmpty()) {
 
                 Message currMessege = messagefromCompletedTasksQueue.get(0);
-                System.out.println("message from worker: " + currMessege.getBody());
+                System.out.println("message from worker: ");
                 String[] resultContent = currMessege.getBody().split(delimiter);
+                for (String str: resultContent){
+                    System.out.println(str);
+                }
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
 
                 // The place to check
-                currFileObject.appendToBuffer(currMessege.getBody(),resultContent[1] );
-                numberOfCompletedTasks.incrementAndGet();
-                queue.deleteMessage(completedTasksQueue, currMessege);
+                if (resultContent[0].equals(currFileObject.getId())) {
+                    currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1]);
+                    numberOfCompletedTasks.incrementAndGet();
+                    queue.deleteMessage(completedTasksQueue, currMessege);
+                }
             }
         }
 

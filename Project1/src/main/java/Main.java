@@ -70,8 +70,10 @@ public class Main {
         ec2.attachTags(instance, "manager");
 
         Queue queue = new Queue();
-        String QueueUrlLocalApps = queue.createQueue("QueueUrlLocalApps");
-        String summeryFilesIndicatorQueueUrl = queue.createQueue("summeryFilesIndicatorQueueUrl");
+        queue.createQueue("QueueUrlLocalApps", true);
+        queue.createQueue("summeryFilesIndicatorQueueUrl", true);
+        queue.createQueue("workerJobQueue", true);
+        queue.createQueue("completedTasksQueue", true);
 
     }
 }
