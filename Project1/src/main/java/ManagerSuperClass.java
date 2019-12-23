@@ -11,7 +11,7 @@ public class ManagerSuperClass {
         int workerinstances = ec2.getInstances("").size() - 1;
         Boolean tasksDivides = (numberOfTasks % 80) == 0;
         int tasks = numberOfTasks/80;
-        Boolean condition = tasksDivides == false && workerinstances < (tasks);
+        Boolean condition = tasksDivides == false && workerinstances <= (tasks);
 
         if ( condition == false || workerinstances > 15){
             return;
