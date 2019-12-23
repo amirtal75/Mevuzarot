@@ -86,7 +86,7 @@ public class InputThread implements Runnable {
         //System.out.println("InputThread: " + Thread.currentThread() + " finished running");
     }
 
-    public static void createworker(String myQueueUrl1, String myQueueUrl2, int numberOfTasks, int instanceSize){
+    public synchronized static void createworker(String myQueueUrl1, String myQueueUrl2, int numberOfTasks, int instanceSize){
 
         System.out.println("\n\n\n\n\ncreating worker when the current number of instances is: " + instanceSize);
         System.out.println("current number of tasks is: " + numberOfTasks);
