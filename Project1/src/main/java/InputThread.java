@@ -41,8 +41,8 @@ public class InputThread implements Runnable {
 
         //System.out.println("In InputThread: " + Thread.currentThread());
         String delimiter = " -@@@@@@@- ";
-            
-        
+
+
 
         try {
             // Check if need to create worker
@@ -80,7 +80,7 @@ public class InputThread implements Runnable {
 
         }
         catch (Exception e) {
-            e.printStackTrace(); 
+            e.printStackTrace();
         }
 
         //System.out.println("InputThread: " + Thread.currentThread() + " finished running");
@@ -98,7 +98,7 @@ public class InputThread implements Runnable {
             return;
         }
 
-        if ( !tasksDivides && workerinstances >= (numberOfTasks / 80)){
+        if ( !tasksDivides && workerinstances < (numberOfTasks / 80)){
             return;
         }
 
