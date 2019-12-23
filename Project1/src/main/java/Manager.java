@@ -1,20 +1,3 @@
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.sqs.model.Message;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-
-public class Manager{
-
-
-    public static void main(String[] args) throws Exception {
-
         int numberOfReceivedtasksFromTotalOfLocals = 0;
         System.out.println("In Manager:");
 
@@ -29,7 +12,7 @@ public class Manager{
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
         AtomicInteger idOfInputFile = new AtomicInteger(0);
 
-        createworker(myQueueUrl1,myQueueUrl2, numberOfTasks, ec2.getInstances("").size());
+        createworker(myQueueUrl1,myQueueUrl2, numberOfTasks.get(), 1);
         System.out.println("Created the first worker");
 
         S3Bucket s3 = new S3Bucket();
@@ -144,41 +127,3 @@ public class Manager{
             } catch (Exception e){
             }
         }
-    }
-
-    public static void createworker(String myQueueUrl1, String myQueueUrl2, AtomicInteger numberOfTasks, int instanceSize){
-        System.out.println((instanceSize -1) + (numberOfTasks.get()/80));
-        EC2Object ec2 = new EC2Object();
-        instanceSize = ec2. getInstances("").size();
-        if (numberOfTasks.get() % 80 == 0 && (instanceSize - 1) <= (numberOfTasks.get() / 80)) {
-            return;
-        }
-
-        try {
-
-            // create user data dor workers
-            String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
-            String unzip = getProject + "sudo unzip -o master.zip\n";
-            String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
-            String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
-            String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
-            String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
-            String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
-
-            String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
-            String pushFirstArg = createWorkerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
-            String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
-
-            String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + filedata + createAndRunProject;
-
-            // to save time receiving tasks we start one worker
-            Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
-            ec2.attachTags(instance, "worker");
-            System.out.println("created new worker instance: " + instance.getInstanceId());
-        } catch (Exception e){
-            System.out.println(e.getMessage());
-        }
-    }
-
-}
-
