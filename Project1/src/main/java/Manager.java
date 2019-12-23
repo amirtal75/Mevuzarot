@@ -87,7 +87,8 @@ public class Manager{
                     System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(newFile));
 
                     //String myQueueUrl2, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuffer> stringResultsById, String QueueUrlLocalApps
-                    int numberOfInputThreadsToLaunch = Math.abs( (numberOfInputThreads * 50) - (numberOfReceivedtasksFromTotalOfLocals - numberOfTasks.get() ));
+                    int dividor = (numberOfInputThreads+1) * 50;
+                    int numberOfInputThreadsToLaunch = Math.abs(numberOfReceivedtasksFromTotalOfLocals - numberOfTasks.get()) / dividor;
                     System.out.println("numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals + ", numberOfTasks performed is: " +numberOfTasks.get());
                     System.out.println("Number of input threads to launch is: " +numberOfInputThreadsToLaunch);
                     for (int i = 0; i < numberOfInputThreadsToLaunch; ++i ){
