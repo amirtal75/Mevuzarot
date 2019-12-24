@@ -30,6 +30,7 @@ public class InputFileObject {
         this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
         this.stringBuffer = new StringBuffer();
         this.inputFileID  = UUID.randomUUID().toString();
+        this.iDsOfProcessedReviews = new ConcurrentHashMap<>();
     }
 
     public synchronized BufferedReader getReader() {return reader;}
