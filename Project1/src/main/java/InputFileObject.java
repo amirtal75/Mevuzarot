@@ -19,6 +19,7 @@ public class InputFileObject {
     AtomicBoolean allWorkersDone; //all the workers finished
     String inputFilename;
     ConcurrentHashMap<Integer, String> iDsOfProcessedReviews;
+    String delimiter = " -@@@@@@@- ";
 
     public InputFileObject(String inputFilename,int numberoffilelines, S3Object object){
         inputLines = new AtomicInteger(0);
@@ -31,6 +32,7 @@ public class InputFileObject {
         this.stringBuffer = new StringBuffer();
         this.inputFileID  = UUID.randomUUID().toString();
         this.iDsOfProcessedReviews = new ConcurrentHashMap<>();
+        System.out.println("Created input file object with the ID: " + inputFileID);
     }
 
     public synchronized BufferedReader getReader() {return reader;}
@@ -40,6 +42,8 @@ public class InputFileObject {
     }
 
     public void appendToBuffer (String messageFromQueue, String reviewID) {
+        String[] result =  messageFromQueue.split(delimiter );
+        System.out.println("Adding a message with ID: " + result[0] + "\nTo the inputFileObject with the ID: " + inputFileID);
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
         String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
         if (!reviewWasprocessedBefore) {
@@ -78,7 +82,7 @@ public class InputFileObject {
     }
 
     public synchronized void  checkAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
-        allWorkersDone.compareAndSet(false , (inputLines.get() == numberoffilelines && (numberoffilelines == outputLines.get())));
+        allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines) && (numberoffilelines == outputLines.get())));
     }
 
     public synchronized String getInputFilename() {
