@@ -11,11 +11,13 @@ public class OutputThread implements Runnable {
     InputFileObject currFileObject;
     String completedTasksQueue; //queue for outputJobs , should be passed to workers as well
     AtomicInteger numberOfCompletedTasks;
+    String originator;
 
     public OutputThread(InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
         this.completedTasksQueue = currFileObject.getInputFileID();
         this.currFileObject = currFileObject;
         this.numberOfCompletedTasks = numberOfCompletedTasks;
+        originator = "Thread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
     }
 
     public
@@ -34,10 +36,10 @@ public class OutputThread implements Runnable {
                 String[] resultContent = currMessege.getBody().split(delimiter);
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
                 synchronized (this) {
-                    currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1]);
-                    currFileObject.increaseOutputLines(currFileObject.getInputFileID());
+                    currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1],originator);
+                    currFileObject.increaseOutputLines(currFileObject.getInputFileID(),originator);
                     numberOfCompletedTasks.incrementAndGet();
-                    currFileObject.checkAndSetAllWorkersDone();
+                    currFileObject.checkAndSetAllWorkersDone(originator);
                     queue.deleteMessage(completedTasksQueue, currMessege);
                 }
             }

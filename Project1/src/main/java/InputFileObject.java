@@ -41,9 +41,9 @@ public class InputFileObject {
         return this.inputFileID;
     }
 
-    public void appendToBuffer (String messageFromQueue, String reviewID) {
+    public void appendToBuffer (String messageFromQueue, String reviewID, String originator) {
         String[] result =  messageFromQueue.split(delimiter );
-        System.out.println("Adding a message with ID: " + result[0] + "\nTo the inputFileObject with the ID: " + inputFileID);
+        System.out.println(originator + "Adding a message with ID: " + result[0] + "\nTo the inputFileObject with the ID: " + inputFileID);
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
         String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
         if (!reviewWasprocessedBefore) {
@@ -77,12 +77,13 @@ public class InputFileObject {
         inputLines.getAndIncrement();
     }
 
-    public void increaseOutputLines(String fileID) {
-        System.out.println("Increasing the output of the file with the id: " + fileID + "\nFrom the inputFileObject with the ID: " + inputFileID);
+    public void increaseOutputLines(String inputFileID, String originator) {
+        System.out.println(originator + "increaseOutputLines of the input file:  " + this.inputFileID);
         outputLines.getAndIncrement();
     }
 
-    public void  checkAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
+    public void  checkAndSetAllWorkersDone (String originator){ // check if all workers done and set allWorkersDone accordingly.
+        System.out.println(originator + "checkAndSetAllWorkersDone of the input file: " + inputFileID);
         allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines) && (numberoffilelines == outputLines.get())));
     }
 
