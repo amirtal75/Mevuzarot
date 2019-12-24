@@ -1,4 +1,5 @@
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
 
 import java.io.*;
@@ -71,10 +72,13 @@ public class Manager {
                 if (currMessageQueue.size() > 0){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
-                    System.out.println("Name of file from local app:" + messageContent);
-
+                    String inputFilename = currMessege.getBody();
+                    System.out.println("Downloading an object with key: " + inputFilename);
+                    S3Object object = s3.downloadObject(inputFilename); //input file
+                    BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                    System.out.println("file to create tasks from:" + inputFilename);
                     //String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, workerJobQueue, InputFileObjectById, messageContent, numberOfTasks));
+                    poolForInput.execute(new InputThread(QueueUrlLocalApps, workerJobQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(completedTasksQueue, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue,numberOfCompletedTasks));
                     poolForOutput.execute(new OutputThread(completedTasksQueue, InputFileObjectById, stringResultsById, summeryFilesIndicatorQueue,numberOfCompletedTasks));

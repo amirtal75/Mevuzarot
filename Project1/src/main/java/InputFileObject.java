@@ -15,13 +15,12 @@ public class InputFileObject {
     AtomicInteger inputLines;
     AtomicInteger outputLines;
     BufferedWriter writer = null;
-
-
+    String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
     AtomicBoolean redAllLines; // finish to read all lines
     AtomicBoolean allWorkersDone; //all the workers finished
     String inputFilename;
 
-    public InputFileObject(int id,String inputFilename, String path){
+    public InputFileObject(int id,String inputFilename){
         this.id = id;
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
