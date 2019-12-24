@@ -92,8 +92,9 @@ public class Manager{
                 }
             }
 
-            InputFileObject currFileObject;
-            for (int i = 1 ; i < InputFileObjectById.size(); ++i){
+            InputFileObject currFileObject = null;
+            // System.out.println("InputFileObjectById.size(): " + InputFileObjectById.size());
+            for (int i = 0 ; i < InputFileObjectById.size(); ++i){
                 currFileObject = InputFileObjectById.get(i);
                 currFileObject.checkAndSetAllWorkersDone();
                 if (currFileObject.getAllWorkersDone().get()){
