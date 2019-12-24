@@ -113,7 +113,7 @@ public class Queue {
             }
             System.out.println();
         } catch (AmazonServiceException ase) {
-            printServiceError(ase);
+            System.out.println("Listing all queues in your account error\n");
 
         }
     }
@@ -123,10 +123,10 @@ public class Queue {
         try {
             this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
         } catch (AmazonServiceException ase) {
-            printServiceError(ase);
+            System.out.println("failed to send message to the queue: " + queueUrl);
 
         } catch (AmazonClientException ace) {
-            printClientError(ace);
+            System.out.println("failed to send message to the queue: " + queueUrl);
         }
     }
 
@@ -144,10 +144,10 @@ public class Queue {
             List<Message> messages = this.sqs.receiveMessage(receiveMessageRequest).getMessages();
             return messages;
         } catch (AmazonServiceException ase) {
-            printServiceError(ase);
+            System.out.println("failed to receive message to the queue: " + queueUrl);
 
         } catch (AmazonClientException ace) {
-            printClientError(ace);
+            System.out.println("failed to receive message to the queue: " + queueUrl);
         }
         return null;
     }
@@ -174,10 +174,10 @@ public class Queue {
 
 
         } catch (AmazonServiceException ase) {
-            printServiceError(ase);
+            System.out.println("failed to delete message to the queue: " + queueUrl);
 
         } catch (AmazonClientException ace) {
-            printClientError(ace);
+            System.out.println("failed to delete message to the queue: " + queueUrl);
         }
     }
 
