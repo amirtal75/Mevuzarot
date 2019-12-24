@@ -17,11 +17,11 @@ public class OutputThread implements Runnable {
         this.completedTasksQueue = currFileObject.getInputFileID();
         this.currFileObject = currFileObject;
         this.numberOfCompletedTasks = numberOfCompletedTasks;
-        originator = "OutputThread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
     }
 
     public
     void run() {
+        originator = "OutputThread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
         Queue queue = new Queue();
         List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
