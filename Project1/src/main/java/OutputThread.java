@@ -33,10 +33,9 @@ public class OutputThread implements Runnable {
                 Message currMessege = messagefromCompletedTasksQueue.get(0);
                 String[] resultContent = currMessege.getBody().split(delimiter);
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
-
                 synchronized (this) {
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1]);
-                    currFileObject.increaseOutputLines();
+                    currFileObject.increaseOutputLines(currFileObject.getInputFileID());
                     numberOfCompletedTasks.incrementAndGet();
                     currFileObject.checkAndSetAllWorkersDone();
                     queue.deleteMessage(completedTasksQueue, currMessege);
