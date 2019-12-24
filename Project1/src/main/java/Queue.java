@@ -64,6 +64,7 @@ public class Queue {
     }
 
     public String createQueue(String queueName, boolean managerExists) {
+        System.out.println("inside create queue: " + queueName);
         System.out.println("managerExists " + managerExists);
         GetQueueUrlResult result;
         try {
