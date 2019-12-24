@@ -31,13 +31,13 @@ public class InputFileObject {
         this.stringBuffer = new StringBuffer();
     }
 
-    public BufferedReader getReader() {return reader;}
+    public synchronized BufferedReader getReader() {return reader;}
 
-    public int getId() {
+    public synchronized int getId() {
         return this.id.get();
     }
 
-    public void appendToBuffer (String messageFromQueue, String reviewID) {
+    public synchronized void appendToBuffer (String messageFromQueue, String reviewID) {
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
         System.out.println("checking if reviewWasprocessedBefore: " + reviewWasprocessedBefore);
         String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
@@ -48,47 +48,47 @@ public class InputFileObject {
         }
     }
 
-    public StringBuffer getBuffer() {return stringBuffer;}
+    public synchronized StringBuffer getBuffer() {return stringBuffer;}
 
-    public int getNumberoffilelines() {return numberoffilelines;}
+    public synchronized int getNumberoffilelines() {return numberoffilelines;}
 
-    public AtomicInteger getInputLines() {
+    public synchronized AtomicInteger getInputLines() {
         return inputLines;
     }
 
-    public AtomicInteger getOutputLines() {
+    public synchronized AtomicInteger getOutputLines() {
         return outputLines;
     }
 
-    public AtomicBoolean getRedAllLines() {
+    public synchronized AtomicBoolean getRedAllLines() {
         return redAllLines;
     }
 
-    public AtomicBoolean getAllWorkersDone() {
+    public synchronized AtomicBoolean getAllWorkersDone() {
         return allWorkersDone;
     }
 
-    public AtomicBoolean AllWorkersDone() {
+    public synchronized AtomicBoolean AllWorkersDone() {
         return allWorkersDone;
     }
 
-    public void increaseInputLines() {
+    public synchronized void increaseInputLines() {
         inputLines.getAndIncrement();
     }
 
-    public void increaseOutputLines() {
+    public synchronized void increaseOutputLines() {
         outputLines.getAndIncrement();
     }
 
-    public void  CheckAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
+    public synchronized void  CheckAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
         allWorkersDone.compareAndSet(false , (redAllLines.get() && (inputLines.get() == outputLines.get())));
     }
 
-    public String getInputFilename() {
+    public synchronized String getInputFilename() {
         return inputFilename;
     }
 
-    public void setredAllLinesTrue() {
+    public synchronized void setredAllLinesTrue() {
         if (numberoffilelines == inputLines.get()) {
             redAllLines.set(true);
         }

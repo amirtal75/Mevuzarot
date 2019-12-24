@@ -3,8 +3,9 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class InputThread extends ManagerSuperClass implements Runnable {
+public class InputThread implements Runnable {
 
+    String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/workerJobQueue";
     Queue queue;
     S3Bucket s3;
     InputFileObject currFileObject; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
@@ -12,8 +13,9 @@ public class InputThread extends ManagerSuperClass implements Runnable {
     EC2Object ec2;
     boolean toTerminate;
     BufferedReader bufferedReader;
+    ManagerSuperClass manager;
 
-    public InputThread(InputFileObject currFileObject, AtomicInteger numberOfTasks) {
+    public InputThread(InputFileObject currFileObject, ManagerSuperClass manager) {
         this.queue = new Queue();
         this.s3 = new S3Bucket();
         this.currFileObject = currFileObject;
@@ -21,6 +23,7 @@ public class InputThread extends ManagerSuperClass implements Runnable {
         this.ec2 = new EC2Object();
         toTerminate = false;
         this.numberOfTasks = numberOfTasks;
+        this.manager = manager;
     }
 
     public void run() {
@@ -52,7 +55,7 @@ public class InputThread extends ManagerSuperClass implements Runnable {
                 currFileObject.increaseInputLines();
                 numberOfTasks.incrementAndGet();
                 currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-                createworker(workerJobQueue, completedTasksQueue, numberOfTasks.get(), ec2);
+                manager.createworker(ec2, queue);
             }
 
         }

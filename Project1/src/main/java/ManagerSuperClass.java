@@ -1,16 +1,77 @@
 import com.amazonaws.services.ec2.model.Instance;
 
-public class ManagerSuperClass {
-    protected static String QueueUrlLocalApps = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
-    protected static String summeryFilesIndicatorQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/summeryFilesIndicatorQueue";
-    protected static String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/workerJobQueue";
-    protected static String completedTasksQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/completedTasksQueue";
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
-    public synchronized static void createworker(String myQueueUrl1, String myQueueUrl2, int numberOfTasks, EC2Object ec2){
+public class ManagerSuperClass {
+    private  String QueueUrlLocalApps = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
+    private  String summeryFilesIndicatorQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/summeryFilesIndicatorQueue";
+    private  String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/workerJobQueue";
+    private  String completedTasksQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/completedTasksQueue";
+    private  AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
+    private  AtomicInteger numberOfTasks = new AtomicInteger(0);
+    private  AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
+    private  AtomicInteger idOfInputFile = new AtomicInteger(0);
+    protected   AtomicBoolean continueRunning = new AtomicBoolean(true);
+
+    public
+    ManagerSuperClass() {
+    }
+    public synchronized
+    int getNumberOfReceivedtasksFromTotalOfLocals() {
+        return numberOfReceivedtasksFromTotalOfLocals.get();
+    }
+
+    public synchronized
+    void setNumberOfReceivedtasksFromTotalOfLocals(int numberOfReceivedtasksFromTotalOfLocals) {
+        this.numberOfReceivedtasksFromTotalOfLocals.set(numberOfReceivedtasksFromTotalOfLocals);
+    }
+
+    public synchronized
+    int getNumberOfTasks() {
+        return numberOfTasks.get();
+    }
+
+    public synchronized
+    void setNumberOfTasks(int numberOfTasks) {
+        this.numberOfTasks.set(numberOfTasks);
+    }
+
+    public synchronized
+    int getNumberOfCompletedTasks() {
+        return numberOfCompletedTasks.get();
+    }
+
+    public synchronized
+    void setNumberOfCompletedTasks(int numberOfCompletedTasks) {
+        this.numberOfCompletedTasks.set(numberOfCompletedTasks);
+    }
+
+    public synchronized
+    int getIdOfInputFile() {
+        return idOfInputFile.get();
+    }
+
+    public synchronized
+    void setIdOfInputFile(int idOfInputFile) {
+        this.idOfInputFile.set(idOfInputFile);
+    }
+
+    public synchronized
+    boolean getContinueRunning() {
+        return continueRunning.get();
+    }
+
+    public synchronized
+    void setContinueRunning(boolean continueRunning) {
+        this.continueRunning.set(continueRunning);
+    }
+
+    public void createworker(EC2Object ec2, Queue queue){
 
         int workerinstances = ec2.getInstances("").size() - 1;
-        Boolean tasksDivides = (numberOfTasks % 80) == 0;
-        int tasks = numberOfTasks/80;
+        Boolean tasksDivides = (getNumberOfTasks() % 80) == 0;
+        int tasks = getNumberOfTasks()/80;
         Boolean condition = tasksDivides == false && workerinstances <= (tasks);
 
         if ( condition == false || workerinstances > 15){
@@ -27,8 +88,8 @@ public class ManagerSuperClass {
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
         String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
-        String pushFirstArg = createWorkerArgsFile + "echo " + myQueueUrl1 + " >> src/main/java/workerArgs.txt\n";
-        String filedata = pushFirstArg + "echo " + myQueueUrl2 + " >> src/main/java/workerArgs.txt\n";
+        String pushFirstArg = createWorkerArgsFile + "echo " + workerJobQueue + " >> src/main/java/workerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + completedTasksQueue + " >> src/main/java/workerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + filedata + createAndRunProject;
 
