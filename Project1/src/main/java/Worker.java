@@ -24,22 +24,13 @@ public class Worker {
         boolean isSarcastic;
         BufferedReader reader;
         String receivedTasks = "";
-        String completedTasks = "";
-        String path = "/home/ubuntu//Mevuzarot-master/Project1/src/main/java/";
-
 
         // Read the Queue names from the managerArgs file
-        try {
-            reader = new BufferedReader(new FileReader(path + "workerArgs.txt"));
-            receivedTasks = reader.readLine();
-            completedTasks = reader.readLine();
-            reader.close();
-        }
-        catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+
+        receivedTasks = "workerJobQueue";
+
         int i = 1;
-        System.out.println("receivedTasks queue" + receivedTasks + "\n completedTasks queue" + completedTasks);
+
         while (true) {
 
             try {
