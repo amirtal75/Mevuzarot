@@ -23,31 +23,31 @@ class OutputThread implements Runnable{
     public void run() {
         String identity = "OutputThread: " + Thread.currentThread().getId() + "\n";
         System.out.println(identity+ " started running");
-        S3Bucket s3= new S3Bucket();
         Queue queue = new Queue();
-        List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
+        List<Message> messagefromCompletedTasksQueue = new ArrayList<>();
         String delimiter = " -@@@@@@@- ";
 
         while(manager.getContinueRunning()){
             System.out.println();
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
             System.out.println(identity + "message received: " +messagefromCompletedTasksQueue.isEmpty());
-            System.out.println(identity + "message content:\n "+ messagefromCompletedTasksQueue.get(0).getBody());
             InputFileObject currFileObject = null;
             if (!messagefromCompletedTasksQueue.isEmpty()) {
 
                 Message currMessege = messagefromCompletedTasksQueue.get(0);
+                System.out.println(identity + "message content:\n "+ messagefromCompletedTasksQueue.get(0).getBody());
                 String[] resultContent = currMessege.getBody().split(delimiter);
+                System.out.println("message from worker: ");
+                for (String str: resultContent){
+                    System.out.println(str);
+                }
                 currFileObject = InputFileObjectById.get(resultContent[0]);
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
 
                 // The place to check
                 if (currFileObject != null && resultContent[0].equals(currFileObject.getId())) {
 
-                    System.out.println("message from worker: ");
-                    for (String str: resultContent){
-                        System.out.println(str);
-                    }
+
                     System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1]);
                     manager.setNumberOfCompletedTasks(manager.getNumberOfCompletedTasks()+1);
