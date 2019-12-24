@@ -33,12 +33,8 @@ public class Worker {
 
         while (true) {
 
-            try {
-                currJobQueue = queue.recieveMessage(receivedTasks, 1, 60); // check about visibility
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
+            currJobQueue = queue.recieveMessage(receivedTasks, 1, 60); // check about visibility
+
             if(!currJobQueue.isEmpty()) {
                 Message currJob = currJobQueue.get(0);
                 //System.out.println("Message Received: " + currJob.getBody() +"\n");
@@ -57,27 +53,24 @@ public class Worker {
                 //System.out.println("Entities Discovered: " + reviewEntities);
                 isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
                 String reviewLink = reviewAttributes[4];
-               // //System.out.println("Review is sarcastic: " + isSarcastic);
+                // //System.out.println("Review is sarcastic: " + isSarcastic);
                 String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment +delimiter + reviewLink;
                 //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + sentiment;
                 //System.out.println("number of result ; "+ i + "the result is " + result);
                 i++;
-                try {
-                    //System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
-                    queue.sendMessage(reviewAttributes[0], result);
-                    ////System.out.println("message was sent, deleting the task");
-                    queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
 
+                //System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
+                queue.sendMessage(reviewAttributes[0], result);
+                ////System.out.println("message was sent, deleting the task");
+                queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
             }
             else{
-                //System.out.println("Queus is empty");
+                System.out.println("Queus is empty");
                 Thread.sleep(1000);
                 break;
             }
         }
+        System.out.println("Worker finiseh run");
     }
 
     public static int findSentiment(String review) {
