@@ -68,6 +68,7 @@ public class Manager{
                 System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
                 // queue.deleteMessage(QueueUrlLocalApps,currMessege);
+                queue.purgeQueue(workerJobQueue);
 
                 // check termination condirion
                 if (messageContent.length > 2){
