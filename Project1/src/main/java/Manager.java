@@ -48,16 +48,18 @@ public class Manager{
         // Create Thread Pools
         boolean run = true;
         while (continueRunning.get()) {
-            if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get() && numberOfReceivedtasksFromTotalOfLocals.get() > 0) {
+            if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
                 System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
                 System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
                 System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
             }
 
-
+            // need to delete
+            queue.purgeQueue(workerJobQueue);
+            queue.purgeQueue(completedTasksQueue);
 
             // Recieve message from local app queue
-            currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
+            currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 120); // check about visibility
             String[] messageContent;
 
             if (!currMessageQueue.isEmpty()){
@@ -67,8 +69,7 @@ public class Manager{
                 numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
                 System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
-                // queue.deleteMessage(QueueUrlLocalApps,currMessege);
-                queue.purgeQueue(workerJobQueue);
+                queue.deleteMessage(QueueUrlLocalApps,currMessege);
 
                 // check termination condirion
                 if (messageContent.length > 2){
