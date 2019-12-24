@@ -62,14 +62,14 @@ public class Manager extends ManagerSuperClass{
                 System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
                 manager.setIdOfInputFile(manager.getIdOfInputFile() + 1);
-
+                queue.deleteMessage(QueueUrlLocalApps,currMessege);
                 // Create input file object
                 InputFileObject newFile = new InputFileObject(manager.getIdOfInputFile(),messageContent[0],path, Integer.parseInt(messageContent[1]), object);
                 InputFileObjectById.put(manager.getIdOfInputFile(), newFile);
 
                 // calaculate threads to launch
                 int numberOfThreadsToLaunch = (Math.abs(manager.getNumberOfReceivedtasksFromTotalOfLocals() - manager.getNumberOfTasks()) / 50) + 1;
-                System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
+                // System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
 
                 // open input and output threads for a file from local app
                 for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
