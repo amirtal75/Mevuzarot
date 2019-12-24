@@ -66,11 +66,10 @@ public class Queue {
     public String createQueue(String queueName, boolean managerExists) {
         System.out.println("inside create queue: " + queueName);
         System.out.println("managerExists " + managerExists);
-        GetQueueUrlResult result;
+        GetQueueUrlResult result = null;
         try {
             result = sqs.getQueueUrl(queueName);
         } catch (Exception ase) {
-            result = null;
         }
 
         if ( result != null){

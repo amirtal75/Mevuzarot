@@ -11,6 +11,7 @@ import edu.stanford.nlp.util.CoreMap;
 import java.io.*;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,16 +27,8 @@ public class Main1 {
         for (String str: resultContent){
             System.out.println(str);
         }*/
+        queue.createQueue("inputFile2.txtafbe483b-8906-4093-b07c-eadbaf033832.txt65cb5345-62ec-4fa6-ba29-c383d98c433c",true);
 
-
-
-
-        String QueueUrlLocalApps = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
-        String tes = "completedTasksQueue";
-        queue.recieveMessage("completedTasksQueue", 1, 60);
-        Message message = queue.recieveMessage("completedTasksQueue", 1, 60).get(0);
-        System.out.println(message.getBody());
-        System.out.flush();
 
         //run.set(false); ;
 

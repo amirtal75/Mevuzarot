@@ -65,7 +65,7 @@ public class Main {
         String pushFirstArg =  createManagerArgsFile + "echo " + QueueUrlLocalApps + " >> src/main/java/managerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + summeryFilesIndicatorQueueUrl + " >> src/main/java/managerArgs.txt\n";
 
-        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata ;
         System.out.println("In LocalAPP: " + Thread.currentThread());
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueueUrl);
 

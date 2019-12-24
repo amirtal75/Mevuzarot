@@ -32,7 +32,7 @@ public class LocalApp implements Runnable{
         String delimiter = " -@@@@@@@- ";
         try {
             boolean summeryFileIsReady = false;
-            //System.out.println("In local App " + Thread.currentThread().getId());
+            // System.out.println("In local App " + Thread.currentThread().getId());
             // Create objects and bucket
             EC2Object ec2 = new EC2Object();
             S3Bucket s3 = new S3Bucket();

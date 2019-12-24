@@ -20,7 +20,7 @@ public class InputFileObject {
     String inputFilename;
     ConcurrentHashMap<Integer, String> iDsOfProcessedReviews;
 
-    public InputFileObject(String inputFilename, String path, int numberoffilelines, S3Object object){
+    public InputFileObject(String inputFilename,int numberoffilelines, S3Object object){
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
         redAllLines = new AtomicBoolean(false);
@@ -29,7 +29,7 @@ public class InputFileObject {
         this.numberoffilelines = numberoffilelines;
         this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
         this.stringBuffer = new StringBuffer();
-        this.inputFileID  = inputFilename+UUID.randomUUID().toString();
+        this.inputFileID  = UUID.randomUUID().toString();
     }
 
     public synchronized BufferedReader getReader() {return reader;}

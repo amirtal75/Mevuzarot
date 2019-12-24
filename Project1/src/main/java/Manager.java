@@ -23,7 +23,9 @@ public class Manager{
         System.out.println("In Manager:");
         S3Bucket s3 = new S3Bucket();
         EC2Object ec2 = new EC2Object();
+
         Queue queue = new Queue();
+        System.out.println();
         System.out.println("Worker Receiving Queue: " + workerJobQueue + ", Task Results Queue: " + completedTasksQueue);
 
         createworker(workerJobQueue,completedTasksQueue, ec2, queue,0);
@@ -72,7 +74,7 @@ public class Manager{
                 }
 
                 // Create input file object
-                InputFileObject newFile = new InputFileObject(messageContent[0],path, Integer.parseInt(messageContent[1]), object);
+                InputFileObject newFile = new InputFileObject(messageContent[0], Integer.parseInt(messageContent[1]), object);
                 InputFileObjectById.put(newFile.getInputFileID(), newFile);
 
                 // Create Completed tasks queue unique for the input file object
@@ -122,7 +124,7 @@ public class Manager{
         String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
-
+        System.out.println("inside create worker: " + workerJobQueue);
         String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
         String pushFirstArg = createWorkerArgsFile + "echo " + workerJobQueue + " >> src/main/java/workerArgs.txt\n";
         String filedata = pushFirstArg + "echo " + completedTasksQueue + " >> src/main/java/workerArgs.txt\n";
