@@ -73,15 +73,16 @@ public class InputFileObject {
         return allWorkersDone;
     }
 
-    public synchronized void increaseInputLines() {
+    public void increaseInputLines() {
         inputLines.getAndIncrement();
     }
 
-    public synchronized void increaseOutputLines() {
+    public void increaseOutputLines(String fileID) {
+        System.out.println("Increasing the output of the file with the id: " + fileID + "\nFrom the inputFileObject with the ID: " + inputFileID);
         outputLines.getAndIncrement();
     }
 
-    public synchronized void  checkAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
+    public void  checkAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
         allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines) && (numberoffilelines == outputLines.get())));
     }
 
