@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public
 class UploadThread implements Runnable {
     private ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById;
-    protected  String summeryFilesIndicatorQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/summeryFilesIndicatorQueue";
+    protected  String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
     S3Bucket s3;
     Queue queue;
     String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";

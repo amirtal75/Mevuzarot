@@ -11,22 +11,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LocalApp implements Runnable{
 
-    String summeryFilesIndicatorQueueUrl;
-    String QueueUrlLocalApps;
+    String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
+    String QueueUrlLocalApps = "QueueUrlLocalApps";
     ArrayList<String> inputFiles;
     static AtomicBoolean restartManager = new AtomicBoolean(false); // is needed?
 
-    public LocalApp(String inputFiles, String QueueUrlLocalApps, String summeryFilesIndicatorQueueUrl) {
+    public LocalApp(String inputFiles) {
         ArrayList<String> files = new ArrayList<>();
         files.add(inputFiles);
         this.inputFiles = files;
-        this.summeryFilesIndicatorQueueUrl = summeryFilesIndicatorQueueUrl;
-        this.QueueUrlLocalApps = QueueUrlLocalApps;
     }
 
     public LocalApp(ArrayList<String> inputFiles, String QueueUrlLocalApps, String summeryFilesIndicatorQueueUrl) {
         this.inputFiles = inputFiles;
-        this.summeryFilesIndicatorQueueUrl = summeryFilesIndicatorQueueUrl;
+        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueueUrl;
         this.QueueUrlLocalApps = QueueUrlLocalApps;
     }
 
@@ -80,7 +78,7 @@ public class LocalApp implements Runnable{
              }*/
                     String currMessageName;
                     //System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
-                    List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl,1,1);
+                    List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
                     //System.out.println("the message is : " + messages.isEmpty());
                     //System.out.println("after receving message " + messages.size());
                     for (Message msg : messages) {
@@ -102,7 +100,7 @@ public class LocalApp implements Runnable{
                                 createHTML(currMessageName,resultsToHTML);
                                 //System.out.println("stopping localapp");
                                 summeryFileIsReady = true;
-                                queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
+                                queue.deleteMessage(summeryFilesIndicatorQueue, msg);
                             }
                         }
 

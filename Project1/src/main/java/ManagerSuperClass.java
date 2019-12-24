@@ -4,18 +4,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ManagerSuperClass {
-    private  String QueueUrlLocalApps = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
-    private  String summeryFilesIndicatorQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/summeryFilesIndicatorQueue";
-    private  String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/workerJobQueue";
-    private  String completedTasksQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/completedTasksQueue";
-    private  AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
-    private  AtomicInteger numberOfTasks = new AtomicInteger(0);
-    private  AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
-    private  AtomicInteger idOfInputFile = new AtomicInteger(0);
-    protected   AtomicBoolean continueRunning = new AtomicBoolean(true);
+    public  String QueueUrlLocalApps = "QueueUrlLocalApps";
+    public  String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
+    public  String workerJobQueue = "workerJobQueue";
+    public  String completedTasksQueue = "completedTasksQueue";
+    public  AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
+    public  AtomicInteger numberOfTasks = new AtomicInteger(0);
+    public  AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
+    public  AtomicInteger idOfInputFile = new AtomicInteger(0);
+    protected AtomicBoolean continueRunning = new AtomicBoolean(true);
 
     public
     ManagerSuperClass() {
+    }
+    public
+    ManagerSuperClass(ManagerSuperClass manager) {
+        numberOfCompletedTasks = manager.numberOfCompletedTasks;
+        numberOfTasks=manager.numberOfTasks;
+        numberOfReceivedtasksFromTotalOfLocals=manager.numberOfReceivedtasksFromTotalOfLocals;
+        idOfInputFile = manager.idOfInputFile;
+        continueRunning = manager.continueRunning;
     }
     public synchronized
     int getNumberOfReceivedtasksFromTotalOfLocals() {

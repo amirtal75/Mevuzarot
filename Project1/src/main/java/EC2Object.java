@@ -21,7 +21,7 @@ public class EC2Object {
      * @param tagName - Name of tag to create
      * @return if the tag was successfully created
      */
-    public boolean createTags(String tagName){
+    public boolean createTags(String tagName, String InstanceID){
         if (!tagExists(tagName)) {
             Tag tag = new Tag(tagName, tagName);
             CreateTagsRequest tagsRequest = new CreateTagsRequest().withTags(tag);

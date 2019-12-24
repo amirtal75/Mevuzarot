@@ -31,10 +31,10 @@ public class Main {
         summeryFilesIndicatorQueueUrl = "https://sqs.us-west-2.amazonaws.com/002041186709/summeryFilesIndicatorQueueUrl";
 
 
-        LocalApp localApp = new LocalApp("inputFile1.txt", QueueUrlLocalApps, summeryFilesIndicatorQueueUrl);
+        LocalApp localApp = new LocalApp("inputFile1.txt");
         Thread app = new Thread(localApp);
         app.start();
-        new Thread(new LocalApp("inputFile2.txt", QueueUrlLocalApps, summeryFilesIndicatorQueueUrl)).start();
+        new Thread(new LocalApp("inputFile2.txt")).start();
 
 
 
@@ -50,6 +50,7 @@ public class Main {
     private static void createManager(Queue queue, EC2Object ec2, List<Instance> instances){
 
         System.out.println("No Manager Active, setting up the server");
+
 
         // Manager userdata
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
@@ -71,7 +72,6 @@ public class Main {
         // First created instance = manager
         Instance instance = ec2.createInstance(1, 1, userdata).get(0);
         System.out.println("created the manger: " + instance.getInstanceId());
-
         ec2.attachTags(instance, "manager");
 
         queue.createQueue("QueueUrlLocalApps", true);

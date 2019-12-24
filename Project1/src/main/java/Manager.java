@@ -11,10 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Manager extends ManagerSuperClass{
 
     public static void main(String[] args) throws Exception {
-        String QueueUrlLocalApps = "https://sqs.us-west-2.amazonaws.com/002041186709/QueueUrlLocalApps";
-        String summeryFilesIndicatorQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/summeryFilesIndicatorQueue";
-        String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/workerJobQueue";
-        String completedTasksQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/completedTasksQueue";
+        String QueueUrlLocalApps = "QueueUrlLocalApps";
+        String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
+        String workerJobQueue = "workerJobQueue";
+        String completedTasksQueue = "completedTasksQueue";
         System.out.println("In Manager:");
         S3Bucket s3 = new S3Bucket();
         EC2Object ec2 = new EC2Object();
@@ -75,7 +75,7 @@ public class Manager extends ManagerSuperClass{
                 for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
                     System.out.println("Manager: id of input file: " + newFile.getId());
                     poolForInput.execute(new InputThread(newFile, manager));
-                    poolForOutput.execute(new OutputThread(InputFileObjectById, manager));
+                    //poolForOutput.execute(new OutputThread(InputFileObjectById, manager));
                 }
             }  else{
                 Thread.sleep(3000);
@@ -84,7 +84,6 @@ public class Manager extends ManagerSuperClass{
     }
 
     private static void createworker(String workerJobQueue, String completedTasksQueue, EC2Object ec2, Queue queue, int numberOfTasks){
-
         // create user data dor workers
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "sudo unzip -o master.zip\n";

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class InputThread implements Runnable {
 
-    String workerJobQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/workerJobQueue";
+    String workerJobQueue = "workerJobQueue";
     Queue queue;
     S3Bucket s3;
     InputFileObject currFileObject; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
@@ -22,7 +22,6 @@ public class InputThread implements Runnable {
         this.bufferedReader = currFileObject.getReader();
         this.ec2 = new EC2Object();
         toTerminate = false;
-        this.numberOfTasks = numberOfTasks;
         this.manager = manager;
     }
 

@@ -1,13 +1,18 @@
 import com.amazonaws.services.sqs.model.Message;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public
 class OutputThread implements Runnable{
     private ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById;
-    String completedTasksQueue = "https://sqs.us-west-2.amazonaws.com/002041186709/completedTasksQueue";
+    String completedTasksQueue = "completedTasksQueue";
     ManagerSuperClass manager;
 
     public OutputThread(ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById, ManagerSuperClass manager){
