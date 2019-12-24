@@ -17,7 +17,7 @@ public class OutputThread implements Runnable {
         this.completedTasksQueue = currFileObject.getInputFileID();
         this.currFileObject = currFileObject;
         this.numberOfCompletedTasks = numberOfCompletedTasks;
-        originator = "Thread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
+        originator = "OutputThread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
     }
 
     public

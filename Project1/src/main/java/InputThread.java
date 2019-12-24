@@ -23,7 +23,7 @@ public class InputThread implements Runnable {
         this.bufferedReader = currFileObject.getReader();
         this.ec2 = new EC2Object();
         this.numberOfTasks = numberOfTasks;
-        originator = "Thread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
+        originator = "InputThread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
     }
 
     public void run() {
