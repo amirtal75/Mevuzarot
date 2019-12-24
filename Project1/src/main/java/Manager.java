@@ -116,6 +116,7 @@ public class Manager{
                         bufferedWriter.write(currFileObject.getBuffer().toString());
                         bufferedWriter.flush();
                         s3.upload(path, outputName);
+                        InputFileObjectById.remove(id);
                         queue.sendMessage(summeryFilesIndicatorQueue, outputName);
 
                     } catch (IOException e) {
