@@ -40,11 +40,7 @@ public class InputFileObject {
     }
 
     public void appendToBuffer (String messageFromQueue, String reviewID) {
-        System.out.println("inside appendToBuffer, message is: " + messageFromQueue);
-        System.out.println("inside appendToBuffer, revideID is: " + reviewID);
-
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
-        System.out.println("checking if reviewWasprocessedBefore: " + reviewWasprocessedBefore);
         String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
         if (!reviewWasprocessedBefore) {
             this.stringBuffer.append(toAppend);
@@ -82,7 +78,7 @@ public class InputFileObject {
     }
 
     public synchronized void  checkAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
-        allWorkersDone.compareAndSet(false , (redAllLines.get() && (inputLines.get() == outputLines.get())));
+        allWorkersDone.compareAndSet(false , (inputLines.get() == numberoffilelines && (numberoffilelines == outputLines.get())));
     }
 
     public synchronized String getInputFilename() {
