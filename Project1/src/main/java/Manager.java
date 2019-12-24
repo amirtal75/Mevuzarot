@@ -48,7 +48,7 @@ public class Manager{
         // Create Thread Pools
         boolean run = true;
         while (continueRunning.get()) {
-            if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
+            if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get() && numberOfReceivedtasksFromTotalOfLocals.get() > 0) {
                 System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
                 System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
                 System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
