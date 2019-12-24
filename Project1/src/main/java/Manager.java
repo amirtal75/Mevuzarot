@@ -5,6 +5,7 @@ import com.amazonaws.services.sqs.model.Message;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +36,7 @@ public class Manager{
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
         AtomicBoolean continueRunning = new AtomicBoolean(true);
-
+        ArrayList<String> reviewIDList = new ArrayList<>();
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
 
@@ -47,10 +48,11 @@ public class Manager{
         // Create Thread Pools
         boolean run = true;
         while (continueRunning.get()) {
-
-            System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
-            System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
-            System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
+            if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
+                System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
+                System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
+                System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
+            }
 
 
 
@@ -75,7 +77,8 @@ public class Manager{
 
                 // Create input file object
                 InputFileObject newFile = new InputFileObject(messageContent[0], Integer.parseInt(messageContent[1]), object);
-                InputFileObjectById.put(newFile.getInputFileID(), newFile);
+                reviewIDList.add(newFile.getInputFileID());
+                InputFileObjectById.putIfAbsent(newFile.getInputFileID(), newFile);
 
                 // Create Completed tasks queue unique for the input file object
                 queue.createQueue(newFile.getInputFileID(),true);
@@ -95,9 +98,9 @@ public class Manager{
             InputFileObject currFileObject = null;
             // System.out.println("InputFileObjectById.size(): " + InputFileObjectById.size());
             for (int i = 0 ; i < InputFileObjectById.size(); ++i){
-                currFileObject = InputFileObjectById.get(i);
-                currFileObject.checkAndSetAllWorkersDone();
-                if (currFileObject.getAllWorkersDone().get()){
+                String id = reviewIDList.get(i);
+                currFileObject = InputFileObjectById.get(id);
+                if (currFileObject != null && currFileObject.getAllWorkersDone().get()){
                     try {
                         String outputName = currFileObject.getInputFilename() + "$";
                         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
@@ -117,6 +120,15 @@ public class Manager{
     }
 
     private static void createworker(String workerJobQueue, String completedTasksQueue, EC2Object ec2, Queue queue, int numberOfTasks){
+
+        int workerinstances = ec2.getInstances("").size() - 1;
+        Boolean tasksDivides = (numberOfTasks % 80) == 0;
+        int tasks = numberOfTasks/80;
+        Boolean condition = tasksDivides == false && workerinstances <= (tasks);
+
+        if ( condition == false || workerinstances > 15){
+            return;
+        }
         // create user data dor workers
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "sudo unzip -o master.zip\n";
