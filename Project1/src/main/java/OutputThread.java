@@ -31,6 +31,7 @@ class OutputThread implements Runnable{
         while(manager.getContinueRunning()){
             System.out.println();
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
+            System.out.println(identity + "message received: " +messagefromCompletedTasksQueue.isEmpty());
             System.out.println(identity + "message content:\n "+ messagefromCompletedTasksQueue.get(0).getBody());
             InputFileObject currFileObject = null;
             if (!messagefromCompletedTasksQueue.isEmpty()) {
