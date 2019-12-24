@@ -21,7 +21,7 @@ class OutputThread implements Runnable{
     }
 
     public void run() {
-
+        System.out.println("OutputThread: " + Thread.currentThread() + " started running");
         S3Bucket s3= new S3Bucket();
         Queue queue = new Queue();
         List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
@@ -53,6 +53,7 @@ class OutputThread implements Runnable{
                 }
             }
         }
+        System.out.println("OutputThread: " + Thread.currentThread() + " finished running");
     }
 }
 
