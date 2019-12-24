@@ -75,7 +75,7 @@ public class Manager extends ManagerSuperClass{
                 for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
                     System.out.println("Manager: id of input file: " + newFile.getId());
                     poolForInput.execute(new InputThread(newFile, manager));
-                    //poolForOutput.execute(new OutputThread(InputFileObjectById, manager));
+                    poolForOutput.execute(new OutputThread(InputFileObjectById, manager));
                 }
             }  else{
                 Thread.sleep(3000);
