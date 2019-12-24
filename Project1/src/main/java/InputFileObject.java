@@ -77,7 +77,7 @@ public class InputFileObject {
         outputLines.getAndIncrement();
     }
 
-    public synchronized void  CheckAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
+    public synchronized void  checkAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
         allWorkersDone.compareAndSet(false , (redAllLines.get() && (inputLines.get() == outputLines.get())));
     }
 

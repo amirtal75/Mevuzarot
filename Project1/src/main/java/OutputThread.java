@@ -38,7 +38,7 @@ public class OutputThread implements Runnable {
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1]);
                     currFileObject.increaseOutputLines();
                     numberOfCompletedTasks.incrementAndGet();
-                    currFileObject.setredAllLinesTrue();
+                    currFileObject.checkAndSetAllWorkersDone();
                     queue.deleteMessage(completedTasksQueue, currMessege);
                 }
             }
