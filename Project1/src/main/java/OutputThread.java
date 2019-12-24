@@ -21,16 +21,17 @@ class OutputThread implements Runnable{
     }
 
     public void run() {
-        System.out.println("OutputThread: " + Thread.currentThread() + " started running");
+        String identity = "OutputThread: " + Thread.currentThread().getId() + "\n";
+        System.out.println(identity+ " started running");
         S3Bucket s3= new S3Bucket();
         Queue queue = new Queue();
         List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
-        System.out.println("In Output Thread run: " );
 
         while(manager.getContinueRunning()){
-
+            System.out.println();
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
+            System.out.println(identity + "message content:\n "+ messagefromCompletedTasksQueue.get(0).getBody());
             InputFileObject currFileObject = null;
             if (!messagefromCompletedTasksQueue.isEmpty()) {
 
