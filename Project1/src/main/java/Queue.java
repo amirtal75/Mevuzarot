@@ -129,11 +129,6 @@ public class Queue {
         }
     }
 
-    public List<Message> recieveMessage(String queueUrl) {
-
-        return recieveMessage(queueUrl, 1, 30);
-    }
-
     public List<Message> recieveMessage(String queueUrl, int numOfMessages, int Visibility){
 
         try {
@@ -143,10 +138,10 @@ public class Queue {
             List<Message> messages = this.sqs.receiveMessage(receiveMessageRequest).getMessages();
             return messages;
         } catch (AmazonServiceException ase) {
-            System.out.println("failed to receive message to the queue: " + queueUrl);
+            System.out.println("failed to receive message from the queue: " + queueUrl);
 
         } catch (AmazonClientException ace) {
-            System.out.println("failed to receive message to the queue: " + queueUrl);
+            System.out.println("failed to receive message from the queue: " + queueUrl);
         }
         return null;
     }
@@ -173,10 +168,10 @@ public class Queue {
 
 
         } catch (AmazonServiceException ase) {
-            System.out.println("failed to delete message to the queue: " + queueUrl);
+            System.out.println("failed to delete message from the queue: " + queueUrl);
 
         } catch (AmazonClientException ace) {
-            System.out.println("failed to delete message to the queue: " + queueUrl);
+            System.out.println("failed to delete message from the queue: " + queueUrl);
         }
     }
 
@@ -188,26 +183,10 @@ public class Queue {
             System.out.println("Deleting the queue: " + queueUrl + ".\n");
             this.sqs.deleteQueue(new DeleteQueueRequest(queueUrl));
         } catch (AmazonServiceException ase) {
-            printServiceError(ase);
+            System.out.println("failed to delete  the queue: " + queueUrl);
 
         } catch (AmazonClientException ace) {
-            printClientError(ace);
+            System.out.println("failed to delete  the queue: " + queueUrl);
         }
-    }
-
-    private void printServiceError(AmazonServiceException ase){
-        System.out.println("Caught an AmazonServiceException, which means your request made it " +
-                "to Amazon SQS, but was rejected with an error response for some reason.");
-        System.out.println("Error Message:    " + ase.getMessage());
-        System.out.println("HTTP Status Code: " + ase.getStatusCode());
-        System.out.println("AWS Error Code:   " + ase.getErrorCode());
-        System.out.println("Error Type:       " + ase.getErrorType());
-        System.out.println("Request ID:       " + ase.getRequestId());
-    }
-    private void printClientError(AmazonClientException ace){
-        System.out.println("Caught an AmazonClientException, which means the client encountered " +
-                "a serious internal problem while trying to communicate with SQS, such as not " +
-                "being able to access the network.");
-        System.out.println("Error Message: " + ace.getMessage());
     }
 }
