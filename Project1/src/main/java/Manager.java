@@ -24,7 +24,6 @@ public class Manager{
         S3Bucket s3 = new S3Bucket();
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
-        ManagerSuperClass manager = new ManagerSuperClass();
         System.out.println("Worker Receiving Queue: " + workerJobQueue + ", Task Results Queue: " + completedTasksQueue);
 
         createworker(workerJobQueue,completedTasksQueue, ec2, queue,0);

@@ -14,7 +14,6 @@ public class InputThread implements Runnable {
     AtomicInteger  numberOfTasks;
     EC2Object ec2;
     BufferedReader bufferedReader;
-    ManagerSuperClass manager;
 
     public InputThread(InputFileObject currFileObject, AtomicInteger  numberOfTasks) {
         this.queue = new Queue();
