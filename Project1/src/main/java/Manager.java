@@ -45,6 +45,10 @@ public class Manager{
         List<Message> currMessageQueue = null;
         // calculate number of threads to open
 
+        queue.purgeQueue(workerJobQueue);
+        queue.purgeQueue(completedTasksQueue);
+        queue.sendMessage(QueueUrlLocalApps,"inputFile2.txt6e33ed49-03e6-4c81-a6ea-bc844f8818f3.txt@30");
+        queue.sendMessage(QueueUrlLocalApps,"inputFile1.txt05a5e6bd-726d-43ca-97f3-22d909ffa5ea.txt@30");
         // Create Thread Pools
         boolean run = true;
         while (continueRunning.get()) {
@@ -55,10 +59,7 @@ public class Manager{
             }
 
             // need to delete
-            queue.purgeQueue(workerJobQueue);
-            queue.purgeQueue(completedTasksQueue);
-            queue.sendMessage(QueueUrlLocalApps,"inputFile2.txt6e33ed49-03e6-4c81-a6ea-bc844f8818f3.txt@30");
-            queue.sendMessage(QueueUrlLocalApps,"inputFile1.txt05a5e6bd-726d-43ca-97f3-22d909ffa5ea.txt@30");
+
 
             // Recieve message from local app queue
             currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
