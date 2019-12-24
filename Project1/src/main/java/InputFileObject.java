@@ -14,7 +14,7 @@ public class InputFileObject {
     AtomicInteger outputLines;
     StringBuffer stringBuffer = null;
     BufferedReader reader = null;
-    private int numberoffilelines= 0;
+    private AtomicInteger numberoffilelines;
     AtomicBoolean redAllLines; // finish to read all lines
     AtomicBoolean allWorkersDone; //all the workers finished
     String inputFilename;
@@ -27,7 +27,7 @@ public class InputFileObject {
         redAllLines = new AtomicBoolean(false);
         allWorkersDone = new AtomicBoolean(false);
         this.inputFilename = inputFilename;
-        this.numberoffilelines = numberoffilelines;
+        this.numberoffilelines = new AtomicInteger(numberoffilelines);
         this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
         this.stringBuffer = new StringBuffer();
         this.inputFileID  = UUID.randomUUID().toString();
@@ -55,7 +55,7 @@ public class InputFileObject {
 
     public StringBuffer getBuffer() {return stringBuffer;}
 
-    public  int getNumberoffilelines() {return numberoffilelines;}
+    public  int getNumberoffilelines() {return numberoffilelines.get();}
 
     public  AtomicInteger getInputLines() {
         return inputLines;
@@ -84,7 +84,7 @@ public class InputFileObject {
 
     public void  checkAndSetAllWorkersDone (String originator){ // check if all workers done and set allWorkersDone accordingly.
         System.out.println(originator + "checkAndSetAllWorkersDone of the input file: " + inputFileID);
-        allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines) && (numberoffilelines == outputLines.get())));
+        allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines.get()) && (numberoffilelines.get() == outputLines.get())));
     }
 
     public synchronized String getInputFilename() {
@@ -92,7 +92,7 @@ public class InputFileObject {
     }
 
     public synchronized void setredAllLinesTrue() {
-        if (numberoffilelines == inputLines.get()) {
+        if (numberoffilelines.get() == inputLines.get()) {
             redAllLines.set(true);
         }
     }
