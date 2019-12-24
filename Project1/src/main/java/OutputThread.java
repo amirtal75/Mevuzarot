@@ -42,6 +42,7 @@ class OutputThread implements Runnable{
                     System.out.println(str);
                 }
                 currFileObject = InputFileObjectById.get(resultContent[0]);
+                System.out.println(identity + "inputfile object found: " +currFileObject != null);
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
 
                 // The place to check
