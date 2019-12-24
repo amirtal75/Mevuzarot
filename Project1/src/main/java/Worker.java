@@ -18,7 +18,7 @@ public class Worker {
 
     public static void main(String[] args) throws InterruptedException {
         String delimiter = " -@@@@@@@- ";
-        System.out.println("In Worker:\n");
+        //System.out.println("In Worker:\n");
         Queue queue = new Queue();
         List<Message> currJobQueue = new ArrayList<>(); //at each moment holds one message from the sqs
         boolean isSarcastic;
@@ -41,31 +41,31 @@ public class Worker {
             }
             if(!currJobQueue.isEmpty()) {
                 Message currJob = currJobQueue.get(0);
-                System.out.println("Message Received: " + currJob.getBody() +"\n");
+                //System.out.println("Message Received: " + currJob.getBody() +"\n");
                 //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
                 String[] reviewAttributes = currJob.getBody().split(delimiter);
-                System.out.println("review attribues length: " + reviewAttributes.length);
+                //System.out.println("review attribues length: " + reviewAttributes.length);
                 String inputFileId = reviewAttributes[0];
                 String reviewId = reviewAttributes[1];
                 String reviewText = reviewAttributes[2];
                 String reviewRating = reviewAttributes[3];
-                System.out.println("Finding sentiment for the message: " + currJob.getBody() + "\n");
+                //System.out.println("Finding sentiment for the message: " + currJob.getBody() + "\n");
                 int sentiment = findSentiment(reviewText);
-                System.out.println("Finding entities");
+                //System.out.println("Finding entities");
                 String reviewEntities = getEntities(reviewText);
-                System.out.println("Sentiment found is: " + sentiment);
-                System.out.println("Entities Discovered: " + reviewEntities);
+                //System.out.println("Sentiment found is: " + sentiment);
+                //System.out.println("Entities Discovered: " + reviewEntities);
                 isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
                 String reviewLink = reviewAttributes[4];
-               // System.out.println("Review is sarcastic: " + isSarcastic);
+               // //System.out.println("Review is sarcastic: " + isSarcastic);
                 String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment +delimiter + reviewLink;
                 //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + sentiment;
-                System.out.println("number of result ; "+ i + "the result is " + result);
+                //System.out.println("number of result ; "+ i + "the result is " + result);
                 i++;
                 try {
-                    System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
+                    //System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
                     queue.sendMessage(reviewAttributes[0], result);
-                    //System.out.println("message was sent, deleting the task");
+                    ////System.out.println("message was sent, deleting the task");
                     queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -73,7 +73,7 @@ public class Worker {
 
             }
             else{
-                System.out.println("Queus is empty");
+                //System.out.println("Queus is empty");
                 Thread.sleep(1000);
                 break;
             }
@@ -106,7 +106,7 @@ public class Worker {
 
     public static String getEntities(String review) {
 
-        System.out.println("Crash test 0\n\n");
+        //System.out.println("Crash test 0\n\n");
         Properties props = new Properties();
         props.put("annotators", "tokenize , ssplit, pos, lemma, ner");
         StanfordCoreNLP NERPipeline = new StanfordCoreNLP(props);
@@ -116,13 +116,13 @@ public class Worker {
         // run all Annotators on this text
         NERPipeline.annotate(document);
 
-        System.out.println("Crash test 1\n\n");
+        //System.out.println("Crash test 1\n\n");
 
         // these are all the sentences in this document
         // a CoreMap is essentially a Map that uses class objects as keys and has values with custom types
         List<CoreMap> sentences = document.get(CoreAnnotations.SentencesAnnotation.class);
 
-        System.out.println("Crash test 2\n\n");
+        //System.out.println("Crash test 2\n\n");
 
         StringBuilder entities = new StringBuilder().append("[");
         for (CoreMap sentence : sentences) {
