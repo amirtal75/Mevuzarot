@@ -1,15 +1,5 @@
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.securitytoken.model.Credentials;
-import com.amazonaws.services.securitytoken.model.GetSessionTokenRequest;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.*;
@@ -70,6 +60,8 @@ public class Queue {
         try {
             result = sqs.getQueueUrl(queueName);
         } catch (Exception ase) {
+            System.out.println("failed to get queueURL for the queue: " + queueName);
+            System.out.println("meaning it doesent exist");
         }
 
         if ( result != null){
