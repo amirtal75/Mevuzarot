@@ -54,26 +54,6 @@ public class Queue {
     }
 
     public String createQueue(String queueName, boolean managerExists) {
-        System.out.println("inside create queue: " + queueName);
-        System.out.println("managerExists " + managerExists);
-        GetQueueUrlResult result = null;
-        try {
-            result = sqs.getQueueUrl(queueName);
-        } catch (Exception ase) {
-            System.out.println("failed to get queueURL for the queue: " + queueName);
-            System.out.println("meaning it doesent exist");
-        }
-
-        if ( result != null){
-            System.out.println("the " + queueName + " queue already exists" );
-            queueName = result.getQueueUrl();
-            if (!managerExists){
-                System.out.println("purging the queue: " + queueName);
-                purgeQueue(queueName);
-                return  result.getQueueUrl();
-            }
-            return queueName;
-        }
 
         String queueUrl = "";
         try {
@@ -82,17 +62,9 @@ public class Queue {
             return this.sqs.createQueue(createQueueRequest).getQueueUrl();
 
         } catch (Exception ase) {
-            try {
-                if(ase.getMessage().contains("You must wait 60 seconds after deleting a queue before you can create another with the same name")){
-                    System.out.println("The queue was just deleted in the last minute and we need to wait 60 seconds");
-                    Thread.sleep(60000);
-                    createQueue(queueName, managerExists);
-                }
-            } catch (InterruptedException e) {
-                System.out.println("got queue exception");
-            }
+            System.out.println("got queue exception");
         }
-        return queueUrl;
+            return queueUrl;
     }
 
     public void listQueue() {
