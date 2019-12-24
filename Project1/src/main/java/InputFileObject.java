@@ -2,13 +2,14 @@ import com.amazonaws.services.s3.model.S3Object;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InputFileObject {
 
-    AtomicInteger id;
+    private String inputFileID;
     AtomicInteger inputLines;
     AtomicInteger outputLines;
     StringBuffer stringBuffer = null;
@@ -19,8 +20,7 @@ public class InputFileObject {
     String inputFilename;
     ConcurrentHashMap<Integer, String> iDsOfProcessedReviews;
 
-    public InputFileObject(int id,String inputFilename, String path, int numberoffilelines, S3Object object){
-        this.id = new AtomicInteger(id);
+    public InputFileObject(String inputFilename, String path, int numberoffilelines, S3Object object){
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
         redAllLines = new AtomicBoolean(false);
@@ -29,12 +29,13 @@ public class InputFileObject {
         this.numberoffilelines = numberoffilelines;
         this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
         this.stringBuffer = new StringBuffer();
+        this.inputFileID  = inputFilename+UUID.randomUUID().toString();
     }
 
     public synchronized BufferedReader getReader() {return reader;}
 
-    public synchronized int getId() {
-        return this.id.get();
+    public String getInputFileID() {
+        return this.inputFileID;
     }
 
     public synchronized void appendToBuffer (String messageFromQueue, String reviewID) {
@@ -48,27 +49,23 @@ public class InputFileObject {
         }
     }
 
-    public synchronized StringBuffer getBuffer() {return stringBuffer;}
+    public StringBuffer getBuffer() {return stringBuffer;}
 
-    public synchronized int getNumberoffilelines() {return numberoffilelines;}
+    public  int getNumberoffilelines() {return numberoffilelines;}
 
-    public synchronized AtomicInteger getInputLines() {
+    public  AtomicInteger getInputLines() {
         return inputLines;
     }
 
-    public synchronized AtomicInteger getOutputLines() {
+    public  AtomicInteger getOutputLines() {
         return outputLines;
     }
 
-    public synchronized AtomicBoolean getRedAllLines() {
+    public  AtomicBoolean getRedAllLines() {
         return redAllLines;
     }
 
-    public synchronized AtomicBoolean getAllWorkersDone() {
-        return allWorkersDone;
-    }
-
-    public synchronized AtomicBoolean AllWorkersDone() {
+    public  AtomicBoolean getAllWorkersDone() {
         return allWorkersDone;
     }
 

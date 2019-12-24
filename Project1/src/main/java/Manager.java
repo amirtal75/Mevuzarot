@@ -1,14 +1,19 @@
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Manager extends ManagerSuperClass{
+public class Manager{
 
     public static void main(String[] args) throws Exception {
         String QueueUrlLocalApps = "QueueUrlLocalApps";
@@ -25,9 +30,13 @@ public class Manager extends ManagerSuperClass{
         createworker(workerJobQueue,completedTasksQueue, ec2, queue,0);
         System.out.println("Created the first worker");
 
+        AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
+        AtomicInteger numberOfTasks = new AtomicInteger(0);
+        AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
+        AtomicBoolean continueRunning = new AtomicBoolean(true);
 
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
-        ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
 
         System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
 
@@ -35,17 +44,12 @@ public class Manager extends ManagerSuperClass{
         // calculate number of threads to open
 
         // Create Thread Pools
-        ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
-        ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
+        boolean run = true;
+        while (continueRunning.get()) {
 
-        // Start the upload thread
-        new Thread(new UploadThread(InputFileObjectById, manager)).start();
-
-        while (manager.getContinueRunning()) {
-
-            System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + manager.getNumberOfReceivedtasksFromTotalOfLocals());
-            System.out.println("Manager number Of Tasks sent to workers are: " +manager.getNumberOfTasks());
-            System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + manager.getNumberOfCompletedTasks());
+            System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
+            System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
+            System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
 
 
 
@@ -57,29 +61,56 @@ public class Manager extends ManagerSuperClass{
                 Message currMessege = currMessageQueue.get(0);
                 messageContent = currMessege.getBody().split("@");
                 int numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
-                manager.setNumberOfReceivedtasksFromTotalOfLocals(numberOfLinesInTheLocalAppFile + manager.getNumberOfReceivedtasksFromTotalOfLocals());
-
+                numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
                 System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
-                manager.setIdOfInputFile(manager.getIdOfInputFile() + 1);
                 queue.deleteMessage(QueueUrlLocalApps,currMessege);
+
+                // check termination condirion
+                if (messageContent.length > 2){
+                    run = (numberOfReceivedtasksFromTotalOfLocals == numberOfCompletedTasks);
+                    continueRunning.set(run);
+                }
+
                 // Create input file object
-                InputFileObject newFile = new InputFileObject(manager.getIdOfInputFile(),messageContent[0],path, Integer.parseInt(messageContent[1]), object);
-                InputFileObjectById.put(manager.getIdOfInputFile(), newFile);
+                InputFileObject newFile = new InputFileObject(messageContent[0],path, Integer.parseInt(messageContent[1]), object);
+                InputFileObjectById.put(newFile.getInputFileID(), newFile);
+
+                // Create Completed tasks queue unique for the input file object
+                queue.createQueue(newFile.getInputFileID(),true);
 
                 // calaculate threads to launch
-                int numberOfThreadsToLaunch = (Math.abs(manager.getNumberOfReceivedtasksFromTotalOfLocals() - manager.getNumberOfTasks()) / 50) + 1;
+                int numberOfThreadsToLaunch = (newFile.getNumberoffilelines() / 50) + 1;
                 // System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
 
                 // open input and output threads for a file from local app
                 for (int i = 0; i < numberOfThreadsToLaunch; ++i ){
-                    System.out.println("Manager: id of input file: " + newFile.getId());
-                    poolForInput.execute(new InputThread(newFile, manager));
-                    poolForOutput.execute(new OutputThread(InputFileObjectById, manager));
+                    System.out.println("Manager: id of input file: " + newFile.getInputFileID());
+                    new Thread(new InputThread(newFile, numberOfTasks)).start();
+                    new Thread(new OutputThread(newFile, numberOfCompletedTasks)).start();
                 }
-            }  else{
-                Thread.sleep(3000);
             }
+
+            InputFileObject currFileObject;
+            for (int i = 1 ; i < InputFileObjectById.size(); ++i){
+                currFileObject = InputFileObjectById.get(i);
+                currFileObject.setredAllLinesTrue();
+                if (currFileObject.getAllWorkersDone().get()){
+                    try {
+                        String outputName = currFileObject.getInputFilename() + "$";
+                        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
+                        bufferedWriter.write(currFileObject.getBuffer().toString());
+                        bufferedWriter.flush();
+                        s3.upload(path, outputName);
+                        queue.sendMessage(summeryFilesIndicatorQueue, outputName);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+
         }
     }
 

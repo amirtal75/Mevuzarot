@@ -1,63 +1,49 @@
 import com.amazonaws.services.sqs.model.Message;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public
-class OutputThread implements Runnable{
-    private ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById;
-    String completedTasksQueue = "completedTasksQueue";
-    ManagerSuperClass manager;
+public class OutputThread implements Runnable {
 
-    public OutputThread(ConcurrentHashMap<Integer, InputFileObject> InputFileObjectById, ManagerSuperClass manager){
-        this.InputFileObjectById = InputFileObjectById;
-        this.manager = manager;
+    InputFileObject currFileObject;
+    String completedTasksQueue; //queue for outputJobs , should be passed to workers as well
+    AtomicInteger numberOfCompletedTasks;
+
+    public OutputThread(InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
+        this.completedTasksQueue = currFileObject.getInputFileID();
+        this.currFileObject = currFileObject;
+        this.numberOfCompletedTasks = numberOfCompletedTasks;
     }
 
-    public void run() {
-        String identity = "OutputThread: " + Thread.currentThread().getId() + "\n";
-        System.out.println(identity+ " started running");
+    public
+    void run() {
         Queue queue = new Queue();
-        List<Message> messagefromCompletedTasksQueue = new ArrayList<>();
+        List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
+        System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
 
-        while(manager.getContinueRunning()){
-            System.out.println();
+        while (!currFileObject.getAllWorkersDone().get()) {
+
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
-            System.out.println(identity + "message received: " +messagefromCompletedTasksQueue.isEmpty());
-            InputFileObject currFileObject = null;
             if (!messagefromCompletedTasksQueue.isEmpty()) {
 
                 Message currMessege = messagefromCompletedTasksQueue.get(0);
-                System.out.println(identity + "message content:\n "+ messagefromCompletedTasksQueue.get(0).getBody());
                 String[] resultContent = currMessege.getBody().split(delimiter);
-                System.out.println("message from worker: ");
-                for (String str: resultContent){
-                    System.out.println(str);
-                }
-                currFileObject = InputFileObjectById.get(resultContent[0]);
-                System.out.println(identity + "inputfile object found: " +currFileObject != null);
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
 
-                // The place to check
-                if (currFileObject != null && resultContent[0].equals(currFileObject.getId())) {
-
-
-                    System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
+                synchronized (this) {
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1]);
-                    manager.setNumberOfCompletedTasks(manager.getNumberOfCompletedTasks()+1);
+                    currFileObject.increaseOutputLines();
+                    numberOfCompletedTasks.incrementAndGet();
+                    currFileObject.setredAllLinesTrue();
                     queue.deleteMessage(completedTasksQueue, currMessege);
                 }
             }
         }
-        System.out.println("OutputThread: " + Thread.currentThread() + " finished running");
+        System.out.println("Output Thread: " + Thread.currentThread().getId() + " finished running\n");
     }
 }
-
 

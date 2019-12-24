@@ -8,13 +8,9 @@ public class ManagerSuperClass {
     public  String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
     public  String workerJobQueue = "workerJobQueue";
     public  String completedTasksQueue = "completedTasksQueue";
-    public  AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
-    public  AtomicInteger numberOfTasks = new AtomicInteger(0);
-    public  AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
-    public  AtomicInteger idOfInputFile = new AtomicInteger(0);
-    protected AtomicBoolean continueRunning = new AtomicBoolean(true);
 
-    public
+
+    /*public
     ManagerSuperClass() {
     }
     public
@@ -105,5 +101,5 @@ public class ManagerSuperClass {
         ec2.attachTags(instance, "worker");
         System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
 
-    }
+    }*/
 }
