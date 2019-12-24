@@ -62,7 +62,10 @@ public class ManagerSuperClass {
 
     public synchronized
     void setIdOfInputFile(int idOfInputFile) {
+        System.out.println("Super: " + numberOfCompletedTasks);
         this.idOfInputFile.set(idOfInputFile);
+        System.out.println("Super after: " + numberOfCompletedTasks);
+
     }
 
     public synchronized
