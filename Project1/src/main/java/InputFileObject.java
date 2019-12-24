@@ -39,6 +39,9 @@ public class InputFileObject {
     }
 
     public void appendToBuffer (String messageFromQueue, String reviewID) {
+        System.out.println("inside appendToBuffer, message is: " + messageFromQueue);
+        System.out.println("inside appendToBuffer, revideID is: " + reviewID);
+
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
         System.out.println("checking if reviewWasprocessedBefore: " + reviewWasprocessedBefore);
         String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
