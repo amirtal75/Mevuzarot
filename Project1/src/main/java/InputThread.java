@@ -1,68 +1,98 @@
-import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.model.*;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sqs.model.Message;
 
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class InputThread implements Runnable {
 
-    String workerJobQueue = "workerJobQueue";
     Queue queue;
+    String location;
+    String completedTasksQueue;
+    List<Message> currMessageQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
     S3Bucket s3;
-    InputFileObject currFileObject; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
-    AtomicInteger  numberOfTasks;
+    String workerJobQueue; //queue for inputJobs
+    static AtomicInteger idOfInputFile = new AtomicInteger(0);
+     ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
+    AtomicInteger numberOfTasks = new AtomicInteger(0);
     EC2Object ec2;
-    BufferedReader bufferedReader;
-    String originator;
+    boolean toTerminate;
+    String inputFilename;
 
-    public InputThread(InputFileObject currFileObject, AtomicInteger  numberOfTasks) {
+    public InputThread(String workerJobQueue, String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, String inputFileName, AtomicInteger numberOfTasks){
+        System.out.println("the recieving mtasks queue is " + workerJobQueue);
         this.queue = new Queue();
+        completedTasksQueue = completedTasksQueue;
         this.s3 = new S3Bucket();
-        this.currFileObject = currFileObject;
-        this.bufferedReader = currFileObject.getReader();
+        this.workerJobQueue = workerJobQueue;
+        this.InputFileObjectById = inputFileObjectById;
+        this.inputFilename = inputFileName;
         this.ec2 = new EC2Object();
+        toTerminate = false;
         this.numberOfTasks = numberOfTasks;
     }
 
     public void run() {
-
         String delimiter = " -@@@@@@@- ";
-        originator = "InputThread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
+        System.out.println("In InputThread: " + Thread.currentThread());
 
 
-        String currLine = "";
-        String job = "";
-        while (!currFileObject.getRedAllLines().get()) {
 
-            //System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
+            InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename, path);
+            InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
+            System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(currFileObject));
 
             try {
-                currLine = bufferedReader.readLine();
-            } catch (IOException e) {
-                //System.out.println(e.getMessage());
-            }
+                // Check if need to create worker
 
-            if (currLine != null){
+                System.out.println("Downloading an object with key: " + inputFilename);
+                S3Object object = s3.downloadObject(inputFilename); //input file
+                BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                System.out.println("file to create tasks from:" + inputFilename);
+                /*BufferedReader inputFileFromLocalApp =  new BufferedReader(new FileReader(inputFilename));*/
+                String currLine = "";
+                String job = "";
 
-                synchronized (this){
-                    job = currFileObject.getInputFileID() + delimiter + currLine;
-                    queue.sendMessage(workerJobQueue, job);
+
+                while ((currLine = inputFileFromLocalApp.readLine()) != null) {
+                    //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
+                    
+                    // check if more workers are needed
+                    createworker(workerJobQueue, completedTasksQueue, ec2, queue, numberOfTasks.get());
+
+                    //System.out.println(" Making a job from the current read line: " + currLine);
+                    // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
                     currFileObject.increaseInputLines();
+                    job = idOfInputFile + delimiter + currLine;
+                    queue.sendMessage(workerJobQueue, job);
+                    //System.out.println("sending a task to the queue" + workerJobQueue);
                     numberOfTasks.incrementAndGet();
-                    currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-                    createworker(ec2, numberOfTasks.get());
+                    System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
+
                 }
-                // //System.out.println(" Making a job from the current read line: " + currLine);
-                // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
+                currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
+                System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
+
             }
+            catch (Exception e) {
+                e.printStackTrace(); }
 
-        }
 
-        System.out.println("InputThread: " + Thread.currentThread() + " finished running");
     }
 
-    public void createworker(EC2Object ec2, int numberOfTasks){
+    private void createworker(String workerJobQueue, String completedTasksQueue, EC2Object ec2, Queue queue, int numberOfTasks){
 
         int workerinstances = ec2.getInstances("").size() - 1;
         Boolean tasksDivides = (numberOfTasks % 80) == 0;
@@ -72,7 +102,6 @@ public class InputThread implements Runnable {
         if ( condition == false || workerinstances > 15){
             return;
         }
-
         // create user data dor workers
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "sudo unzip -o master.zip\n";
@@ -81,10 +110,10 @@ public class InputThread implements Runnable {
         String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
-
+        System.out.println("inside create worker: " + workerJobQueue);
         String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
-        String pushFirstArg = createWorkerArgsFile + "echo " + "workerJobQueue" + " >> src/main/java/workerArgs.txt\n";
-        String filedata = pushFirstArg + "echo " + "completedTasksQueue" + " >> src/main/java/workerArgs.txt\n";
+        String pushFirstArg = createWorkerArgsFile + "echo " + workerJobQueue + " >> src/main/java/workerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + completedTasksQueue + " >> src/main/java/workerArgs.txt\n";
 
         String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + filedata + createAndRunProject;
 

@@ -6,6 +6,7 @@ import com.amazonaws.services.sqs.model.*;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon SQS using the
@@ -53,7 +54,7 @@ public class Queue {
         }
     }
 
-    public String createQueue(String queueName, boolean managerExists) {
+    public String createQueue(String queueName) {
 
         String queueUrl = "";
         try {
