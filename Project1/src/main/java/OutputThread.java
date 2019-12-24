@@ -40,7 +40,7 @@ class OutputThread implements Runnable{
                 // String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
 
                 // The place to check
-                if (resultContent[0].equals(currFileObject.getId()) && currFileObject != null) {
+                if (currFileObject != null && resultContent[0].equals(currFileObject.getId())) {
 
                     System.out.println("message from worker: ");
                     for (String str: resultContent){
