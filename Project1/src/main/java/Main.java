@@ -13,22 +13,26 @@ public class Main {
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
         // !!!!!!!!!!!!!! need to delete !!!!!!!!!!!!
+        System.out.println("!!!!!!!!!!!!!terminating!!!!!!!!!!!!!!!!!");
         ec2.terminateInstances(null);
+        System.out.println("!!!!!!!!!!!!!purging!!!!!!!!!!!!!!!!!");
         queue.purgeQueue("QueueUrlLocalApps");
         queue.purgeQueue("summeryFilesIndicatorQueueUrl");
 
-        String summeryFilesIndicatorQueueUrl = queue.createQueue("QueueUrlLocalApps");
-        String QueueUrlLocalApps = queue.createQueue("summeryFilesIndicatorQueue"+ UUID.randomUUID().toString());
+        System.out.println("!!!!!!!!!!!!!Creating!!!!!!!!!!!!!!!!!");
+        String QueueUrlLocalApps = queue.createQueue("QueueUrlLocalApps");
+        String summeryFilesIndicatorQueue = queue.createQueue("summeryFilesIndicatorQueue"+ UUID.randomUUID().toString());
         String workerJobQueue = queue.createQueue("workerJobQueue"); //queue for inputTask for workers
         String completedTasksQueue = queue.createQueue("completedTasksQueue");//queue for outputTask from workers
 
-        createManager(QueueUrlLocalApps, summeryFilesIndicatorQueueUrl);
+        System.out.println("!!!!!!!!!!!!!Instantiating!!!!!!!!!!!!!!!!!");
+        createManager(QueueUrlLocalApps, summeryFilesIndicatorQueue);
         createWorker(workerJobQueue, completedTasksQueue);
 
-        LocalApp localApp = new LocalApp("inputFile1.txt", QueueUrlLocalApps, summeryFilesIndicatorQueueUrl);
+        LocalApp localApp = new LocalApp("inputFile1.txt", QueueUrlLocalApps, summeryFilesIndicatorQueue);
         Thread app = new Thread(localApp);
         app.start();
-        new Thread(new LocalApp("inputFile2.txt", QueueUrlLocalApps, summeryFilesIndicatorQueueUrl)).start();
+        new Thread(new LocalApp("inputFile2.txt", QueueUrlLocalApps, summeryFilesIndicatorQueue)).start();
 
 
 
@@ -41,7 +45,7 @@ public class Main {
 //
     }
 
-    private synchronized static void createManager(String send, String recieve){
+    private static void createManager(String send, String recieve){
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
         System.out.println(ec2.getInstances("manager").isEmpty());
@@ -72,7 +76,7 @@ public class Main {
             ec2.attachTags(instance, "manager");
         }
     }
-    private synchronized static void createWorker(String send, String recieve){
+    private static void createWorker(String send, String recieve){
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
         System.out.println("Creating worker from local app");
@@ -86,9 +90,9 @@ public class Main {
         String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
-        String createWorkerArgsFile = "sudo touch src/main/java/managerArgs.txt\n";
-        String pushFirstArg =  createWorkerArgsFile + "echo " + send + " >> src/main/java/workerArgs.txt\n";
-        String filedata = pushFirstArg + "echo " + recieve + " >> src/main/java/workerArgs.txt\n";
+        String createWorkerArgsFile = "sudo touch src/main/java/workerArgs.txt\n";
+        String pushFirstArg =  createWorkerArgsFile + "echo " + recieve + " >> src/main/java/workerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + send + " >> src/main/java/workerArgs.txt\n";
 
         String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
         System.out.println("In LocalAPP: " + Thread.currentThread());

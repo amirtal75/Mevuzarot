@@ -63,7 +63,7 @@ public class Queue {
             return this.sqs.createQueue(createQueueRequest).getQueueUrl();
 
         } catch (Exception ase) {
-            System.out.println("got queue exception");
+            ase.printStackTrace();
         }
             return queueUrl;
     }
