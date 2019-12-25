@@ -59,10 +59,8 @@ public class InputFileObject {
         return allWorkersDone;
     }
 
-    public void increaseInputLines() {
-        synchronized (this) {
+    public synchronized void increaseInputLines() {
             inputLines.getAndIncrement();
-        }
     }
 
     public void increaseOutputLines() {
