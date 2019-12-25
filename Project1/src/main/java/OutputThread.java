@@ -21,11 +21,11 @@ public class OutputThread implements Runnable {
 
     public
     void run() {
-        originator = "OutputThread: " + Thread.currentThread().getId() + "is initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
+        originator = "OutputThread: " + Thread.currentThread().getId();
         Queue queue = new Queue();
         List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
-        System.out.println("In Output Thread: " + Thread.currentThread() + " The input file worked on in this task: " + currFileObject.getInputFilename());
+        System.out.println("In Output Thread: " + Thread.currentThread());
 
         boolean wroteAllLines = false;
         while (!wroteAllLines) {
