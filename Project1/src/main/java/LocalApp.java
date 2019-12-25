@@ -68,7 +68,7 @@ public class LocalApp implements Runnable{
 
                 // try to get an answer from the manager
                 messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
-                if (!messages.isEmpty()) {
+                if (messages != null && !messages.isEmpty()) {
                     currMessageName = messages.get(0).getBody().split(delimiter)[0]; // the input file name
                 }
 
