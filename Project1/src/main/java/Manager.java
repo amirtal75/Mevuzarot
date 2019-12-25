@@ -71,13 +71,16 @@ public class Manager {
                 //System.out.println("the local queue adress is : " + QueueUrlLocalApps);
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
                 if (currMessageQueue != null && !currMessageQueue.isEmpty()){
+                    
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
                     String inputFilename = currMessege.getBody();
-                    System.out.println("Downloading an object with key: " + inputFilename);
+                    System.out.println("Downloading an object with key: " + inputFilename); 
+                    
                     S3Object object = s3.downloadObject(inputFilename); //input file
                     BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                     System.out.println("file to create tasks from:" + inputFilename);
+                    
                     //String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
                     poolForInput.execute(new InputThread(workerJobQueue, completedTasksQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
                     poolForInput.execute(new InputThread(workerJobQueue, completedTasksQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
@@ -88,11 +91,11 @@ public class Manager {
                     queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
                 }
             } catch (Exception e){
-                //System.out.println(e.getMessage());
+                e.printStackTrace();
             }
-
-            for (InputFileObject currInputFileObj : InputFileObjectById.values()) {
-
+            InputFileObject currInputFileObj;
+            for (int i = 0; i< InputFileObjectById.size(); ++i) {
+                currInputFileObj = InputFileObjectById.get(i);
                 currInputFileObj.CheckAndSetAllWorkersDone();
                 System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
                 System.out.println("InputFile details " + currInputFileObj);
