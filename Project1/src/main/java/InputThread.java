@@ -54,6 +54,13 @@ public class InputThread implements Runnable {
 
         InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename);
         InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
+        if (InputFileObjectById.get(idOfInputFile.get()) == null){
+            try {
+                throw new Exception("Critial error, inserted null input in inputThread");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(currFileObject));
 
         try {
