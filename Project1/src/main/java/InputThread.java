@@ -23,7 +23,7 @@ public class InputThread implements Runnable {
     List<Message> currMessageQueue = new ArrayList<Message>(); //at each moment holds one message from the sqs
     S3Bucket s3;
     String workerJobQueue; //queue for inputJobs
-    static AtomicInteger idOfInputFile = new AtomicInteger(0);
+    static AtomicInteger idOfInputFile = new AtomicInteger(1);
     ConcurrentHashMap<Integer,InputFileObject> InputFileObjectById; // all the FileObject by their id . shared between inputThreas,OutputThread,workers.
     AtomicInteger numberOfTasks = new AtomicInteger(0);
     EC2Object ec2;
