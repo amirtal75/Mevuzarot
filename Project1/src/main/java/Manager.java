@@ -44,8 +44,8 @@ public class Manager{
         queue.purgeQueue(QueueUrlLocalApps);
         queue.purgeQueue(workerJobQueue);
         queue.purgeQueue(completedTasksQueue);
-        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt6e33ed49-03e6-4c81-a6ea-bc844f8818f3.txt@30");
-        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txt05a5e6bd-726d-43ca-97f3-22d909ffa5ea.txt@30");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txte6bc03d0-35ed-40e8-ab02-6f01b2423304.txt@30");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt3ce68107-9734-45ed-9f2f-e4b708533aef.txt@30");
 
 
         // Create Thread Pools
