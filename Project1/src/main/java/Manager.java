@@ -96,9 +96,9 @@ public class Manager {
                     currInputFileObj = InputFileObjectById.get(i);
                     currInputFileObj.CheckAndSetAllWorkersDone();
                     //System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
-                    System.out.println("\nnInputFile details:\n " + currInputFileObj+ "\n\n");
+                    //System.out.println("\nnInputFile details:\n " + currInputFileObj+ "\n\n");
                     if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
-
+                        System.out.println("all workers done");
                         FileOutputStream outputFile = null;
                         try {
                             String outputName = currInputFileObj.getInputFilename() + "$";
