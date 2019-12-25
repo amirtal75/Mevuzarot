@@ -51,11 +51,11 @@ public class Manager{
         // Create Thread Pools
         boolean run = true;
         while (continueRunning.get()) {
-            //if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
+            if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
             System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
             System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
             System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
-            // }
+            }
 
 
             // Recieve message from local app queue
@@ -63,6 +63,7 @@ public class Manager{
             String[] messageContent;
 
             if (!currMessageQueue.isEmpty()) {
+
                 Message currMessege = currMessageQueue.get(0);
                 messageContent = currMessege.getBody().split("@");
                 int numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
