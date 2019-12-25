@@ -94,7 +94,7 @@ public class Manager {
                 e.printStackTrace();
             }
             InputFileObject currInputFileObj;
-            for (int i = 0; i< InputFileObjectById.size(); ++i) {
+            for (int i = 0; i< InputFileObjectById.size() && InputFileObjectById.isEmpty() == false; ++i) {
                 currInputFileObj = InputFileObjectById.get(i);
                 if (currInputFileObj == null){
                     try {
