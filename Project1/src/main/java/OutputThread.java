@@ -21,7 +21,7 @@ public class OutputThread implements Runnable {
     AtomicInteger numberOfCompletedTasks;
 
     public
-    OutputThread(String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String summeryFilesIndicatorQueue, AtomicInteger numberOfCompletedTasks) throws Exception {
+    OutputThread(String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String summeryFilesIndicatorQueue, AtomicInteger numberOfCompletedTasks){
         this.queue = new Queue();
         this.completedTasksQueue = completedTasksQueue;
         this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;

@@ -78,8 +78,8 @@ public class Manager {
                     BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                     System.out.println("file to create tasks from:" + inputFilename);
                     //String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, workerJobQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
-                    poolForInput.execute(new InputThread(QueueUrlLocalApps, workerJobQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
+                    poolForInput.execute(new InputThread(workerJobQueue, completedTasksQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
+                    poolForInput.execute(new InputThread(workerJobQueue, completedTasksQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(completedTasksQueue, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue,numberOfCompletedTasks));
                     poolForOutput.execute(new OutputThread(completedTasksQueue, InputFileObjectById, stringResultsById, summeryFilesIndicatorQueue,numberOfCompletedTasks));
