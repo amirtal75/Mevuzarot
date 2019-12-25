@@ -44,7 +44,7 @@ public class InputThread implements Runnable {
             
             if (currLine != null){
                 synchronized (currFileObject){
-                    System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFileID() + "from: " + currFileObject.getInputLines());
+                    System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFilename() + "from: " + currFileObject.getInputLines());
                     currFileObject.increaseInputLines();
                     currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
                     readAllLines = currFileObject.getRedAllLines();
