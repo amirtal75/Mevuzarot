@@ -54,10 +54,10 @@ public class Worker {
                     System.out.println("Queus is empty");
                     Thread.sleep(1000);
                 }
+                currJobQueue = queue.recieveMessage(workerJobQueue, 1, 60); // check about visibility
             } catch (Exception e){
                 e.printStackTrace();
             }
-            currJobQueue = queue.recieveMessage(workerJobQueue, 1, 60); // check about visibility
         }
     }
 

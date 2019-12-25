@@ -100,7 +100,7 @@ public class Manager{
                     BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
                     synchronized (currFileObject) {
                         bufferedWriter.write(currFileObject.getBuffer().toString());
-                        InputFileObjectById.remove(currFileObject);
+                        InputFileObjectById.remove(currFileObject.getInputFileID(),currFileObject);
                     }
                     s3.upload(path, outputName);
                     queue.sendMessage(summeryFilesIndicatorQueue, outputName);
