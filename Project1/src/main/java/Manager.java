@@ -16,7 +16,6 @@ public class Manager{
 
     public static void main(String[] args) throws IOException, InterruptedException {
         String QueueUrlLocalApps = "QueueUrlLocalApps";
-        String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
         String workerJobQueue = "workerJobQueue";
         System.out.println("In Manager:");
         S3Bucket s3 = new S3Bucket();
@@ -30,7 +29,6 @@ public class Manager{
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
 
-        System.out.println("Local Queue: " + QueueUrlLocalApps + ", Summary Queue: " + summeryFilesIndicatorQueue);
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
         List<Message> currMessageQueue = null;
@@ -65,16 +63,18 @@ public class Manager{
                 numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
                 System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
+                BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                 queue.deleteMessage(QueueUrlLocalApps, currMessege);
 
                 // check termination condirion
-                if (messageContent.length > 2 && messageContent[2].equals("terminate")) {
+                if (messageContent.length > 3 && messageContent[3].equals("terminate")) {
                     continueRunning.set(run);
                 }
 
                 // Create input file object
                 String inputFileID  = UUID.randomUUID().toString();
-                InputFileObject newFile = new InputFileObject(messageContent[0], Integer.parseInt(messageContent[1]), object, inputFileID);
+                String summeryFilesIndicatorQueue = messageContent[2];
+                InputFileObject newFile = new InputFileObject(messageContent[0], Integer.parseInt(messageContent[1]), reader, inputFileID, summeryFilesIndicatorQueue);
                 reviewIDList.add(inputFileID);
                 InputFileObjectById.putIfAbsent(inputFileID, newFile);
 
@@ -96,14 +96,16 @@ public class Manager{
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
                 if (currFileObject != null && currFileObject.getAllWorkersDone()) {
-                    String outputName = currFileObject.getInputFilename() + "$";
-                    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
                     synchronized (currFileObject) {
+                        String outputName = currFileObject.getInputFilename() + "$";
+                        String getSummeryFilesIndicatorQueue = currFileObject.getSummeryFilesIndicatorQueue();
+                        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
                         bufferedWriter.write(currFileObject.getBuffer().toString());
+                        queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
                         InputFileObjectById.remove(currFileObject.getInputFileID(),currFileObject);
+                        s3.upload(path, outputName);
                     }
-                    s3.upload(path, outputName);
-                    queue.sendMessage(summeryFilesIndicatorQueue, outputName);
+
                 }
             }
         }

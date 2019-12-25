@@ -27,35 +27,20 @@ public class InputThread implements Runnable {
         String delimiter = " -@@@@@@@- ";
         String originator = "InputThread: " + Thread.currentThread().getId();
         System.out.println(originator + "Started Running\n");
-        String currLine = "";
         String job = "";
         boolean readAllLines = false;
         while (!readAllLines) {
 
             createworker(ec2, numberOfTasks.get());
-            //System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
-
             synchronized (currFileObject) {
-                currLine = currFileObject.readLine();
-                job = currFileObject.getInputFileID() + delimiter + currLine;
+                System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFilename() + "from: " + currFileObject.getInputLines());
+                job = currFileObject.readLine();
+                readAllLines = currFileObject.getRedAllLines();
+                System.out.println("to: " + currFileObject.getInputLines() + " and all lines read status = " + readAllLines + "\n");
             }
-
             queue.sendMessage(workerJobQueue, job);
             numberOfTasks.incrementAndGet();
-
-            if (currLine != null){
-                synchronized (currFileObject){
-                    System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFilename() + "from: " + currFileObject.getInputLines());
-                    currFileObject.increaseInputLines();
-                    currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-                    readAllLines = currFileObject.getRedAllLines();
-                    System.out.println("to: " + currFileObject.getInputLines() + " and all lines read status = " + readAllLines + "\n");
-                }
-                // //System.out.println(" Making a job from the current read line: " + currLine);
-                // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
-            }
         }
-
         System.out.println("InputThread: " + Thread.currentThread() + " finished running");
     }
 

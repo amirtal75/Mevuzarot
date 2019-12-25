@@ -21,23 +21,27 @@ public class InputFileObject {
     String inputFilename;
     ConcurrentHashMap<Integer, String> iDsOfProcessedReviews;
     String delimiter = " -@@@@@@@- ";
-    String lastReadLine = "";
+    String summeryFilesIndicatorQueue;
 
-    public InputFileObject(String inputFilename,int numberoffilelines, S3Object object, String inputFileID){
+    public InputFileObject(String inputFilename, int numberoffilelines, BufferedReader reader, String inputFileID, String summeryFilesIndicatorQueue){
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
         redAllLines = new AtomicBoolean(false);
         allWorkersDone = new AtomicBoolean(false);
         this.inputFilename = inputFilename;
         this.numberoffilelines = new AtomicInteger(numberoffilelines);
-        this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
+        this.reader = reader;;
         this.stringBuffer = new StringBuffer();
         this.inputFileID = inputFileID;
+        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;
         this.iDsOfProcessedReviews = new ConcurrentHashMap<>();
         System.out.println("Created input file object with the ID: " + inputFileID);
     }
 
-    public synchronized BufferedReader getReader() {return reader;}
+    public
+    String getSummeryFilesIndicatorQueue() {
+        return summeryFilesIndicatorQueue;
+    }
 
     public String getInputFileID() {
         return this.inputFileID;
@@ -46,24 +50,27 @@ public class InputFileObject {
     public void appendToBuffer (String messageFromQueue, String reviewID, String originator) {
         String[] result =  messageFromQueue.split(delimiter );
         System.out.println(originator + "Adding a message with ID: " + result[0] + "\nTo the inputFileObject with the ID: " + inputFileID);
+        int numberOfLines = 0;
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
         String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
         if (!reviewWasprocessedBefore) {
             this.stringBuffer.append(toAppend);
             this.iDsOfProcessedReviews.put(outputLines.get(), reviewID);
-            this.outputLines.incrementAndGet();
+            numberOfLines = this.outputLines.incrementAndGet();
+            allWorkersDone.set(numberOfLines == numberoffilelines.get());
         }
     }
     public String readLine (){
+        String line = null;
+        int numberOfLines = 0;
         try {
-            if (lastReadLine != null) {
-                lastReadLine = reader.readLine();
-                return lastReadLine;
-            }
+            line = inputFileID + delimiter + reader.readLine();
+            numberOfLines = inputLines.incrementAndGet();
+            redAllLines.set(numberOfLines == numberoffilelines.get());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return line;
     }
 
     public StringBuffer getBuffer() {return stringBuffer;}
@@ -90,14 +97,9 @@ public class InputFileObject {
         inputLines.getAndIncrement();
     }
 
-    public void increaseOutputLines(String inputFileID, String originator) {
-        System.out.println(originator + "increaseOutputLines of the input file:  " + this.inputFileID);
-        outputLines.getAndIncrement();
-    }
-
-    public void  checkAndSetAllWorkersDone (String originator){ // check if all workers done and set allWorkersDone accordingly.
+    public boolean  checkAndSetAllWorkersDone (String originator){ // check if all workers done and set allWorkersDone accordingly.
         System.out.println(originator + "checkAndSetAllWorkersDone of the input file: " + inputFileID);
-        allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines.get()) && (numberoffilelines.get() == outputLines.get())));
+        return allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines.get()) && (numberoffilelines.get() == outputLines.get())));
     }
 
     public String getInputFilename() {
