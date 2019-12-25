@@ -87,11 +87,6 @@ public class Manager {
                     //System.out.println("Received result from input thread, we need to delete the message");
                     queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
                 }
-
-                else{
-                    Thread.sleep(3000);
-                }
-
             } catch (Exception e){
                 //System.out.println(e.getMessage());
             }
@@ -100,9 +95,7 @@ public class Manager {
 
                 currInputFileObj.CheckAndSetAllWorkersDone();
                 System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
-                if (!currInputFileObj.getAllWorkersDone().get()){
-                    System.out.println("InputFile details " + currInputFileObj);
-                }
+                System.out.println("InputFile details " + currInputFileObj);
                 if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
                     System.out.println("in done loop");
                     FileOutputStream outputFile = null;
