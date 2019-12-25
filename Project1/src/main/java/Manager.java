@@ -95,7 +95,7 @@ public class Manager {
                 if (InputFileObjectById.containsKey(i)){
                     currInputFileObj = InputFileObjectById.get(i);
                     currInputFileObj.CheckAndSetAllWorkersDone();
-                    System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
+                    //System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
                     System.out.println("\nnInputFile details:\n " + currInputFileObj+ "\n\n");
                     if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
 

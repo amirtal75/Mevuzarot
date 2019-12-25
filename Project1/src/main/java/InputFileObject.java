@@ -82,7 +82,7 @@ public class InputFileObject {
 
     public String toString(){
         String res = "input lines : " + inputLines.get() + " output lines : " + outputLines.get() +
-               "input file name: " + inputFilename + " all lines has been readed " + getRedAllLines().get() +
+               "\ninput file name: " + inputFilename + " all lines has been readed: " + redAllLines.get() +
                 " all workes done : " + allWorkersDone.get();
         return res;
             }
