@@ -24,7 +24,9 @@ public class EC2Object {
     public boolean createTags(String tagName, String InstanceID){
         if (!tagExists(tagName)) {
             Tag tag = new Tag(tagName, tagName);
-            CreateTagsRequest tagsRequest = new CreateTagsRequest().withTags(tag);
+            CreateTagsRequest tagsRequest = new CreateTagsRequest()
+                    .withResources(InstanceID)
+                    .withTags(tag);
             CreateTagsResult result = this.ec2.createTags(tagsRequest);
         }
         return tagExists(tagName);
