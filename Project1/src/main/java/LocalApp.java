@@ -41,73 +41,70 @@ public class LocalApp implements Runnable{
             String path = "/home/amirtal/IdeaProjects/Localapp/src/main/java/";
             // C:\Users\amithaim7\Documents\GitHub\Mevuzarot\Project1\src\main\java
 
-                // Go over the list of input files
-                ArrayList<parsedInputObject> inputList = new ArrayList<>();
-                for (String inputFile : inputFiles) {
-                    // Create a parsed object from the input list
-                    //System.out.println("trying to parse the file " + path + inputFile);
-                    inputList = parse(path + inputFile);
-                    //System.out.println("\nNumber of reviews parsed: " + inputList.size());
-                    String outputFilename = inputFile + UUID.randomUUID() + ".txt";
-                    // Write the parsed object to a file
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
-                    for (parsedInputObject obj : inputList) {
+            // Go over the list of input files
+            ArrayList<parsedInputObject> inputList = new ArrayList<>();
+            for (String inputFile : inputFiles) {
+                // Create a parsed object from the input list
+                //System.out.println("trying to parse the file " + path + inputFile);
+                inputList = parse(path + inputFile);
+                //System.out.println("\nNumber of reviews parsed: " + inputList.size());
+                String outputFilename = inputFile + UUID.randomUUID() + ".txt";
+                // Write the parsed object to a file
+                BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
+                for (parsedInputObject obj : inputList) {
 
-                        //System.out.println(obj.getTitle() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + "\n");
-                        String towrite = obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + delimiter
-                                + obj.getReview().getLink() + "\n"; /// added obj.getReview().getLink();
-                        try {
-                            writer.write(towrite); // added rating******
-                        } catch (Exception e){
-                            System.out.println(e.getMessage());
-                        }
+                    //System.out.println(obj.getTitle() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + "\n");
+                    String towrite = obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + delimiter
+                            + obj.getReview().getLink() + "\n"; /// added obj.getReview().getLink();
+                    try {
+                        writer.write(towrite); // added rating******
+                    } catch (Exception e){
+                        System.out.println(e.getMessage());
                     }
-
-                    writer.flush();
-
-                    s3.upload(path,outputFilename);
-                    queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size());
-                    //System.out.println("done parse");
                 }
 
-                //System.out.println(" entering message loop ");
-                while (summeryFileIsReady == false) {
-            /*if (ec2.getInstances("manager").get(0).getState().getName().equals("terminated")){
-                //System.out.println("Manager is dead !!!!!!!!!!!!!");
-                createManager(s3, ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
-             }*/
-                    String currMessageName;
-                    //System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
-                    List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
-                    //System.out.println("the message is : " + messages.isEmpty());
-                    //System.out.println("after receving message " + messages.size());
-                    for (Message msg : messages) {
-                        currMessageName = msg.getBody().split(delimiter)[0]; // the input file name
-                        //System.out.println("the output file name is: " + currMessageName);
+                writer.flush();
 
-                        for (String inputFile : inputFiles) {
-                            if (currMessageName.indexOf(inputFile) != -1) {
-                                S3Object outputObject = s3.downloadObject(currMessageName);
-                                BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
+                s3.upload(path,outputFilename);
+                queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size());
+                //System.out.println("done parse");
+            }
 
-                                StringBuilder stringBuilder = new StringBuilder();
-                                String line = "";
-                                while ((line = reader.readLine()) != null ){
-                                    stringBuilder.append(line+ "\n");
-                                }
+            //System.out.println(" entering message loop ");
+            while (summeryFileIsReady == false) {
+                createManager(queue, ec2);
+                String currMessageName;
+                //System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
+                List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
+                //System.out.println("the message is : " + messages.isEmpty());
+                //System.out.println("after receving message " + messages.size());
+                for (Message msg : messages) {
+                    currMessageName = msg.getBody().split(delimiter)[0]; // the input file name
+                    //System.out.println("the output file name is: " + currMessageName);
 
-                                String[] resultsToHTML = stringBuilder.toString().split("\n");
-                                createHTML(currMessageName,resultsToHTML);
-                                //System.out.println("stopping localapp");
-                                summeryFileIsReady = true;
-                                queue.deleteMessage(summeryFilesIndicatorQueue, msg);
+                    for (String inputFile : inputFiles) {
+                        if (currMessageName.indexOf(inputFile) != -1) {
+                            S3Object outputObject = s3.downloadObject(currMessageName);
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
+
+                            StringBuilder stringBuilder = new StringBuilder();
+                            String line = "";
+                            while ((line = reader.readLine()) != null ){
+                                stringBuilder.append(line+ "\n");
                             }
-                        }
 
+                            String[] resultsToHTML = stringBuilder.toString().split("\n");
+                            createHTML(currMessageName,resultsToHTML);
+                            //System.out.println("stopping localapp");
+                            summeryFileIsReady = true;
+                            queue.deleteMessage(summeryFilesIndicatorQueue, msg);
+                        }
                     }
-                   Thread.currentThread().sleep(3000);
-//            Thread.sleep(60);
+
                 }
+                Thread.currentThread().sleep(3000);
+//            Thread.sleep(60);
+            }
 
             //System.out.println("ending the run");
         }
@@ -137,7 +134,7 @@ public class LocalApp implements Runnable{
                     "<h1>" + currReviewAttributes[4] + " " + reviewSentiment + "</h1>";*/
             html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
                     "<h1>" + currReviewAttributes[4] +  "</h1>" + "<h1>" + isSarcestic + "</h1>" +
-                        "<h1>" + "<a href=" + currReviewAttributes[6] +  ">" + "visit" + "</a>");
+                    "<h1>" + "<a href=" + currReviewAttributes[6] +  ">" + "visit" + "</a>");
         }
         html.append("</body>\n" + "</html>");
 
@@ -181,6 +178,56 @@ public class LocalApp implements Runnable{
             e.printStackTrace();
         }
         return inputArray;
+    }
+
+    private static void createWorker(EC2Object ec2){
+
+        if (!ec2.getInstances("worker").isEmpty()){
+            return;
+        }
+
+        // worker userdata
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "sudo unzip -o master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject  + createAndRunProject;
+
+        // First created instance = worker
+        Instance instance = ec2.createInstance(1, 1, userdata).get(0);
+        ec2.createTags("worker",instance.getInstanceId());
+        ec2.attachTags(instance, "worker");
+
+    }
+
+    private static void createManager(Queue queue, EC2Object ec2){
+
+        System.out.println("No Manager Active, setting up the server");
+        if (!ec2.getInstances("manager").isEmpty()){
+            return;
+        }
+
+        // Manager userdata
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "sudo unzip -o master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject ;
+
+        // First created instance = manager
+        Instance instance = ec2.createInstance(1, 1, userdata).get(0);
+        ec2.createTags("worker",instance.getInstanceId());
+        ec2.attachTags(instance, "manager");
+
+        queue.createQueue("QueueUrlLocalApps");
+        queue.createQueue("workerJobQueue");
+        createWorker(ec2);
     }
 
 }

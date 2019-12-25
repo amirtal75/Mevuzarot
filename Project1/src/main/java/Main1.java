@@ -23,8 +23,8 @@ public class Main1 {
         String summeryFilesIndicatorQueue = ("summeryFilesIndicatorQueue"+ UUID.randomUUID().toString());
         String workerJobQueue = ("workerJobQueue"); //queue for inputTask for workers
         String completedTasksQueue = ("completedTasksQueue");//queue for outputTask from workers
-        //queue.sendMessage(QueueUrlLocalApps, "inputFile1.txte6bc03d0-35ed-40e8-ab02-6f01b2423304.txt");
-        //queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt3ce68107-9734-45ed-9f2f-e4b708533aef.txt");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txte6bc03d0-35ed-40e8-ab02-6f01b2423304.txt");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt3ce68107-9734-45ed-9f2f-e4b708533aef.txt");
         AtomicBoolean bool = new AtomicBoolean(false);
         bool.compareAndSet(false , true);
         System.out.println(bool);

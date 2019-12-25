@@ -78,16 +78,11 @@ public class InputThread implements Runnable {
         String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
-
-        String createWorkerArgsFile = "touch src/main/java/workerArgs.txt\n";
-        String pushFirstArg = createWorkerArgsFile + "echo " + "workerJobQueue" + " >> src/main/java/workerArgs.txt\n";
-        String filedata = pushFirstArg + "echo " + "completedTasksQueue" + " >> src/main/java/workerArgs.txt\n";
-
-        String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + filedata + createAndRunProject;
+        String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + createAndRunProject;
 
         Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
         ec2.attachTags(instance, "worker");
         System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
-
     }
+
 }

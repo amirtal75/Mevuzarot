@@ -7,70 +7,58 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 public class Worker {
-
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args){
         String delimiter = " -@@@@@@@- ";
         //System.out.println("In Worker:\n");
         Queue queue = new Queue();
         List<Message> currJobQueue = new ArrayList<>(); //at each moment holds one message from the sqs
         boolean isSarcastic;
-        BufferedReader reader;
-        String receivedTasks = "";
-
-        // Read the Queue names from the managerArgs file
-
-        receivedTasks = "workerJobQueue";
-
-        int i = 1;
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
+        String workerJobQueue = "workerJobQueue";
 
         while (true) {
+            try{
+                if(!currJobQueue.isEmpty()) {
+                    Message currJob = currJobQueue.get(0);
+                    //System.out.println("Message Received: " + currJob.getBody() +"\n");
+                    //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
+                    String[] reviewAttributes = currJob.getBody().split(delimiter);
+                    //System.out.println("review attribues length: " + reviewAttributes.length);
+                    String inputFileId = reviewAttributes[0];
+                    String reviewId = reviewAttributes[1];
+                    String reviewText = reviewAttributes[2];
+                    String reviewRating = reviewAttributes[3];
+                    //System.out.println("Finding sentiment for the message: " + currJob.getBody() + "\n");
+                    int sentiment = findSentiment(reviewText);
+                    //System.out.println("Finding entities");
+                    String reviewEntities = getEntities(reviewText);
+                    //System.out.println("Sentiment found is: " + sentiment);
+                    //System.out.println("Entities Discovered: " + reviewEntities);
+                    isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
+                    String reviewLink = reviewAttributes[4];
+                    // //System.out.println("Review is sarcastic: " + isSarcastic);
+                    String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment +delimiter + reviewLink;
+                    //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + sentiment;
+                    //System.out.println("number of result ; "+ i + "the result is " + result);
 
-            currJobQueue = queue.recieveMessage(receivedTasks, 1, 60); // check about visibility
-
-            if(!currJobQueue.isEmpty()) {
-                Message currJob = currJobQueue.get(0);
-                //System.out.println("Message Received: " + currJob.getBody() +"\n");
-                //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
-                String[] reviewAttributes = currJob.getBody().split(delimiter);
-                //System.out.println("review attribues length: " + reviewAttributes.length);
-                String inputFileId = reviewAttributes[0];
-                String reviewId = reviewAttributes[1];
-                String reviewText = reviewAttributes[2];
-                String reviewRating = reviewAttributes[3];
-                //System.out.println("Finding sentiment for the message: " + currJob.getBody() + "\n");
-                int sentiment = findSentiment(reviewText);
-                //System.out.println("Finding entities");
-                String reviewEntities = getEntities(reviewText);
-                //System.out.println("Sentiment found is: " + sentiment);
-                //System.out.println("Entities Discovered: " + reviewEntities);
-                isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
-                String reviewLink = reviewAttributes[4];
-                // //System.out.println("Review is sarcastic: " + isSarcastic);
-                String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment +delimiter + reviewLink;
-                //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + sentiment;
-                //System.out.println("number of result ; "+ i + "the result is " + result);
-                i++;
-
-                System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
-                queue.sendMessage(reviewAttributes[0], result);
-                ////System.out.println("message was sent, deleting the task");
-                queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
+                    System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
+                    queue.sendMessage(reviewAttributes[0], result);
+                    ////System.out.println("message was sent, deleting the task");
+                    queue.deleteMessage(workerJobQueue, currJob); // we need to check befor deleting if we succeed to send the message
+                } else{
+                    System.out.println("Queus is empty");
+                    Thread.sleep(1000);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
             }
-            else{
-                System.out.println("Queus is empty");
-                Thread.sleep(1000);
-                break;
-            }
+            currJobQueue = queue.recieveMessage(workerJobQueue, 1, 60); // check about visibility
         }
-        System.out.println("Worker finiseh run");
     }
 
     public static int findSentiment(String review) {
@@ -90,7 +78,6 @@ public class Worker {
                     mainSentiment = sentiment;
                     longest = partText.length();
                 }
-
             }
         }
         return mainSentiment;
@@ -101,7 +88,7 @@ public class Worker {
 
         //System.out.println("Crash test 0\n\n");
         Properties props = new Properties();
-        props.put("annotators", "tokenize , ssplit, pos, lemma, ner");
+        props.put("annotators", "tokenize , split, pos, lemma, ner");
         StanfordCoreNLP NERPipeline = new StanfordCoreNLP(props);
         // create an empty Annotation just with the given text
         Annotation document = new Annotation(review);

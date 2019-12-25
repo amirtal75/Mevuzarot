@@ -3,6 +3,8 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import software.amazon.ion.NullValueException;
+
 import java.io.File;
 
 /**
@@ -110,6 +112,8 @@ public class S3Bucket {
 
         } catch (AmazonClientException ace) {
             printClientError(ace);
+        } catch (NullValueException e){
+            e.printStackTrace();
         }
 
         return answer;

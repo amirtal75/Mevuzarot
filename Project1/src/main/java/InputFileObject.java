@@ -23,7 +23,7 @@ public class InputFileObject {
     String delimiter = " -@@@@@@@- ";
     String lastReadLine = "";
 
-    public InputFileObject(String inputFilename,int numberoffilelines, S3Object object){
+    public InputFileObject(String inputFilename,int numberoffilelines, S3Object object, String inputFileID){
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
         redAllLines = new AtomicBoolean(false);
@@ -32,7 +32,7 @@ public class InputFileObject {
         this.numberoffilelines = new AtomicInteger(numberoffilelines);
         this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
         this.stringBuffer = new StringBuffer();
-        this.inputFileID  = UUID.randomUUID().toString();
+        this.inputFileID = inputFileID;
         this.iDsOfProcessedReviews = new ConcurrentHashMap<>();
         System.out.println("Created input file object with the ID: " + inputFileID);
     }
