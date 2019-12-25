@@ -62,17 +62,18 @@ public class InputThread implements Runnable {
             while ((currLine = inputFileFromLocalApp.readLine()) != null) {
                 //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
 
+
                 // check if more workers are needed
-                synchronized (this) {
+                createworker(workerJobQueue, completedTasksQueue, ec2, queue, numberOfTasks.get());
 
-                    System.out.println("\nThe InputThread: " + Thread.currentThread().getId() + " is about to increase the line");
-                    System.out.println("from: "+ currFileObject.getInputLines());
-
-                    createworker(workerJobQueue, completedTasksQueue, ec2, queue, numberOfTasks.get());
+                //send job
+                job = idOfInputFile + delimiter + currLine;
+                queue.sendMessage(workerJobQueue, job);
+                System.out.println("\nThe InputThread: " + Thread.currentThread().getId() + " is about to increase the line");
+                System.out.println("from: "+ currFileObject.getInputLines());
+                numberOfTasks.incrementAndGet();
+                synchronized (currFileObject) {
                     currFileObject.increaseInputLines();
-                    job = idOfInputFile + delimiter + currLine;
-                    queue.sendMessage(workerJobQueue, job);
-                    numberOfTasks.incrementAndGet();
                     currFileObject.setredAllLinesTrue();
                 }
                 System.out.println("\nThe InputThread: " + Thread.currentThread().getId() + " completed increasng the line:");
