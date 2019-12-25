@@ -69,7 +69,7 @@ public class Manager {
             try {
                 //System.out.println("the local queue adress is : " + QueueUrlLocalApps);
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
-                if (currMessageQueue.size() > 0){
+                if (currMessageQueue != null && !currMessageQueue.isEmpty()){
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
                     String inputFilename = currMessege.getBody();
