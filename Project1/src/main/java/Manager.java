@@ -50,7 +50,6 @@ public class Manager {
         System.out.println("Worker Receiving Queue: " + workerJobQueue + ", Task Results Queue: " + completedTasksQueue);
 
         // Create Thread Pools
-        //System.out.println("Creating pools for Input Thread & Output Thread");
         ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
@@ -68,7 +67,6 @@ public class Manager {
             createworker(workerJobQueue,completedTasksQueue,ec2,queue,numberOfTasks.get());
 
             try {
-                //System.out.println("the local queue adress is : " + QueueUrlLocalApps);
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
                 if (currMessageQueue != null && !currMessageQueue.isEmpty()){
 
@@ -100,13 +98,12 @@ public class Manager {
                     System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
                     System.out.println("\nnInputFile details:\n " + currInputFileObj+ "\n\n");
                     if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
-                        System.out.println("in done loop");
+
                         FileOutputStream outputFile = null;
                         try {
                             String outputName = currInputFileObj.getInputFilename() + "$";
                             //added "$" to the name because I dont want exact names for the input file and output file
                             Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
-                            //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
                             writer.write(stringResultsById.get(currInputFileObj.getId()).toString());
                             writer.flush();
 
