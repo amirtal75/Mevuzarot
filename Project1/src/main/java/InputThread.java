@@ -25,8 +25,8 @@ public class InputThread implements Runnable {
     public void run() {
 
         String delimiter = " -@@@@@@@- ";
-        String originator = "InputThread: " + Thread.currentThread().getId() + " initiating the following task for input file:" + currFileObject.getInputFileID()+ "\n";
-
+        String originator = "InputThread: " + Thread.currentThread().getId();
+        System.out.println(originator +" is initiating the input task for input file:" + currFileObject.getInputFileID()+ "\n");
         String currLine = "";
         String job = "";
         boolean readAllLines = false;
@@ -37,11 +37,12 @@ public class InputThread implements Runnable {
 
             synchronized (currFileObject) {
                 currLine = currFileObject.readLine();
+                job = currFileObject.getInputFileID() + delimiter + currLine;
             }
-            job = currFileObject.getInputFileID() + delimiter + currLine;
+
             queue.sendMessage(workerJobQueue, job);
             numberOfTasks.incrementAndGet();
-            
+
             if (currLine != null){
                 synchronized (currFileObject){
                     System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFilename() + "from: " + currFileObject.getInputLines());
