@@ -58,11 +58,11 @@ public class Manager {
         AtomicInteger workersload = new AtomicInteger(0);
         AtomicInteger messageBytesReceived  = new AtomicInteger(0);
         while (!shouldTerminate) {
-            //if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
+            if (numberOfCompletedTasks.get() % 30 == 0) {
             System.out.println("\n\nManager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
             System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
             System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get()+ "\n\n");
-            // }
+            }
 
             //check if more workers are needed
             createworker(workerJobQueue,completedTasksQueue,ec2,queue,numberOfTasks.get());
