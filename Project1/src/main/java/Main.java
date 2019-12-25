@@ -76,7 +76,7 @@ public class Main {
             ec2.attachTags(instance, "manager");
         }
     }
-    private static void createWorker(String send, String recieve){
+    private static void createWorker(String workerJobQueue, String completedTasksQueue){
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
         System.out.println("Creating worker from local app");
@@ -91,12 +91,12 @@ public class Main {
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
 
         String createWorkerArgsFile = "sudo touch src/main/java/workerArgs.txt\n";
-        String pushFirstArg =  createWorkerArgsFile + "echo " + recieve + " >> src/main/java/workerArgs.txt\n";
-        String filedata = pushFirstArg + "echo " + send + " >> src/main/java/workerArgs.txt\n";
+        String pushFirstArg =  createWorkerArgsFile + "echo " + workerJobQueue + " >> src/main/java/workerArgs.txt\n";
+        String filedata = pushFirstArg + "echo " + completedTasksQueue + " >> src/main/java/workerArgs.txt\n";
 
         String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + filedata + createAndRunProject;
         System.out.println("In LocalAPP: " + Thread.currentThread());
-        System.out.println("Local Queue: " + send + ", Summary Queue: " + recieve);
+        System.out.println("workerJobQueue: " + workerJobQueue + ", completedTasksQueue: " + completedTasksQueue);
 
         // First created instance = worker
         Instance instance = ec2.createInstance(1, 1, userdata).get(0);

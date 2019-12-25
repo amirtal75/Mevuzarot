@@ -55,7 +55,8 @@ public class Manager {
         ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
 
         List<Message> currMessageQueue = null;
-
+        AtomicInteger workersload = new AtomicInteger(0);
+        AtomicInteger messageBytesReceived  = new AtomicInteger(0);
         while (!shouldTerminate) {
             //if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
             System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
@@ -99,6 +100,9 @@ public class Manager {
 
                 currInputFileObj.CheckAndSetAllWorkersDone();
                 System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
+                if (!currInputFileObj.getAllWorkersDone().get()){
+                    System.out.println("InputFile details " + currInputFileObj);
+                }
                 if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
                     System.out.println("in done loop");
                     FileOutputStream outputFile = null;
