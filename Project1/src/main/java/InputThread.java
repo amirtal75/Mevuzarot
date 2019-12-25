@@ -26,7 +26,7 @@ public class InputThread implements Runnable {
 
         String delimiter = " -@@@@@@@- ";
         String originator = "InputThread: " + Thread.currentThread().getId();
-        System.out.println(originator +" is initiating the input task for input file:" + currFileObject.getInputFileID()+ "\n");
+        System.out.println(originator + "Started Running\n");
         String currLine = "";
         String job = "";
         boolean readAllLines = false;
