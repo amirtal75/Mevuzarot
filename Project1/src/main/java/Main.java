@@ -68,7 +68,7 @@ public class Main {
 
         // First created instance = manager
         Instance instance = ec2.createInstance(1, 1, userdata).get(0);
-        ec2.createTags("worker",instance.getInstanceId());
+        ec2.createTags("manager",instance.getInstanceId());
         ec2.attachTags(instance, "manager");
 
         queue.createQueue("QueueUrlLocalApps");
