@@ -35,57 +35,56 @@ public class Worker {
             receivedTasks = reader.readLine();
             completedTasks = reader.readLine();
             reader.close();
-        }
-        catch (IOException e) {
+
+            int i = 1;
+            System.out.println("receivedTasks queue" + receivedTasks + "\n completedTasks queue" + completedTasks);
+            while (true) {
+
+                currJobQueue = queue.recieveMessage(receivedTasks, 1, 60); // check about visibility
+
+                if (currJobQueue != null && !currJobQueue.isEmpty()) {
+                    Message currJob = currJobQueue.get(0);
+                    System.out.println("Message Received: " + currJob.getBody() + "\n");
+                    //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
+                    String[] reviewAttributes = currJob.getBody().split(delimiter);
+                    System.out.println("review attribues length: " + reviewAttributes.length);
+                    String inputFileId = reviewAttributes[0];
+                    String reviewId = reviewAttributes[1];
+                    String reviewText = reviewAttributes[2];
+                    String reviewRating = reviewAttributes[3];
+                    System.out.println("Finding sentiment for the message: " + currJob.getBody() + "\n");
+                    int sentiment = findSentiment(reviewText);
+                    System.out.println("Finding entities");
+                    String reviewEntities = getEntities(reviewText);
+                    System.out.println("Sentiment found is: " + sentiment);
+                    System.out.println("Entities Discovered: " + reviewEntities);
+                    isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
+                    String reviewLink = reviewAttributes[4];
+                    // System.out.println("Review is sarcastic: " + isSarcastic);
+                    String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment + delimiter + reviewLink;
+                    //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + sentiment;
+                    System.out.println("number of result ; " + i + "the result is " + result);
+                    i++;
+                    try {
+                        System.out.println("sending the result of worker to the completed queue: " + completedTasks);
+                        queue.sendMessage(completedTasks, result);
+                        //System.out.println("message was sent, deleting the task");
+                        queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    System.out.println("Queus is empty");
+                    try {
+                        Thread.currentThread().sleep(6000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (IOException e) {
             System.out.println(e.getMessage());
-        }
-        int i = 1;
-        System.out.println("receivedTasks queue" + receivedTasks + "\n completedTasks queue" + completedTasks);
-        while (true) {
-
-            currJobQueue = queue.recieveMessage(receivedTasks, 1, 60); // check about visibility
-
-            if(currJobQueue != null && !currJobQueue.isEmpty()) {
-                Message currJob = currJobQueue.get(0);
-                System.out.println("Message Received: " + currJob.getBody() +"\n");
-                //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
-                String[] reviewAttributes = currJob.getBody().split(delimiter);
-                System.out.println("review attribues length: " + reviewAttributes.length);
-                String inputFileId = reviewAttributes[0];
-                String reviewId = reviewAttributes[1];
-                String reviewText = reviewAttributes[2];
-                String reviewRating = reviewAttributes[3];
-                System.out.println("Finding sentiment for the message: " + currJob.getBody() + "\n");
-                int sentiment = findSentiment(reviewText);
-                System.out.println("Finding entities");
-                String reviewEntities = getEntities(reviewText);
-                System.out.println("Sentiment found is: " + sentiment);
-                System.out.println("Entities Discovered: " + reviewEntities);
-                isSarcastic = Math.abs(sentiment - Integer.parseInt(reviewRating)) < 2;
-                String reviewLink = reviewAttributes[4];
-                // System.out.println("Review is sarcastic: " + isSarcastic);
-                String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment +delimiter + reviewLink;
-                //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + sentiment;
-                System.out.println("number of result ; "+ i + "the result is " + result);
-                i++;
-                try {
-                    System.out.println("sending the result of worker to the completed queue: " + completedTasks);
-                    queue.sendMessage(completedTasks, result);
-                    //System.out.println("message was sent, deleting the task");
-                    queue.deleteMessage(receivedTasks, currJob); // we need to check befor deleting if we succeed to send the message
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
-            else{
-                System.out.println("Queus is empty");
-                try {
-                    Thread.currentThread().sleep(6000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
