@@ -95,37 +95,33 @@ public class Manager {
             }
             InputFileObject currInputFileObj;
             for (int i = 1; i< InputFileObjectById.size(); ++i) {
-                currInputFileObj = InputFileObjectById.get(i);
-                if (currInputFileObj == null){
-                    try {
-                        throw new Exception("Critial error, there is a null inputFIleObject in our list");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                currInputFileObj.CheckAndSetAllWorkersDone();
-                System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
-                System.out.println("InputFile details " + currInputFileObj);
-                if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
-                    System.out.println("in done loop");
-                    FileOutputStream outputFile = null;
-                    try {
-                        String outputName = currInputFileObj.getInputFilename() + "$";
-                        //added "$" to the name because I dont want exact names for the input file and output file
-                        Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
-                        //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
-                        writer.write(stringResultsById.get(currInputFileObj.getId()).toString());
-                        writer.flush();
+                if (InputFileObjectById.containsKey(i)){
+                    currInputFileObj = InputFileObjectById.get(i);
+                    currInputFileObj.CheckAndSetAllWorkersDone();
+                    System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
+                    System.out.println("InputFile details " + currInputFileObj);
+                    if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
+                        System.out.println("in done loop");
+                        FileOutputStream outputFile = null;
+                        try {
+                            String outputName = currInputFileObj.getInputFilename() + "$";
+                            //added "$" to the name because I dont want exact names for the input file and output file
+                            Writer writer = new BufferedWriter(new FileWriter(path + outputName)); //write to the output file
+                            //System.out.println("\n\n\nStringbuilder contents: \n\n\n");
+                            writer.write(stringResultsById.get(currInputFileObj.getId()).toString());
+                            writer.flush();
 
-                        System.out.println("preparing to upload the completed file");
-                        s3.upload(path, outputName);
-                        queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            System.out.println("preparing to upload the completed file");
+                            s3.upload(path, outputName);
+                            queue.sendMessage(summeryFilesIndicatorQueue, outputName); // outputFilename = key ??????
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+                
 
             }
         }
