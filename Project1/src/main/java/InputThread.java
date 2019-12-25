@@ -65,7 +65,7 @@ public class InputThread implements Runnable {
                 // check if more workers are needed
                 synchronized (this) {
 
-                    System.out.println("\nThe InputThread: " + Thread.currentThread().getId() + "is about to perform a change to the following input file object:");
+                    System.out.println("\nThe InputThread: " + Thread.currentThread().getId() + " is about to perform a change to the following input file object:");
                     System.out.println(currFileObject);
 
                     createworker(workerJobQueue, completedTasksQueue, ec2, queue, numberOfTasks.get());
@@ -75,7 +75,7 @@ public class InputThread implements Runnable {
                     numberOfTasks.incrementAndGet();
                     currFileObject.setredAllLinesTrue();
                 }
-                System.out.println("The InputThread: " + Thread.currentThread().getId() + "completed the change to the following input file object:");
+                System.out.println("\nThe InputThread: " + Thread.currentThread().getId() + " completed the change to the following input file object:");
                 System.out.println(currFileObject);
 
             }
