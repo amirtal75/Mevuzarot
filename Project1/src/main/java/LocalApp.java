@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LocalApp implements Runnable{
 
-    String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
-    String QueueUrlLocalApps = "QueueUrlLocalApps";
+    String summeryFilesIndicatorQueue;
+    String QueueUrlLocalApps;
     ArrayList<String> inputFiles;
     static AtomicBoolean restartManager = new AtomicBoolean(false); // is needed?
 
@@ -20,12 +20,8 @@ public class LocalApp implements Runnable{
         ArrayList<String> files = new ArrayList<>();
         files.add(inputFiles);
         this.inputFiles = files;
-    }
-
-    public LocalApp(ArrayList<String> inputFiles, String QueueUrlLocalApps, String summeryFilesIndicatorQueueUrl) {
-        this.inputFiles = inputFiles;
-        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueueUrl;
-        this.QueueUrlLocalApps = QueueUrlLocalApps;
+        this.QueueUrlLocalApps = "QueueUrlLocalApps";
+        this.summeryFilesIndicatorQueue = UUID.randomUUID().toString();
     }
 
     public void run() {
@@ -66,7 +62,7 @@ public class LocalApp implements Runnable{
                 writer.flush();
 
                 s3.upload(path,outputFilename);
-                queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size());
+                queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + "dont close the manager");
                 //System.out.println("done parse");
             }
 

@@ -37,8 +37,8 @@ public class Manager{
         // need to delete
         queue.purgeQueue(QueueUrlLocalApps);
         queue.purgeQueue(workerJobQueue);
-        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txte6bc03d0-35ed-40e8-ab02-6f01b2423304.txt@30");
-        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt3ce68107-9734-45ed-9f2f-e4b708533aef.txt@30");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txte6bc03d0-35ed-40e8-ab02-6f01b2423304.txt@30" + "@" + "summery" + "@" + "dont close the manager");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt3ce68107-9734-45ed-9f2f-e4b708533aef.txt@30" + "@" + "summery" + "@" + "dont close the manager");
 
 
         // Create Thread Pools
