@@ -45,7 +45,7 @@ public class Worker {
 
             currJobQueue = queue.recieveMessage(receivedTasks, 1, 60); // check about visibility
 
-            if(!currJobQueue.isEmpty()) {
+            if(currJobQueue != null && !currJobQueue.isEmpty()) {
                 Message currJob = currJobQueue.get(0);
                 System.out.println("Message Received: " + currJob.getBody() +"\n");
                 //inputFIleID + delimiter + obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + + obj.getReview().getLink() +"\n");
