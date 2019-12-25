@@ -18,7 +18,7 @@ public class Manager {
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
         AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
-        ConcurrentHashMap<Integer, StringBuilder> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
+        ConcurrentHashMap<Integer, StringBuffer> stringResultsById = new ConcurrentHashMap<>(); // will be passed to the outputThread by constructor
         BufferedReader reader = null;
         String QueueUrlLocalApps = "";
         String summeryFilesIndicatorQueue = "";
@@ -71,16 +71,16 @@ public class Manager {
                 //System.out.println("the local queue adress is : " + QueueUrlLocalApps);
                 currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
                 if (currMessageQueue != null && !currMessageQueue.isEmpty()){
-                    
+
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
                     String inputFilename = currMessege.getBody();
-                    System.out.println("Downloading an object with key: " + inputFilename); 
-                    
+                    System.out.println("Downloading an object with key: " + inputFilename);
+
                     S3Object object = s3.downloadObject(inputFilename); //input file
                     BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                     System.out.println("file to create tasks from:" + inputFilename);
-                    
+
                     //String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
                     poolForInput.execute(new InputThread(workerJobQueue, completedTasksQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
                     poolForInput.execute(new InputThread(workerJobQueue, completedTasksQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
