@@ -13,101 +13,96 @@ public class LocalApp implements Runnable{
 
     String summeryFilesIndicatorQueue;
     String QueueUrlLocalApps;
-    ArrayList<String> inputFiles;
-    static AtomicBoolean restartManager = new AtomicBoolean(false); // is needed?
+    String inputFile;
+    String path;
+    String terminationIndicator;
 
-    public LocalApp(String inputFiles) {
+
+    public LocalApp(String path, String inputFile, String terminationIndicator) {
         ArrayList<String> files = new ArrayList<>();
-        files.add(inputFiles);
-        this.inputFiles = files;
+        this.inputFile = inputFile;
         this.QueueUrlLocalApps = "QueueUrlLocalApps";
         this.summeryFilesIndicatorQueue = UUID.randomUUID().toString();
+        this.path = path;
+        this.terminationIndicator = terminationIndicator;
     }
 
     public void run() {
         String delimiter = " -@@@@@@@- ";
         try {
+            System.out.println("In local App " + Thread.currentThread().getId());
             boolean summeryFileIsReady = false;
-            // System.out.println("In local App " + Thread.currentThread().getId());
-            // Create objects and bucket
             EC2Object ec2 = new EC2Object();
             S3Bucket s3 = new S3Bucket();
-            s3.createBucket();
             Queue queue = new Queue();
-            String path = "/home/amirtal/IdeaProjects/Localapp/src/main/java/";
-            // C:\Users\amithaim7\Documents\GitHub\Mevuzarot\Project1\src\main\java
-
-            // Go over the list of input files
             ArrayList<parsedInputObject> inputList = new ArrayList<>();
-            for (String inputFile : inputFiles) {
-                // Create a parsed object from the input list
-                //System.out.println("trying to parse the file " + path + inputFile);
-                inputList = parse(path + inputFile);
-                //System.out.println("\nNumber of reviews parsed: " + inputList.size());
-                String outputFilename = inputFile + UUID.randomUUID() + ".txt";
-                // Write the parsed object to a file
-                BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
-                for (parsedInputObject obj : inputList) {
 
-                    //System.out.println(obj.getTitle() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + "\n");
-                    String towrite = obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() + delimiter
-                            + obj.getReview().getLink() + "\n"; /// added obj.getReview().getLink();
-                    try {
-                        writer.write(towrite); // added rating******
-                    } catch (Exception e){
-                        System.out.println(e.getMessage());
-                    }
+            inputList = parse(path + inputFile);
+            String outputFilename = inputFile + UUID.randomUUID() + ".txt";
+            BufferedWriter writer = new BufferedWriter(new FileWriter(path + outputFilename));
+
+            // Write to the output file
+            String towrite;
+            for (parsedInputObject obj : inputList) {
+                towrite = obj.getReview().getId() + delimiter + obj.getReview().getText()
+                        + delimiter + obj.getReview().getRating() + delimiter
+                        + obj.getReview().getLink() + "\n";
+                writer.write(towrite);
+            }
+            writer.flush();
+
+            // Upload the file to the bucket and send a message to the manager local app queue
+            s3.upload(path,outputFilename);
+            queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+
+            // Enter loop to wait for an answer from the manager
+            String currMessageName="";
+            List<Message> messages = null;
+            while (!summeryFileIsReady) {
+
+                // Check if manager crashed, reopen and resend request
+                Instance instance = createManager(queue, ec2);
+                if (instance == null){
+                    queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
                 }
 
-                writer.flush();
-
-                s3.upload(path,outputFilename);
-                queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + "dont close the manager");
-                //System.out.println("done parse");
-            }
-
-            //System.out.println(" entering message loop ");
-            while (summeryFileIsReady == false) {
-                createManager(queue, ec2);
-                String currMessageName;
-                //System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
-                List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
-                //System.out.println("the message is : " + messages.isEmpty());
-                //System.out.println("after receving message " + messages.size());
-                for (Message msg : messages) {
-                    currMessageName = msg.getBody().split(delimiter)[0]; // the input file name
-                    //System.out.println("the output file name is: " + currMessageName);
-
-                    for (String inputFile : inputFiles) {
-                        if (currMessageName.indexOf(inputFile) != -1) {
-                            S3Object outputObject = s3.downloadObject(currMessageName);
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
-
-                            StringBuilder stringBuilder = new StringBuilder();
-                            String line = "";
-                            while ((line = reader.readLine()) != null ){
-                                stringBuilder.append(line+ "\n");
-                            }
-
-                            String[] resultsToHTML = stringBuilder.toString().split("\n");
-                            createHTML(currMessageName,resultsToHTML);
-                            //System.out.println("stopping localapp");
-                            summeryFileIsReady = true;
-                            queue.deleteMessage(summeryFilesIndicatorQueue, msg);
-                        }
-                    }
-
+                // try to get an answer from the manager
+                messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
+                if (!messages.isEmpty()) {
+                    currMessageName = messages.get(0).getBody().split(delimiter)[0]; // the input file name
                 }
-                Thread.currentThread().sleep(3000);
-//            Thread.sleep(60);
+
+                // Check if received a legal answer
+                summeryFileIsReady = (currMessageName.contains(inputFile));
+                Thread.sleep(3000);
             }
 
-            //System.out.println("ending the run");
+            // Download the ready answer file from the manager and read the contents to a buffer
+            S3Object outputObject = s3.downloadObject(currMessageName);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = reader.readLine()) != null ){
+                stringBuilder.append(line+ "\n");
+            }
+
+            // create HTML answer file from the buffer containing the content of the answer fie from the manager
+            String[] resultsToHTML = stringBuilder.toString().split("\n");
+            createHTML(currMessageName,resultsToHTML);
+
+            // delete resuorces
+            queue.deleteMessage(summeryFilesIndicatorQueue, messages.get(0));
+            queue.deleteQueue(summeryFilesIndicatorQueue);
+
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
+//            Thread.sleep(60);
+
+
+        //System.out.println("ending the run");
     }
 
     private static void createHTML(String filename, String[] inputRepresentation) throws IOException {
@@ -199,11 +194,11 @@ public class LocalApp implements Runnable{
 
     }
 
-    private static void createManager(Queue queue, EC2Object ec2){
+    private static Instance createManager(Queue queue, EC2Object ec2){
 
         System.out.println("No Manager Active, setting up the server");
         if (!ec2.getInstances("manager").isEmpty()){
-            return;
+            return null;
         }
 
         // Manager userdata
@@ -214,7 +209,7 @@ public class LocalApp implements Runnable{
         String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
-        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject ;
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject +createAndRunProject;
 
         // First created instance = manager
         Instance instance = ec2.createInstance(1, 1, userdata).get(0);
@@ -224,6 +219,7 @@ public class LocalApp implements Runnable{
         queue.createQueue("QueueUrlLocalApps");
         queue.createQueue("workerJobQueue");
         createWorker(ec2);
+        return  instance;
     }
 
 }

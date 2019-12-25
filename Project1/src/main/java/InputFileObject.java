@@ -1,9 +1,5 @@
-import com.amazonaws.services.s3.model.S3Object;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -93,23 +89,8 @@ public class InputFileObject {
         return allWorkersDone.get();
     }
 
-    public void increaseInputLines() {
-        inputLines.getAndIncrement();
-    }
-
-    public boolean  checkAndSetAllWorkersDone (String originator){ // check if all workers done and set allWorkersDone accordingly.
-        System.out.println(originator + "checkAndSetAllWorkersDone of the input file: " + inputFileID);
-        return allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines.get()) && (numberoffilelines.get() == outputLines.get())));
-    }
-
     public String getInputFilename() {
         return inputFilename;
-    }
-
-    public void setredAllLinesTrue() {
-        if (numberoffilelines.get() == inputLines.get()) {
-            redAllLines.set(true);
-        }
     }
 
     public String toString(){

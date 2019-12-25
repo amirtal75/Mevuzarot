@@ -30,7 +30,6 @@ public class S3Bucket {
         try{
             this.s3 = AmazonS3ClientBuilder.defaultClient();
             this.bucketName = "amirandamitassignment";
-            createBucket();
         } catch(Exception e){
             System.out.println(e.getMessage());
         }

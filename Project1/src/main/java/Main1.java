@@ -1,4 +1,6 @@
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sqs.model.Message;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
@@ -8,59 +10,117 @@ import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main1 {
 
-    public static void main(String[] args) throws IOException {
-        String path = "/home/amirtal/IdeaProjects/Localapp/src/main/java/";
-        BufferedReader reader = new BufferedReader(new FileReader(path + "inputFile1.txt"));
-        InputFileObject inputFileObject = new InputFileObject("inputFile1.txt", 3 , reader,"test", "");
-        StringBuilder builder = new StringBuilder();
+    public static void main(String[] args) throws IOException, InterruptedException {
 
-        while(!inputFileObject.getRedAllLines()){
-            builder.append(inputFileObject.readLine() + "\n");
+
+
+        EC2Object ec2Object = new EC2Object();
+
+        /*System.out.println(ec2Object.getInstances("manager").size());
+        System.out.println(ec2Object.getInstances("worker").size());*/
+
+        ec2Object.terminateInstances(null);
+
+        String pathtoPtojectLocation = args[0];
+        for (int i = 1; i < args.length; i++){
+            System.out.println(pathtoPtojectLocation+ "/" + args[i]);
         }
 
-        System.out.println(builder.toString());
+        /*String QueueUrlLocalApps = "QueueUrlLocalApps";
+        String workerJobQueue = "workerJobQueue";
+        System.out.println("In Manager:");
+        S3Bucket s3 = new S3Bucket();
+        Queue queue = new Queue();
+
+        AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
+        AtomicInteger numberOfTasks = new AtomicInteger(0);
+        AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
+        AtomicBoolean continueRunning = new AtomicBoolean(true);
+        ArrayList<String> reviewIDList = new ArrayList<>();
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
+        ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
+
+        ExecutorService poolForInput = Executors.newCachedThreadPool(); //Executors.newSingleThreadExecutor(); ??????
+        ExecutorService poolForOutput = Executors.newCachedThreadPool(); // Executors.newSingleThreadExecutor();?????
+        List<Message> currMessageQueue = null;
+        // calculate number of threads to open
+
+        // need to delete
+        queue.purgeQueue(QueueUrlLocalApps);
+        queue.purgeQueue(workerJobQueue);
+        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txte6bc03d0-35ed-40e8-ab02-6f01b2423304.txt@30" + "@" + "summery" + "@" + "dont close the manager");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt3ce68107-9734-45ed-9f2f-e4b708533aef.txt@30" + "@" + "summery" + "@" + "dont close the manager");
 
 
-        //System.out.println(getEntities("Excellent delivery book"));
-    }
-    public static String getEntities(String review) {
-
-        Properties props = new Properties();
-        props.put("annotators", "tokenize , ssplit, pos, lemma, ner");
-        StanfordCoreNLP NERPipeline = new StanfordCoreNLP(props);
-        // create an empty Annotation just with the given text
-        Annotation document = new Annotation(review);
-
-        // run all Annotators on this text
-        NERPipeline.annotate(document);
-
-
-        // these are all the sentences in this document
-        // a CoreMap is essentially a Map that uses class objects as keys and has values with custom types
-        List<CoreMap> sentences = document.get(CoreAnnotations.SentencesAnnotation.class);
-
-
-        StringBuffer entities = new StringBuffer("[");
-        for (CoreMap sentence : sentences) {
-            // traversing the words in the current sentence
-            // a CoreLabel is a CoreMap with additional token-specific methods
-            for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
-                // this is the text of the token
-                String word = token.get(CoreAnnotations.TextAnnotation.class);
-                // this is the NER label of the token
-                String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
-                entities.append("\t-").append(word).append(":").append(ne).append(",");
+        // Create Thread Pools
+        boolean run = true;
+        while (continueRunning.get()) {
+            if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
+                System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
+                System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
+                System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
             }
+
+
+            // Recieve message from local app queue
+            currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
+            String[] messageContent;
+
+            if (!currMessageQueue.isEmpty()) {
+
+                Message currMessege = currMessageQueue.get(0);
+                messageContent = currMessege.getBody().split("@");
+                int numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
+                numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
+                System.out.println("\n\n\n\n\nDownloading an object with key: " + messageContent[0] + "\n\n\n\n\n\n\n");
+                S3Object object = s3.downloadObject(messageContent[0]); //input file
+                BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                queue.deleteMessage(QueueUrlLocalApps, currMessege);
+
+                // check termination condirion
+                if (messageContent.length > 3 && messageContent[3].equals("terminate")) {
+                    continueRunning.set(run);
+                }
+
+                // Create input file object
+                String inputFileID  = UUID.randomUUID().toString();
+                String summeryFilesIndicatorQueue = messageContent[2];
+                InputFileObject newFile = new InputFileObject(messageContent[0], Integer.parseInt(messageContent[1]), reader, inputFileID, summeryFilesIndicatorQueue);
+                reviewIDList.add(inputFileID);
+                InputFileObjectById.putIfAbsent(inputFileID, newFile);
+
+                // Create Completed tasks queue unique for the input file object
+                queue.createQueue(inputFileID);
+
+                // calaculate threads to launch
+                int numberOfThreadsToLaunch = (newFile.getNumberoffilelines() / 50) + 1;
+                // System.out.println("Number of input threads to launch is: " +numberOfThreadsToLaunch);
+
+                // open input and output threads for a file from local app
+                for (int i = 0; i < numberOfThreadsToLaunch; ++i) {
+                    System.out.println("Manager: id of input file: " + newFile.getInputFileID());
+                    poolForInput.execute(new InputThread(newFile, numberOfTasks));
+                    poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
+                }
+            }
+
+            Manager.MethodTest(s3, queue, path, InputFileObjectById);
         }
-        entities.append("]");
-        return entities.toString();
+        poolForInput.shutdown();
+        poolForOutput.shutdown();
+        Thread.sleep(2000);*/
+
     }
 }

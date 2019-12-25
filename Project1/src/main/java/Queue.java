@@ -6,7 +6,6 @@ import com.amazonaws.services.sqs.model.*;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 /**
  * This sample demonstrates how to make basic requests to Amazon SQS using the
@@ -85,7 +84,7 @@ public class Queue {
     public void sendMessage(String queueUrl, String message) {
 
         try {
-            this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
+            SendMessageResult sendMessageResult = this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
         } catch (AmazonServiceException ase) {
             System.out.println("failed to send message to the queue: " + queueUrl);
 

@@ -23,7 +23,6 @@ public class InputThread implements Runnable {
     }
 
     public void run() {
-
         String delimiter = " -@@@@@@@- ";
         String originator = "InputThread: " + Thread.currentThread().getId();
         System.out.println(originator + "Started Running\n");
