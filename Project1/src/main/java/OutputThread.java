@@ -47,27 +47,37 @@ public class OutputThread implements Runnable {
             }
             if (!currMessageQueue.isEmpty()) {
                 ++numberOftasksworkedbythisOutputThread;
-                System.out.println(" Num of tasks perform by this output thread: " + Thread.currentThread().getId() + " is: " + numberOftasksworkedbythisOutputThread);
+                //System.out.println(" Num of tasks perform by this output thread: " + Thread.currentThread().getId() + " is: " + numberOftasksworkedbythisOutputThread);
                 Message currMessege = currMessageQueue.get(0);
                 // System.out.println("Received message content: " + currMessege.getBody());
                 String[] resultContent = currMessege.getBody().split(delimiter);
                 int inputFileId = Integer.parseInt(resultContent[0]);
                 //String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
                 InputFileObject currInputFileObj = InputFileObjectById.get(inputFileId);
-                if ( currInputFileObj != null && !completedreviewIDlist.contains(resultContent[1])) {
-                    if (stringResultsById.containsKey(inputFileId)) {
-                        StringBuffer builder = stringResultsById.get(inputFileId);
-                        builder.append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
-                        completedreviewIDlist.add(resultContent[1]);
+                synchronized (this){
+
+                    System.out.println("The outputThread: " + Thread.currentThread().getId() + "is about to perform a change to the following input file object:");
+                    System.out.println(currInputFileObj);
+
+                    if ( currInputFileObj != null && !completedreviewIDlist.contains(resultContent[1])) {
+                        if (stringResultsById.containsKey(inputFileId)) {
+                            StringBuffer builder = stringResultsById.get(inputFileId);
+                            builder.append(currMessege.getBody() + "\n"); //append all the reviews for one inputFile and seperate by "\n"
+                            completedreviewIDlist.add(resultContent[1]);
+                        }
+                        //check again what I sent to the local app
+                        else {
+                            stringResultsById.put(inputFileId, new StringBuffer(currMessege.getBody() + "\n")); // if is absent
+                        }
+                        currInputFileObj.increaseOutputLines();
+                        numberOfCompletedTasks.incrementAndGet();
+                        queue.deleteMessage(completedTasksQueue, currMessege);
                     }
-                    //check again what I sent to the local app
-                    else {
-                        stringResultsById.put(inputFileId, new StringBuffer(currMessege.getBody() + "\n")); // if is absent
-                    }
-                    currInputFileObj.increaseOutputLines();
-                    numberOfCompletedTasks.incrementAndGet();
-                    queue.deleteMessage(completedTasksQueue, currMessege);
+
+                    System.out.println("The outputThread: " + Thread.currentThread().getId() + "completed the change to the following input file object:");
+                    System.out.println(currInputFileObj);
                 }
+
             }
         }
     }

@@ -29,7 +29,7 @@ public class Manager {
             QueueUrlLocalApps = reader.readLine();
             summeryFilesIndicatorQueue = reader.readLine();
         } catch (IOException e){
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         System.out.println();
         System.out.println("In Manager:");
@@ -59,9 +59,9 @@ public class Manager {
         AtomicInteger messageBytesReceived  = new AtomicInteger(0);
         while (!shouldTerminate) {
             //if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
-            System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
-            System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
-            System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
+            System.out.println("\n\nManager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get() + "\n\n");
+            System.out.println("\n\nManager number Of Tasks sent to workers are: " + numberOfTasks.get()+ "\n\n");
+            System.out.println("\n\nManager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get()+ "\n\n");
             // }
 
             //check if more workers are needed
@@ -75,11 +75,9 @@ public class Manager {
                     Message currMessege = currMessageQueue.get(0);
                     String messageContent = currMessege.getBody();
                     String inputFilename = currMessege.getBody();
-                    System.out.println("Downloading an object with key: " + inputFilename);
 
                     S3Object object = s3.downloadObject(inputFilename); //input file
                     BufferedReader inputFileFromLocalApp = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                    System.out.println("file to create tasks from:" + inputFilename);
 
                     //String completedTasksQueue, ConcurrentHashMap<Integer, InputFileObject> inputFileObjectById, ConcurrentHashMap<Integer, StringBuilder> stringResultsById, String QueueUrlLocalApps
                     poolForInput.execute(new InputThread(workerJobQueue, completedTasksQueue, InputFileObjectById, messageContent, numberOfTasks, inputFileFromLocalApp));
@@ -87,7 +85,8 @@ public class Manager {
                     // Might need to add future
                     poolForOutput.execute(new OutputThread(completedTasksQueue, InputFileObjectById,stringResultsById,  summeryFilesIndicatorQueue,numberOfCompletedTasks));
                     poolForOutput.execute(new OutputThread(completedTasksQueue, InputFileObjectById, stringResultsById, summeryFilesIndicatorQueue,numberOfCompletedTasks));
-                    //System.out.println("Received result from input thread, we need to delete the message");
+
+                    // processed the message and now we delete
                     queue.deleteMessage(QueueUrlLocalApps, currMessege); // result = currMessag
                 }
             } catch (Exception e){
@@ -99,7 +98,7 @@ public class Manager {
                     currInputFileObj = InputFileObjectById.get(i);
                     currInputFileObj.CheckAndSetAllWorkersDone();
                     System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
-                    System.out.println("InputFile details " + currInputFileObj);
+                    System.out.println("\nnInputFile details:\n " + currInputFileObj+ "\n\n");
                     if (currInputFileObj.getAllWorkersDone().get()) {// if all workers done
                         System.out.println("in done loop");
                         FileOutputStream outputFile = null;
@@ -121,7 +120,7 @@ public class Manager {
                         }
                     }
                 }
-                
+
 
             }
         }

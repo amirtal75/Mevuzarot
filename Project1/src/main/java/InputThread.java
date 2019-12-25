@@ -54,14 +54,6 @@ public class InputThread implements Runnable {
 
         InputFileObject currFileObject = new InputFileObject(idOfInputFile.incrementAndGet(), inputFilename);
         InputFileObjectById.putIfAbsent(idOfInputFile.get(), currFileObject); //add the currFileObject with his special id
-        if (InputFileObjectById.get(idOfInputFile.get()) == null){
-            try {
-                throw new Exception("Critial error, inserted null input in inputThread");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Successfully added a new file object: " + InputFileObjectById.contains(currFileObject));
 
         try {
             String currLine = "";
@@ -71,21 +63,23 @@ public class InputThread implements Runnable {
                 //System.out.println("inside input thread, numberOfTasks: " + numberOfTasks.get() + "\nnumber wof instances: " + ec2. getInstances("").size());
 
                 // check if more workers are needed
-                createworker(workerJobQueue, completedTasksQueue, ec2, queue, numberOfTasks.get());
+                synchronized (this) {
 
-                //System.out.println(" Making a job from the current read line: " + currLine);
-                // Line content: (obj.getReview().getId() + delimiter + obj.getReview().getText() + delimiter + obj.getReview().getRating() +  + obj.getReview().getLink() +"\n"); // added rating******
-                currFileObject.increaseInputLines();
-                job = idOfInputFile + delimiter + currLine;
-                queue.sendMessage(workerJobQueue, job);
-                //System.out.println("sending a task to the queue" + workerJobQueue);
-                numberOfTasks.incrementAndGet();
-                System.out.println("Input id: " + currFileObject.getId() + "number of read line :" + currFileObject.getInputLines() + " number of tasks "+ numberOfTasks );
+                    System.out.println("The InputThread: " + Thread.currentThread().getId() + "is about to perform a change to the following input file object:");
+                    System.out.println(currFileObject);
+
+                    createworker(workerJobQueue, completedTasksQueue, ec2, queue, numberOfTasks.get());
+                    currFileObject.increaseInputLines();
+                    job = idOfInputFile + delimiter + currLine;
+                    queue.sendMessage(workerJobQueue, job);
+                    numberOfTasks.incrementAndGet();
+                    currFileObject.setredAllLinesTrue();
+                }
+                System.out.println("The InputThread: " + Thread.currentThread().getId() + "completed the change to the following input file object:");
+                System.out.println(currFileObject);
 
             }
-            currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
-            System.out.println( "we finish to read all lines :" + currFileObject.getRedAllLines() );
-
+             // we've finished to read all lines of the input file
         }
         catch (Exception e) {
             e.printStackTrace(); }
