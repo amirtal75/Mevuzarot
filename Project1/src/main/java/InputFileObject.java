@@ -1,74 +1,103 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import com.amazonaws.services.s3.model.S3Object;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InputFileObject {
 
-    int id;
-
-    public int getId() {
-        return id;
-    }
-
+    private String inputFileID;
     AtomicInteger inputLines;
     AtomicInteger outputLines;
-    BufferedWriter writer = null;
-    String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
+    StringBuffer stringBuffer = null;
+    BufferedReader reader = null;
+    private AtomicInteger numberoffilelines;
     AtomicBoolean redAllLines; // finish to read all lines
     AtomicBoolean allWorkersDone; //all the workers finished
     String inputFilename;
+    ConcurrentHashMap<Integer, String> iDsOfProcessedReviews;
+    String delimiter = " -@@@@@@@- ";
+    String lastReadLine = "";
 
-    public InputFileObject(int id,String inputFilename){
-        this.id = id;
+    public InputFileObject(String inputFilename,int numberoffilelines, S3Object object){
         inputLines = new AtomicInteger(0);
         outputLines = new AtomicInteger(0);;
         redAllLines = new AtomicBoolean(false);
         allWorkersDone = new AtomicBoolean(false);
         this.inputFilename = inputFilename;
+        this.numberoffilelines = new AtomicInteger(numberoffilelines);
+        this.reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));;
+        this.stringBuffer = new StringBuffer();
+        this.inputFileID  = UUID.randomUUID().toString();
+        this.iDsOfProcessedReviews = new ConcurrentHashMap<>();
+        System.out.println("Created input file object with the ID: " + inputFileID);
+    }
+
+    public synchronized BufferedReader getReader() {return reader;}
+
+    public String getInputFileID() {
+        return this.inputFileID;
+    }
+
+    public void appendToBuffer (String messageFromQueue, String reviewID, String originator) {
+        String[] result =  messageFromQueue.split(delimiter );
+        System.out.println(originator + "Adding a message with ID: " + result[0] + "\nTo the inputFileObject with the ID: " + inputFileID);
+        boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
+        String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"
+        if (!reviewWasprocessedBefore) {
+            this.stringBuffer.append(toAppend);
+            this.iDsOfProcessedReviews.put(outputLines.get(), reviewID);
+            this.outputLines.incrementAndGet();
+        }
+    }
+    public String readLine (){
         try {
-            this.writer = new BufferedWriter(new FileWriter(path +inputFilename+"$"));
+            if (lastReadLine != null) {
+                lastReadLine = reader.readLine();
+                return lastReadLine;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    public
-    BufferedWriter getWriter() {
-        return writer;
+    public StringBuffer getBuffer() {return stringBuffer;}
+
+    public  int getNumberoffilelines() {return numberoffilelines.get();}
+
+    public  int getInputLines() {
+        return inputLines.get();
     }
 
-    public AtomicInteger getInputLines() {
-        return inputLines;
+    public  int getOutputLines() {
+        return outputLines.get();
     }
 
-    public AtomicInteger getOutputLines() {
-        return outputLines;
+    public  boolean getRedAllLines() {
+        return redAllLines.get();
     }
 
-    public AtomicBoolean getRedAllLines() {
-        return redAllLines;
+    public  boolean getAllWorkersDone() {
+        return allWorkersDone.get();
     }
 
-    public AtomicBoolean getAllWorkersDone() {
-        return allWorkersDone;
+    public void increaseInputLines() {
+        inputLines.getAndIncrement();
     }
 
-    public AtomicBoolean AllWorkersDone() {
-        return allWorkersDone;
-    }
-
-    public synchronized void increaseInputLines() {
-            inputLines.getAndIncrement();
-    }
-
-    public void increaseOutputLines() {
+    public void increaseOutputLines(String inputFileID, String originator) {
+        System.out.println(originator + "increaseOutputLines of the input file:  " + this.inputFileID);
         outputLines.getAndIncrement();
     }
 
-    public synchronized  void  CheckAndSetAllWorkersDone (){ // check if all workers done and set allWorkersDone accordingly.
-        allWorkersDone.compareAndSet(false , (redAllLines.get() & (inputLines.get() == outputLines.get())));
+    public void  checkAndSetAllWorkersDone (String originator){ // check if all workers done and set allWorkersDone accordingly.
+        System.out.println(originator + "checkAndSetAllWorkersDone of the input file: " + inputFileID);
+        allWorkersDone.compareAndSet(false , ((inputLines.get() == numberoffilelines.get()) && (numberoffilelines.get() == outputLines.get())));
     }
 
     public String getInputFilename() {
@@ -76,13 +105,14 @@ public class InputFileObject {
     }
 
     public void setredAllLinesTrue() {
-
-        redAllLines.set(true);
+        if (numberoffilelines.get() == inputLines.get()) {
+            redAllLines.set(true);
+        }
     }
 
     public String toString(){
         String res = "input lines : " + inputLines.get() + " output lines : " + outputLines.get() +
-               "\ninput file name: " + inputFilename + " all lines has been readed: " + redAllLines.get() +
+               "input file name: " + inputFilename + " all lines has been readed " + getRedAllLines() +
                 " all workes done : " + allWorkersDone.get();
         return res;
             }

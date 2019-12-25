@@ -200,14 +200,12 @@ public class S3Bucket {
         System.out.println("AWS Error Code:   " + ase.getErrorCode());
         System.out.println("Error Type:       " + ase.getErrorType());
         System.out.println("Request ID:       " + ase.getRequestId());
-        ase.printStackTrace();
     }
     private void printClientError(AmazonClientException ace){
         System.out.println("Caught an AmazonClientException, which means the client encountered " +
                 "a serious internal problem while trying to communicate with S3, such as not " +
                 "being able to access the network.");
         System.out.println("Error Message: " + ace.getMessage());
-        ace.printStackTrace();
     }
 
 }

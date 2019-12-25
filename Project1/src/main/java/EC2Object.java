@@ -22,19 +22,12 @@ public class EC2Object {
      * @return if the tag was successfully created
      */
     public boolean createTags(String tagName, String InstanceID){
-        try {
-            if (!tagExists(tagName)) {
-                Tag tag = new Tag(tagName, tagName);
-                CreateTagsRequest tagsRequest = new CreateTagsRequest()
-                        .withResources(InstanceID)
-                        .withTags(tag);
-                CreateTagsResult result = this.ec2.createTags(tagsRequest);
-            }
-            return tagExists(tagName);
-        } catch (Exception e){
-            e.printStackTrace();
+        if (!tagExists(tagName)) {
+            Tag tag = new Tag(tagName, tagName);
+            CreateTagsRequest tagsRequest = new CreateTagsRequest().withTags(tag);
+            CreateTagsResult result = this.ec2.createTags(tagsRequest);
         }
-        return false;
+        return tagExists(tagName);
     }
 
     /**
@@ -60,21 +53,16 @@ public class EC2Object {
      * @return if the tag exists
      */
     public boolean tagExists(String tagName){
-        try {
-            if (tagName.equals("")){
-                return false;
-            }
-            DescribeTagsResult tagsResult= this.ec2.describeTags();
-            for (TagDescription tag:
-                    tagsResult.getTags()) {
-                if (tag.getKey().equals(tagName)){
-                    return true;
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
+        if (tagName.equals("")){
+            return false;
         }
-
+        DescribeTagsResult tagsResult= this.ec2.describeTags();
+        for (TagDescription tag:
+                tagsResult.getTags()) {
+            if (tag.getKey().equals(tagName)){
+                return true;
+            }
+        }
         return false;
     }
 
@@ -170,7 +158,7 @@ public class EC2Object {
         try{
             instancesResult = this.ec2.runInstances(request);
         } catch (Exception e){
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             return new ArrayList<Instance>();
         }
 
@@ -200,19 +188,13 @@ public class EC2Object {
         DeleteTagsRequest deleteTagsRequest = new DeleteTagsRequest()
                 .withResources(instancesToTerminate)
                 .withTags(new Tag("manager","manager"));
-        try{
-            ec2.deleteTags(deleteTagsRequest);
-            TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest(instancesToTerminate);
-            if (!instances.isEmpty()) {
-                TerminateInstancesResult result = this.ec2.terminateInstances(terminateRequest);
-                return result.getTerminatingInstances().size();
-            }
-        } catch (Exception e){
-            e.printStackTrace();
+
+        ec2.deleteTags(deleteTagsRequest);
+        TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest(instancesToTerminate);
+        if (!instances.isEmpty()) {
+            TerminateInstancesResult result = this.ec2.terminateInstances(terminateRequest);
+            return result.getTerminatingInstances().size();
         }
-
-
-
         return 0;
 
     }

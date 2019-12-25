@@ -11,22 +11,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LocalApp implements Runnable{
 
-    String summeryFilesIndicatorQueueUrl;
-    String QueueUrlLocalApps;
+    String summeryFilesIndicatorQueue = "summeryFilesIndicatorQueue";
+    String QueueUrlLocalApps = "QueueUrlLocalApps";
     ArrayList<String> inputFiles;
     static AtomicBoolean restartManager = new AtomicBoolean(false); // is needed?
 
-    public LocalApp(String inputFiles, String QueueUrlLocalApps, String summeryFilesIndicatorQueueUrl) {
+    public LocalApp(String inputFiles) {
         ArrayList<String> files = new ArrayList<>();
         files.add(inputFiles);
         this.inputFiles = files;
-        this.summeryFilesIndicatorQueueUrl = summeryFilesIndicatorQueueUrl;
-        this.QueueUrlLocalApps = QueueUrlLocalApps;
     }
 
     public LocalApp(ArrayList<String> inputFiles, String QueueUrlLocalApps, String summeryFilesIndicatorQueueUrl) {
         this.inputFiles = inputFiles;
-        this.summeryFilesIndicatorQueueUrl = summeryFilesIndicatorQueueUrl;
+        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueueUrl;
         this.QueueUrlLocalApps = QueueUrlLocalApps;
     }
 
@@ -34,7 +32,7 @@ public class LocalApp implements Runnable{
         String delimiter = " -@@@@@@@- ";
         try {
             boolean summeryFileIsReady = false;
-            System.out.println("In local App " + Thread.currentThread().getId());
+            // System.out.println("In local App " + Thread.currentThread().getId());
             // Create objects and bucket
             EC2Object ec2 = new EC2Object();
             S3Bucket s3 = new S3Bucket();
@@ -61,28 +59,31 @@ public class LocalApp implements Runnable{
                         try {
                             writer.write(towrite); // added rating******
                         } catch (Exception e){
-                            e.getMessage();
+                            System.out.println(e.getMessage());
                         }
                     }
 
                     writer.flush();
 
                     s3.upload(path,outputFilename);
-                    queue.sendMessage(QueueUrlLocalApps, outputFilename);
+                    queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size());
                     //System.out.println("done parse");
                 }
 
-                System.out.println(" entering message loop ");
+                //System.out.println(" entering message loop ");
                 while (summeryFileIsReady == false) {
             /*if (ec2.getInstances("manager").get(0).getState().getName().equals("terminated")){
-                System.out.println("Manager is dead !!!!!!!!!!!!!");
+                //System.out.println("Manager is dead !!!!!!!!!!!!!");
                 createManager(s3, ec2, QueueUrlLocalApps, summeryFilesIndicatorQueue, ec2Instance);
              }*/
                     String currMessageName;
-                    List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueueUrl,1,1);
+                    //System.out.println("trying to receive mesagee from: " + summeryFilesIndicatorQueueUrl);
+                    List<Message> messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
+                    //System.out.println("the message is : " + messages.isEmpty());
+                    //System.out.println("after receving message " + messages.size());
                     for (Message msg : messages) {
                         currMessageName = msg.getBody().split(delimiter)[0]; // the input file name
-                        System.out.println("the output file name is: " + currMessageName);
+                        //System.out.println("the output file name is: " + currMessageName);
 
                         for (String inputFile : inputFiles) {
                             if (currMessageName.indexOf(inputFile) != -1) {
@@ -97,9 +98,9 @@ public class LocalApp implements Runnable{
 
                                 String[] resultsToHTML = stringBuilder.toString().split("\n");
                                 createHTML(currMessageName,resultsToHTML);
-                                System.out.println("stopping localapp");
+                                //System.out.println("stopping localapp");
                                 summeryFileIsReady = true;
-                                queue.deleteMessage(summeryFilesIndicatorQueueUrl, msg);
+                                queue.deleteMessage(summeryFilesIndicatorQueue, msg);
                             }
                         }
 
@@ -107,7 +108,8 @@ public class LocalApp implements Runnable{
                    Thread.currentThread().sleep(3000);
 //            Thread.sleep(60);
                 }
-            System.out.println("ending the run");
+
+            //System.out.println("ending the run");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -118,7 +120,7 @@ public class LocalApp implements Runnable{
     private static void createHTML(String filename, String[] inputRepresentation) throws IOException {
         String delimiter = " -@@@@@@@- ";
         //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment + delimiter + reviewLink;
-        System.out.println("the size of the input representation is " + inputRepresentation.length);
+        //System.out.println("the size of the input representation is " + inputRepresentation.length);
         String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
         StringBuilder html = new StringBuilder("<html>\n" + "<body>");
         for (String str : inputRepresentation) {
@@ -146,7 +148,7 @@ public class LocalApp implements Runnable{
     }
 
     private ArrayList<parsedInputObject> parse(String filename) {
-        System.out.println("in parse");
+        //System.out.println("in parse");
         ArrayList<parsedInputObject> inputArray = new ArrayList<parsedInputObject>();
         Gson gson = new Gson();
         BufferedReader reader;
@@ -171,7 +173,7 @@ public class LocalApp implements Runnable{
                         inputArray.add(new parsedInputObject(dataholder.getTitle(), reviews.get(i)));
                     }
                 }
-                //else System.out.println("gson was null");
+                else System.out.println("gson was null");
             }
             reader.close();
         }
