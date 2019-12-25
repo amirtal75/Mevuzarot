@@ -32,18 +32,18 @@ public class InputThread implements Runnable {
         boolean readAllLines = false;
         while (!readAllLines) {
 
+            createworker(ec2, numberOfTasks.get());
             //System.out.println("inside input thread: " + Thread.currentThread().getId() + "\nworking on the file: " + currFileObject.getInputFilename());
 
-
-            createworker(ec2, numberOfTasks.get());
+            synchronized (currFileObject) {
+                currLine = currFileObject.readLine();
+            }
             job = currFileObject.getInputFileID() + delimiter + currLine;
             queue.sendMessage(workerJobQueue, job);
             numberOfTasks.incrementAndGet();
-
-
-            synchronized (currFileObject){
-                currFileObject.readLine();
-                if (currLine != null){
+            
+            if (currLine != null){
+                synchronized (currFileObject){
                     System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFileID() + "from: " + currFileObject.getInputLines());
                     currFileObject.increaseInputLines();
                     currFileObject.setredAllLinesTrue(); // we've finished to read all lines of the input file
