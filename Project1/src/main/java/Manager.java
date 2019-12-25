@@ -96,6 +96,13 @@ public class Manager {
             InputFileObject currInputFileObj;
             for (int i = 0; i< InputFileObjectById.size(); ++i) {
                 currInputFileObj = InputFileObjectById.get(i);
+                if (currInputFileObj == null){
+                    try {
+                        throw new Exception("Critial error, there is a null inputFIleObject in our list");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 currInputFileObj.CheckAndSetAllWorkersDone();
                 System.out.println("manager : checking if the file " + currInputFileObj.getInputFilename() + " is ready:" + currInputFileObj.getAllWorkersDone());
                 System.out.println("InputFile details " + currInputFileObj);
