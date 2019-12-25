@@ -14,7 +14,9 @@ public class OutputThread implements Runnable {
     String originator;
 
     public OutputThread(InputFileObject currFileObject, AtomicInteger numberOfCompletedTasks){
-        this.completedTasksQueue = currFileObject.getInputFileID();
+        synchronized (currFileObject){
+            this.completedTasksQueue = currFileObject.getInputFileID();
+        }
         this.currFileObject = currFileObject;
         this.numberOfCompletedTasks = numberOfCompletedTasks;
     }
