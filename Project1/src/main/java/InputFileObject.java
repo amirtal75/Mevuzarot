@@ -60,7 +60,9 @@ public class InputFileObject {
     }
 
     public void increaseInputLines() {
-        inputLines.getAndIncrement();
+        synchronized (this) {
+            inputLines.getAndIncrement();
+        }
     }
 
     public void increaseOutputLines() {
