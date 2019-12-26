@@ -135,6 +135,7 @@ public class Manager{
         System.out.println("\n Manager termiante deleting resources\n");
         queue.deleteQueue("QueueUrlLocalApps");
         queue.deleteQueue("workerJobQueue");
+        ec2.terminateInstances(null);
     }
 
     public static void createworker(EC2Object ec2, int numberOfTasks){
