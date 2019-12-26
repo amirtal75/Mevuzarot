@@ -130,7 +130,7 @@ public class Manager{
                         bufferedWriter.flush();
                         queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
                         InputFileObjectById.remove(currFileObject.getInputFileID(),currFileObject);
-                        queue.deleteQueue(currFileObject.getInputFileID());
+                        queue.deleteQueue(currFileObject.getInputFileID(),"Manager : " + Thread.currentThread().getId());
                         s3.upload(path, outputName);
                     }
                 }
@@ -143,8 +143,8 @@ public class Manager{
             allThreadsAreDone = (numberOfCompletedTasks == numberOfReceivedtasksFromTotalOfLocals) && (numberOfTasks == numberOfReceivedtasksFromTotalOfLocals);
         }
         System.out.println("\n Manager terminated deleting resources\n");
-        queue.deleteQueue("QueueUrlLocalApps");
-        queue.deleteQueue("workerJobQueue");
+        queue.deleteQueue("QueueUrlLocalApps", "Manager : " + Thread.currentThread().getId());
+        queue.deleteQueue("workerJobQueue", "Manager : " + Thread.currentThread().getId());
         ec2.terminateInstances(null);
     }
 

@@ -151,10 +151,10 @@ public class Queue {
         return queues;
     }
 
-    public void deleteQueue(String queueUrl){
+    public void deleteQueue(String queueUrl, String processID){
 
         try {
-            System.out.println("Deleting the queue: " + queueUrl + ".\n");
+            System.out.println(processID + " Deleting the queue: " + queueUrl + ".\n");
             this.sqs.deleteQueue(new DeleteQueueRequest(queueUrl));
         } catch (AmazonServiceException ase) {
             System.out.println("failed to delete  the queue: " + queueUrl);

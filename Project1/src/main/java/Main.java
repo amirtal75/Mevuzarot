@@ -24,9 +24,9 @@ public class Main {
 
         Thread thread = null;
         LocalApp localApp = null;
-        int terminationIndicator = 1;
+        int terminationIndicator = 0;
         if (args[args.length-1].equals("terminate")){
-            terminationIndicator = 0;
+            terminationIndicator = 1;
         }
         for (int i = 1; i < args.length - 1 + terminationIndicator; i++) {
             localApp = new LocalApp(pathtoPtojectLocation, args[i], args[args.length - 1], ec2);

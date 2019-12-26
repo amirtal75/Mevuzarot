@@ -76,6 +76,7 @@ public class LocalApp implements Runnable{
                 synchronized (ec2){
                     instance = createManager(queue, ec2);
                     if (instance != null){
+                        queue.purgeQueue("workerJobQueue");
                         queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
                     }
                 }
@@ -116,7 +117,7 @@ public class LocalApp implements Runnable{
 
 //            Thread.sleep(60);
         System.out.println("Deleting resources");
-        queue.createQueue(summeryFilesIndicatorQueue);
+        queue.deleteQueue(summeryFilesIndicatorQueue, "LocalApp : " + Thread.currentThread().getId());
         System.out.println(Thread.currentThread() + "ending the run");
     }
 

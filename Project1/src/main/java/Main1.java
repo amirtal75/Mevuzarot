@@ -25,7 +25,7 @@ public class Main1 {
     public static void main(String[] args) throws Exception {
         EC2Object ec2Object = new EC2Object();
         for (int i = 0; i < 15; i = i+1){
-            //createworker(ec2Object,10000);
+            createworker(ec2Object,10000);
         }
 
         int MB = 1024*1024;
