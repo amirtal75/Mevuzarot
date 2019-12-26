@@ -32,14 +32,14 @@ public class InputThread implements Runnable {
 
 
             synchronized (currFileObject) {
-                System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFilename() + "from: " + currFileObject.getInputLines());
+                //System.out.println("\n" + originator + " is increasing input lines of: " + currFileObject.getInputFilename() + "from: " + currFileObject.getInputLines());
                 job = currFileObject.readLine();
                 readAllLines = currFileObject.getRedAllLines();
-                System.out.println("to: " + currFileObject.getInputLines() + " and all lines read status = " + readAllLines + "\n");
+                //System.out.println("to: " + currFileObject.getInputLines() + " and all lines read status = " + readAllLines + "\n");
             }
             queue.sendMessage(workerJobQueue, job);
             numberOfTasks.incrementAndGet();
         }
-        System.out.println("InputThread: " + Thread.currentThread() + " finished running");
+        System.out.println(originator+ " finished running");
     }
 }
