@@ -24,24 +24,40 @@ public class Main1 {
 
     public static void main(String[] args) throws Exception {
         EC2Object ec2Object = new EC2Object();
-        for (int i = 0; i < 10000000; i = i+0){
-            createworker(ec2Object,i);
-            i = i+200000;
+        for (int i = 0; i < 15; i = i+1){
+            //createworker(ec2Object,10000);
         }
+
+        int MB = 1024*1024;
+
+        //Getting the runtime reference from system
+        Runtime runtime = Runtime.getRuntime();
+
+        //Print used memory
+        System.out.println("Used Memory:"
+                + (runtime.totalMemory() - runtime.freeMemory()) / MB);
+
+        //Print free memory
+        System.out.println("Free Memory:"
+                + runtime.freeMemory() / MB);
+
+        //Print total available memory
+        System.out.println("Total Memory:" + runtime.totalMemory() / MB);
+
+        //Print Maximum available memory
+        System.out.println("Max Memory:" + runtime.maxMemory() / MB);
 
     }
 
     public static void createworker(EC2Object ec2, int numberOfTasks){
 
         int workerinstances = ec2.getInstances("worker").size();
-        Boolean tasksDivides = (numberOfTasks % 80) == 0;
-        int tasks = numberOfTasks/80;
-        Boolean condition = tasksDivides == false && workerinstances <= (tasks);
 
-        if ( !(numberOfTasks % 200==0) || workerinstances > 14 || workerinstances*200 > numberOfTasks){
+        if ( workerinstances > 14 || workerinstances*200 > numberOfTasks){
+            System.out.println(workerinstances + " " + numberOfTasks);
             return;
         }
-        System.out.println("Number of workers: " + workerinstances);
+
         // create user data dor workers
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "sudo unzip -o master.zip\n";

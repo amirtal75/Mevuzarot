@@ -75,7 +75,7 @@ public class LocalApp implements Runnable{
                 // Check if manager crashed, reopen and resend request
                 synchronized (ec2){
                     instance = createManager(queue, ec2);
-                    if (instance == null){
+                    if (instance != null){
                         queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
                     }
                 }
@@ -219,7 +219,7 @@ public class LocalApp implements Runnable{
         synchronized (ec2){
             List<Instance> instances = ec2.getInstances("manager");
             if (!instances.isEmpty()){
-                return instances.get(0);
+                return null;
             }
 
             System.out.println("manager crashed, reactivating the server");

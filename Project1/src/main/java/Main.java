@@ -24,7 +24,11 @@ public class Main {
 
         Thread thread = null;
         LocalApp localApp = null;
-        for (int i = 1; i < args.length - 1; i++) {
+        int terminationIndicator = 1;
+        if (args[args.length-1].equals("terminate")){
+            terminationIndicator = 0;
+        }
+        for (int i = 1; i < args.length - 1 + terminationIndicator; i++) {
             localApp = new LocalApp(pathtoPtojectLocation, args[i], args[args.length - 1], ec2);
             thread = new Thread(localApp);
             thread.start();
