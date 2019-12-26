@@ -76,6 +76,7 @@ public class LocalApp implements Runnable{
                 synchronized (ec2){
                     instance = createManager(queue, ec2);
                     if (instance != null){
+                        ec2.terminateInstances(null);
                         queue.purgeQueue("workerJobQueue");
                         queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
                     }
@@ -236,12 +237,15 @@ public class LocalApp implements Runnable{
             String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + createAndRunProject;
 
             // First created instance = manager
-
             Instance instance = ec2.createInstance(1, 1, userdata).get(0);
             ec2.createTags("manager",instance.getInstanceId());
             ec2.attachTags(instance, "manager");
             createWorker(ec2);
-
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             queue.createQueue("QueueUrlLocalApps");
             queue.createQueue("workerJobQueue");
             System.out.println("Creating Manager: " + instance.getInstanceId());
