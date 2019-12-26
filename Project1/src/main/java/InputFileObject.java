@@ -60,11 +60,11 @@ public class InputFileObject {
         String line = null;
         int numberOfLines = 0;
         try {
-            line = inputFileID + delimiter + reader.readLine();
+            line = reader.readLine();
             if (line != null){
                 numberOfLines = inputLines.incrementAndGet();
                 redAllLines.set(numberOfLines == numberoffilelines.get());
-                return  line;
+                return  inputFileID + delimiter + line;
             }
         } catch (IOException e) {
             e.printStackTrace();
