@@ -1,183 +1,159 @@
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
-import com.amazonaws.services.sqs.model.*;
+import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sqs.model.Message;
 
-import java.util.ArrayList;
+import java.io.*;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * This sample demonstrates how to make basic requests to Amazon SQS using the
- * AWS SDK for Java.
- * <p>
- * <b>Prerequisites:</b> You must have a valid Amazon Web
- * Services developer account, and be signed up to use Amazon SQS. For more
- * information on Amazon SQS, see http://aws.amazon.com/this.sqs.
- * <p>
- * <b>Important:</b> Be sure to fill in your AWS access credentials in the
- *                   AwsCredentials.properties file before you try to run this
- *                   sample.
- * http://aws.amazon.com/security-credentials
- */
-public class Queue {
+public class Manager{
 
-    public AmazonSQS sqs = null;
+    public static void main(String[] args) throws IOException, InterruptedException {
 
+        String mark = "!!!!!!!!!!!!!!!!!!!";
+        System.out.println(mark + " In Manager:" + mark + "\n");
 
-    public Queue() {
-        this.sqs = AmazonSQSClientBuilder.defaultClient();
-    }
+        // Variable Declaration
+        S3Bucket s3 = new S3Bucket();
+        Queue queue = new Queue();
+        EC2Object ec2 = new EC2Object();
+        String QueueUrlLocalApps = "QueueUrlLocalApps";
+        AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
+        AtomicInteger numberOfTasks = new AtomicInteger(0);
+        AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
+        AtomicBoolean continueRunning = new AtomicBoolean(true);
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
+        ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
 
-    public
-    AmazonSQS getSqs() {
-        return sqs;
-    }
+        System.out.println("Thread pools creation");
+        // Create Thread Pools
+        ExecutorService poolForInput = Executors.newCachedThreadPool();
+        ExecutorService poolForOutput = Executors.newCachedThreadPool();
 
-    public void purgeQueue(String queueName){
-        String queueURL = "https://sqs.us-west-2.amazonaws.com/002041186709/" + queueName;
-        PurgeQueueRequest purgeQueueRequest = new PurgeQueueRequest().withQueueUrl(queueURL);
-        try{
-            sqs.purgeQueue(purgeQueueRequest);
-        } catch (Exception e){
-            if (e.getMessage().contains("Only one PurgeQueue operation on QueueUrlLocalApps is allowed every 60 seconds")){
-                System.out.println("The queue was alredy purged in the last minute and we need to wait 60 seconds");
-                try {
-                    Thread.sleep(60000);
-                } catch (InterruptedException ex) {
-                    System.out.println("Purge Queue Exception");
-                    ex.printStackTrace();
+        System.out.println("\nManager Run:");
+        // Loop Split variables
+        String inputFileName;
+        int numberOfLinesInTheLocalAppFile;
+        String summeryFilesIndicatorQueue ;
+        String terminationIndicator;
+        List<Message> currMessageQueue;
+        String[] messageContent;
+        Message currMessege;
+        while (continueRunning.get()) {
+            /*if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
+            System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
+            System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
+            System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
+            }*/
+
+            // check if more workers are needed
+            createworker(ec2,numberOfTasks.get());
+            // Recieve message from local app queue
+            currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
+            if (currMessageQueue != null && !currMessageQueue.isEmpty()) {
+
+                // Split the message from the LocalApp
+                currMessege = currMessageQueue.get(0);
+                messageContent = currMessege.getBody().split("@");
+                inputFileName = messageContent[0];
+                numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
+                summeryFilesIndicatorQueue = messageContent[2];
+                terminationIndicator = messageContent[3];
+
+                // Print process input message split results
+                System.out.println();
+                System.out.println("Input From Local App processing split results:");
+                System.out.println("inputFileName: " + inputFileName + "numberOfLinesInTheLocalAppFile: " + numberOfLinesInTheLocalAppFile);
+                System.out.println("summeryFilesIndicatorQueue: " + summeryFilesIndicatorQueue + "terminationIndicator: " + terminationIndicator);
+
+                //Print input message process results
+                numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
+                String inputFileID  = UUID.randomUUID().toString();
+                continueRunning.set(!terminationIndicator.equals("terminate"));
+                S3Object object = s3.downloadObject(messageContent[0]); //input file
+                BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                queue.deleteMessage(QueueUrlLocalApps, currMessege);
+
+                // Create input file object
+                InputFileObject newFile = new InputFileObject(inputFileName, numberOfLinesInTheLocalAppFile, reader, inputFileID, summeryFilesIndicatorQueue);
+                InputFileObjectById.putIfAbsent(inputFileID, newFile);
+
+                // Create Completed tasks queue unique for the input file object
+                queue.createQueue(inputFileID);
+
+                // calculate number of threads to open
+                int numberOfThreadsToLaunch = (numberOfLinesInTheLocalAppFile / 50) + 1;
+                System.out.println("\nNumber of threads to launch for the input file: " + inputFileName + " are: " + numberOfThreadsToLaunch + "\n");
+
+                // open input and output threads for a file from local app
+                for (int i = 0; i < numberOfThreadsToLaunch; ++i) {
+                    poolForInput.execute(new InputThread(newFile, numberOfTasks));
+                    poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
                 }
-                sqs.purgeQueue(purgeQueueRequest);
+            }
+
+            boolean inputHasFinished = false;
+            for (InputFileObject currFileObject :
+                    InputFileObjectById.values()) {
+                if (currFileObject != null ){
+                    synchronized (currFileObject){
+                        inputHasFinished = currFileObject.getAllWorkersDone();
+                    }
+                }
+                if (inputHasFinished){
+                    synchronized (currFileObject) {
+                        String outputName = currFileObject.getInputFilename() + "$";
+                        String getSummeryFilesIndicatorQueue = currFileObject.getSummeryFilesIndicatorQueue();
+                        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
+                        bufferedWriter.write(currFileObject.getBuffer().toString());
+                        bufferedWriter.flush();
+                        queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
+                        InputFileObjectById.remove(currFileObject.getInputFileID(),currFileObject);
+                        queue.deleteQueue(currFileObject.getInputFileID());
+                        s3.upload(path, outputName);
+                    }
+                }
             }
         }
+        poolForInput.shutdown();
+        poolForOutput.shutdown();
+
+        // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
+        // we need to clean all resources the LocalApp queue
+        System.out.println("\n Manager termiante deleting resources\n");
+        queue.deleteQueue("QueueUrlLocalApps");
+        queue.deleteQueue("workerJobQueue");
+        ec2.terminateInstances(null);
     }
 
-    public String createQueue(String queueName) {
+    public static void createworker(EC2Object ec2, int numberOfTasks){
 
-        String queueUrl = "";
-        try {
-            System.out.println("Creating a new SQS queue called " + queueName);
-            CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
-            return this.sqs.createQueue(createQueueRequest).getQueueUrl();
+        int workerinstances = ec2.getInstances("").size() - 1;
+        Boolean tasksDivides = (numberOfTasks % 80) == 0;
+        int tasks = numberOfTasks/80;
+        Boolean condition = tasksDivides == false && workerinstances <= (tasks);
 
-        } catch (Exception ase) {
-            ase.printStackTrace();
+        if ( condition == false || workerinstances > 15){
+            return;
         }
-        return queueUrl;
-    }
 
-    public void listQueue() {
+        // create user data dor workers
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "sudo unzip -o master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
+        String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + createAndRunProject;
 
-        try {
-            System.out.println("Listing all queues in your account.\n");
-            for (String queueUrl : this.sqs.listQueues().getQueueUrls()) {
-                System.out.println("  QueueUrl: " + queueUrl);
-            }
-            System.out.println();
-        } catch (AmazonServiceException ase) {
-            System.out.println("Listing all queues in your account error\n");
-
-        }
-    }
-
-    public void sendMessage(String queueUrl, String message) {
-
-        try {
-            SendMessageResult sendMessageResult = this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
-        } catch (AmazonServiceException ase) {
-
-        } catch (AmazonClientException ace) {
-        }
-    }
-
-    public List<Message> recieveMessage(String queueUrl, int numOfMessages, int Visibility){
-
-        try {
-            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
-            receiveMessageRequest.setMaxNumberOfMessages(numOfMessages);
-            receiveMessageRequest.setVisibilityTimeout(Visibility);
-            List<Message> messages = this.sqs.receiveMessage(receiveMessageRequest).getMessages();
-            return messages;
-        } catch (AmazonServiceException ase) {
-            System.out.println("failed to receive message from the queue: " + queueUrl);
-
-        } catch (AmazonClientException ace) {
-            System.out.println("failed to receive message from the queue: " + queueUrl);
-        }
-        return null;
-    }
-
-    public void printMessage(Message message){
-        System.out.println("  Message");
-        System.out.println("    MessageId:     " + message.getMessageId());
-        System.out.println("    ReceiptHandle: " + message.getReceiptHandle());
-        System.out.println("    MD5OfBody:     " + message.getMD5OfBody());
-        System.out.println("    Body:          " + message.getBody());
-        for (Entry<String, String> entry : message.getAttributes().entrySet()) {
-            System.out.println("  Attribute");
-            System.out.println("    Name:  " + entry.getKey());
-            System.out.println("    Value: " + entry.getValue());
-        }
-        System.out.println();
-    }
-
-    public void deleteMessage(String queueUrl, Message message) {
-        try {
-            String messageRecieptHandle = message.getReceiptHandle();
-            DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(queueUrl, messageRecieptHandle);
-            DeleteMessageResult deleteMessageResult = this.sqs.deleteMessage(deleteMessageRequest);
-
-
-        } catch (AmazonServiceException ase) {
-            System.out.println("\nfailed to delete message from the queue: " + queueUrl);
-            printServiceError(ase);
-
-        } catch (AmazonClientException ace) {
-            System.out.println("\nfailed to delete message from the queue: " + queueUrl);
-            printClientError(ace);
-
-        }
-    }
-
-    public List<String> getQueueList(){
-        List<String> queues = new ArrayList<>();
-        try {
-            queues =  sqs.listQueues().getQueueUrls();
-        } catch (Exception e){
-
-        }
-        return queues;
-    }
-
-    public void deleteQueue(String queueUrl){
-
-        try {
-            System.out.println("Deleting the queue: " + queueUrl + ".\n");
-            this.sqs.deleteQueue(new DeleteQueueRequest(queueUrl));
-        } catch (AmazonServiceException ase) {
-            System.out.println("failed to delete  the queue: " + queueUrl);
-            printServiceError(ase);
-        } catch (AmazonClientException ace) {
-            System.out.println("failed to delete  the queue: " + queueUrl);
-            printClientError(ace);
-        }
-    }
-
-    private void printServiceError(AmazonServiceException ase){
-        System.out.println("Caught an AmazonServiceException, which means your request made it " +
-                "to Amazon S3, but was rejected with an error response for some reason.");
-        System.out.println("Error Message:    " + ase.getMessage());
-        System.out.println("HTTP Status Code: " + ase.getStatusCode());
-        System.out.println("AWS Error Code:   " + ase.getErrorCode());
-        System.out.println("Error Type:       " + ase.getErrorType());
-        System.out.println("Request ID:       " + ase.getRequestId());
-    }
-    private void printClientError(AmazonClientException ace){
-        System.out.println("Caught an AmazonClientException, which means the client encountered " +
-                "a serious internal problem while trying to communicate with S3, such as not " +
-                "being able to access the network.");
-        System.out.println("Error Message: " + ace.getMessage());
+        Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
+        ec2.attachTags(instance, "worker");
+        System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
     }
 }
