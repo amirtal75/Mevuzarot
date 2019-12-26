@@ -24,19 +24,21 @@ public class Main1 {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-
+        Queue queue = new Queue();
+        System.out.println(queue.createQueue("QueueUrlLocalApps"));
+        System.out.println(queue.getQueueList().size());
 
         EC2Object ec2Object = new EC2Object();
 
         /*System.out.println(ec2Object.getInstances("manager").size());
         System.out.println(ec2Object.getInstances("worker").size());*/
 
-        ec2Object.terminateInstances(null);
+        //ec2Object.terminateInstances(null);
 
-        String pathtoPtojectLocation = args[0];
+        /*String pathtoPtojectLocation = args[0];
         for (int i = 1; i < args.length; i++){
             System.out.println(pathtoPtojectLocation+ "/" + args[i]);
-        }
+        }*/
 
         /*String QueueUrlLocalApps = "QueueUrlLocalApps";
         String workerJobQueue = "workerJobQueue";

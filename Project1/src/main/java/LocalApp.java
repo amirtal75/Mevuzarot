@@ -18,11 +18,11 @@ public class LocalApp implements Runnable{
     String terminationIndicator;
 
 
-    public LocalApp(String path, String inputFile, String terminationIndicator) {
+    public LocalApp(String path, String inputFile, String terminationIndicator, String summeryFilesIndicatorQueue) {
         ArrayList<String> files = new ArrayList<>();
         this.inputFile = inputFile;
         this.QueueUrlLocalApps = "QueueUrlLocalApps";
-        this.summeryFilesIndicatorQueue = UUID.randomUUID().toString();
+        this.summeryFilesIndicatorQueue = summeryFilesIndicatorQueue;
         this.path = path;
         this.terminationIndicator = terminationIndicator;
     }
@@ -56,10 +56,19 @@ public class LocalApp implements Runnable{
             queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
 
             // Enter loop to wait for an answer from the manager
+            List<String> queues = new ArrayList<>();
             String currMessageName="";
             List<Message> messages = null;
             while (!summeryFileIsReady) {
 
+                // check if the resource were terminated, meaning the service is no longer operational and we need to close the program
+                queues = queue.getQueueList();
+                if (queues.isEmpty()){
+                    return;
+                }
+                else if (!queues.contains(summeryFilesIndicatorQueue)){
+                    return;
+                }
                 // Check if manager crashed, reopen and resend request
                 Instance instance = createManager(queue, ec2);
                 if (instance == null){
@@ -196,11 +205,11 @@ public class LocalApp implements Runnable{
 
     private static Instance createManager(Queue queue, EC2Object ec2){
 
-        System.out.println("No Manager Active, setting up the server");
+
         if (!ec2.getInstances("manager").isEmpty()){
             return null;
         }
-
+        System.out.println("No Manager Active, setting up the server");
         // Manager userdata
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "sudo unzip -o master.zip\n";
@@ -213,7 +222,7 @@ public class LocalApp implements Runnable{
 
         // First created instance = manager
         Instance instance = ec2.createInstance(1, 1, userdata).get(0);
-        ec2.createTags("worker",instance.getInstanceId());
+        ec2.createTags("manager",instance.getInstanceId());
         ec2.attachTags(instance, "manager");
 
         queue.createQueue("QueueUrlLocalApps");

@@ -38,7 +38,8 @@ public class Manager{
         String summeryFilesIndicatorQueue ;
         String terminationIndicator;
         List<Message> currMessageQueue;
-
+        String[] messageContent;
+        Message currMessege;
         while (continueRunning.get()) {
             /*if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
             System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
@@ -48,11 +49,10 @@ public class Manager{
 
             // Recieve message from local app queue
             currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
-            String[] messageContent;
-            if (!currMessageQueue.isEmpty()) {
+            if (currMessageQueue != null && !currMessageQueue.isEmpty()) {
 
                 // Split the message from the LocalApp
-                Message currMessege = currMessageQueue.get(0);
+                currMessege = currMessageQueue.get(0);
                 messageContent = currMessege.getBody().split("@");
                 inputFileName = messageContent[0];
                 numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
@@ -116,6 +116,10 @@ public class Manager{
         }
         poolForInput.shutdown();
         poolForOutput.shutdown();
-        Thread.sleep(2000);
+
+        // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
+        // we need to clean all resources the LocalApp queue
+        queue.deleteQueue("QueueUrlLocalApps");
+        queue.deleteQueue("workerJobQueue");
     }
 }

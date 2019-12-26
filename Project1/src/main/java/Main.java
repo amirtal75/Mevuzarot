@@ -1,5 +1,7 @@
 import com.amazonaws.services.ec2.model.Instance;
 
+import java.util.UUID;
+
 public class Main {
 
     static String summeryFilesIndicatorQueueUrl;
@@ -11,7 +13,10 @@ public class Main {
         String pathtoPtojectLocation = args[0];
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
+        String summeryFilesIndicatorQueue = UUID.randomUUID().toString();
 
+        // create summeryFilesIndicatorQueue
+        queue.createQueue(summeryFilesIndicatorQueue);
         // Create bucket
         new S3Bucket().createBucket();
         // Create manager and worker if not already opened
@@ -20,7 +25,7 @@ public class Main {
         Thread thread = null;
         LocalApp localApp = null;
         for (int i = 1; i < args.length-1; i++){
-            localApp = new LocalApp(pathtoPtojectLocation, args[i],args[args.length-1]);
+            localApp = new LocalApp(pathtoPtojectLocation, args[i],args[args.length-1], summeryFilesIndicatorQueue);
             thread = new Thread(localApp);
             thread.start();
         }

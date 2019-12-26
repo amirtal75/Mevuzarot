@@ -4,6 +4,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -86,10 +87,8 @@ public class Queue {
         try {
             SendMessageResult sendMessageResult = this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
         } catch (AmazonServiceException ase) {
-            System.out.println("failed to send message to the queue: " + queueUrl);
 
         } catch (AmazonClientException ace) {
-            System.out.println("failed to send message to the queue: " + queueUrl);
         }
     }
 
@@ -139,7 +138,15 @@ public class Queue {
         }
     }
 
+    public List<String> getQueueList(){
+        List<String> queues = new ArrayList<>();
+        try {
+            queues =  sqs.listQueues().getQueueUrls();
+        } catch (Exception e){
 
+        }
+        return queues;
+    }
 
     public void deleteQueue(String queueUrl){
 
