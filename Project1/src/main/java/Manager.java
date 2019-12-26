@@ -29,13 +29,7 @@ public class Manager{
         AtomicBoolean continueRunning = new AtomicBoolean(true);
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
-
-        System.out.println("test commands");
-        queue.purgeQueue("QueueUrlLocalApps");
-        queue.purgeQueue("workerJobQueue");
-        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txtec39dcfd-181e-4e23-b2c2-6fca97cca18e.txt" + "@" + 30 + "@" + "summery" + "@" + "dont close the manager");
-        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txt353ddf90-33eb-4795-904e-fb0fa0597956.txt" + "@" + 30 + "@" + "summery" + "@" + "dont close the manager");
-
+        
         System.out.println("Thread pools creation");
         // Create Thread Pools
         ExecutorService poolForInput = Executors.newCachedThreadPool();
