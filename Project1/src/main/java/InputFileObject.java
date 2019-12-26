@@ -45,7 +45,7 @@ public class InputFileObject {
 
     public void appendToBuffer (String messageFromQueue, String reviewID, String originator) {
         String[] result =  messageFromQueue.split(delimiter );
-        System.out.println(originator + "Adding a message with ID: " + result[0] + "\nTo the inputFileObject with the ID: " + inputFileID);
+        // System.out.println(originator + "Adding a message with ID: " + result[0] + "\nTo the inputFileObject with the ID: " + inputFileID);
         int numberOfLines = 0;
         boolean reviewWasprocessedBefore = iDsOfProcessedReviews.containsValue(reviewID);
         String toAppend = messageFromQueue + "\n"; //append all the reviews for one inputFile and seperate by "\n"

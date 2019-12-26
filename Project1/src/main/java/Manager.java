@@ -130,6 +130,8 @@ public class Manager{
                         bufferedWriter.flush();
                         queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
                         InputFileObjectById.remove(currFileObject.getInputFileID(),currFileObject);
+                        System.out.println("InputIle object details: ");
+                        System.out.println(currFileObject);
                         queue.deleteQueue(currFileObject.getInputFileID(),"Manager : " + Thread.currentThread().getId());
                         s3.upload(path, outputName);
                     }
