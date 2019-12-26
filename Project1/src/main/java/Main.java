@@ -1,6 +1,8 @@
 import com.amazonaws.services.ec2.model.Instance;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
 
@@ -8,28 +10,27 @@ public class Main {
     static String QueueUrlLocalApps;
 
 
-    public static void main(String[] args) throws Exception {
+    public static
+    void main(String[] args) throws Exception {
 
         String pathtoPtojectLocation = args[0];
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
-        String summeryFilesIndicatorQueue = UUID.randomUUID().toString();
 
-        // create summeryFilesIndicatorQueue
-        queue.createQueue(summeryFilesIndicatorQueue);
         // Create bucket
         new S3Bucket().createBucket();
         // Create manager and worker if not already opened
-        createManager(queue, ec2);
+        Instance instance = createManager(queue, ec2);
 
         Thread thread = null;
         LocalApp localApp = null;
-        for (int i = 1; i < args.length-1; i++){
-            localApp = new LocalApp(pathtoPtojectLocation, args[i],args[args.length-1], summeryFilesIndicatorQueue);
+        for (int i = 1; i < args.length - 1; i++) {
+            localApp = new LocalApp(pathtoPtojectLocation, args[i], args[args.length - 1], ec2);
             thread = new Thread(localApp);
             thread.start();
         }
     }
+
 
     private static void createWorker(EC2Object ec2){
 
@@ -51,16 +52,18 @@ public class Main {
         Instance instance = ec2.createInstance(1, 1, userdata).get(0);
         ec2.createTags("worker",instance.getInstanceId());
         ec2.attachTags(instance, "worker");
+        System.out.println("Creating Worker: " + instance.getInstanceId());
+
 
     }
 
     private static Instance createManager(Queue queue, EC2Object ec2){
 
-        System.out.println("No Manager Active, setting up the server");
-        if (!ec2.getInstances("manager").isEmpty()){
-            return null;
-        }
 
+        if (!ec2.getInstances("manager").isEmpty()){
+            return new Instance();
+        }
+        System.out.println("No Manager Active, setting up the server");
         // Manager userdata
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "sudo unzip -o master.zip\n";
@@ -76,8 +79,9 @@ public class Main {
         ec2.createTags("manager",instance.getInstanceId());
         ec2.attachTags(instance, "manager");
 
-        queue.createQueue("QueueUrlLocalApps");
-        queue.createQueue("workerJobQueue");
+        System.out.println("creating: " +queue.createQueue("QueueUrlLocalApps"));
+        System.out.println("creating: " + queue.createQueue("workerJobQueue"));
+        System.out.println("Creating Manager: " + instance.getInstanceId());
         createWorker(ec2);
         return  instance;
     }

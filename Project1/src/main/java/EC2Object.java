@@ -236,6 +236,7 @@ public class EC2Object {
                     Tag tag = new Tag(tagName,tagName);
                     Boolean run = instance.getState().getName().equals("running");
                     Boolean pend = instance.getState().getName().equals("pending");
+                    boolean sutting = instance.getState().getName().equals("shutting-down");
                     if ( (tagName.equals("") || tagName == null) && ( run || pend )){
                         instancesResult.add(instance);
                     }

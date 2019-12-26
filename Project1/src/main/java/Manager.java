@@ -135,7 +135,7 @@ public class Manager{
 
         int workerinstances = ec2.getInstances("worker").size();
 
-        if ( !(numberOfTasks % 200==0) || workerinstances > 14){
+        if ( !(numberOfTasks % 200==0) || workerinstances > 14 || workerinstances*200 > numberOfTasks){
             return;
         }
 

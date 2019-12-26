@@ -131,10 +131,13 @@ public class Queue {
 
 
         } catch (AmazonServiceException ase) {
-            System.out.println("failed to delete message from the queue: " + queueUrl);
+            System.out.println("\nfailed to delete message from the queue: " + queueUrl);
+            printServiceError(ase);
 
         } catch (AmazonClientException ace) {
-            System.out.println("failed to delete message from the queue: " + queueUrl);
+            System.out.println("\nfailed to delete message from the queue: " + queueUrl);
+            printClientError(ace);
+
         }
     }
 
@@ -155,9 +158,26 @@ public class Queue {
             this.sqs.deleteQueue(new DeleteQueueRequest(queueUrl));
         } catch (AmazonServiceException ase) {
             System.out.println("failed to delete  the queue: " + queueUrl);
-
+            printServiceError(ase);
         } catch (AmazonClientException ace) {
             System.out.println("failed to delete  the queue: " + queueUrl);
+            printClientError(ace);
         }
+    }
+
+    private void printServiceError(AmazonServiceException ase){
+        System.out.println("Caught an AmazonServiceException, which means your request made it " +
+                "to Amazon S3, but was rejected with an error response for some reason.");
+        System.out.println("Error Message:    " + ase.getMessage());
+        System.out.println("HTTP Status Code: " + ase.getStatusCode());
+        System.out.println("AWS Error Code:   " + ase.getErrorCode());
+        System.out.println("Error Type:       " + ase.getErrorType());
+        System.out.println("Request ID:       " + ase.getRequestId());
+    }
+    private void printClientError(AmazonClientException ace){
+        System.out.println("Caught an AmazonClientException, which means the client encountered " +
+                "a serious internal problem while trying to communicate with S3, such as not " +
+                "being able to access the network.");
+        System.out.println("Error Message: " + ace.getMessage());
     }
 }

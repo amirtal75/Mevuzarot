@@ -61,12 +61,15 @@ public class InputFileObject {
         int numberOfLines = 0;
         try {
             line = inputFileID + delimiter + reader.readLine();
-            numberOfLines = inputLines.incrementAndGet();
-            redAllLines.set(numberOfLines == numberoffilelines.get());
+            if (line != null){
+                numberOfLines = inputLines.incrementAndGet();
+                redAllLines.set(numberOfLines == numberoffilelines.get());
+                return  line;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return line;
+        return null;
     }
 
     public StringBuffer getBuffer() {return stringBuffer;}

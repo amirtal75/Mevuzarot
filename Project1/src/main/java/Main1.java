@@ -22,18 +22,78 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main1 {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-
-        Queue queue = new Queue();
-        System.out.println(queue.createQueue("QueueUrlLocalApps"));
-        System.out.println(queue.getQueueList().size());
-
+    public static void main(String[] args) throws Exception {
         EC2Object ec2Object = new EC2Object();
+        for (int i = 0; i < 10000000; i = i+0){
+            createworker(ec2Object,i);
+            i = i+200000;
+        }
 
-        /*System.out.println(ec2Object.getInstances("manager").size());
+    }
+
+    public static void createworker(EC2Object ec2, int numberOfTasks){
+
+        int workerinstances = ec2.getInstances("worker").size();
+        Boolean tasksDivides = (numberOfTasks % 80) == 0;
+        int tasks = numberOfTasks/80;
+        Boolean condition = tasksDivides == false && workerinstances <= (tasks);
+
+        if ( !(numberOfTasks % 200==0) || workerinstances > 14 || workerinstances*200 > numberOfTasks){
+            return;
+        }
+        System.out.println("Number of workers: " + workerinstances);
+        // create user data dor workers
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "sudo unzip -o master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
+        String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + createAndRunProject;
+
+        Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
+        ec2.attachTags(instance, "worker");
+        System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
+    }
+
+    private static Instance createManager(Queue queue, EC2Object ec2){
+
+        System.out.println("No Manager Active, setting up the server");
+        if (!ec2.getInstances("manager").isEmpty()){
+            return null;
+        }
+
+        // Manager userdata
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "sudo unzip -o master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp managerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + createAndRunProject;
+
+        // First created instance = manager
+        Instance instance = ec2.createInstance(1, 1, userdata).get(0);
+        ec2.createTags("manager",instance.getInstanceId());
+        ec2.attachTags(instance, "manager");
+
+        queue.createQueue("QueueUrlLocalApps");
+        queue.createQueue("workerJobQueue");
+        System.out.println("Creating Manager: " + instance.getInstanceId());
+        createworker(ec2,100);
+        return  instance;
+    }
+}
+
+
+
+
+ /*System.out.println(ec2Object.getInstances("manager").size());
         System.out.println(ec2Object.getInstances("worker").size());*/
 
-        //ec2Object.terminateInstances(null);
+//ec2Object.terminateInstances(null);
 
         /*String pathtoPtojectLocation = args[0];
         for (int i = 1; i < args.length; i++){
@@ -62,8 +122,8 @@ public class Main1 {
         // need to delete
         queue.purgeQueue(QueueUrlLocalApps);
         queue.purgeQueue(workerJobQueue);
-        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txte6bc03d0-35ed-40e8-ab02-6f01b2423304.txt@30" + "@" + "summery" + "@" + "dont close the manager");
-        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txt3ce68107-9734-45ed-9f2f-e4b708533aef.txt@30" + "@" + "summery" + "@" + "dont close the manager");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txtec39dcfd-181e-4e23-b2c2-6fca97cca18e.txt" + "@" + 30 + "@" + "summery" + "@" + "dont close the manager");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txt353ddf90-33eb-4795-904e-fb0fa0597956.txt" + "@" + 30 + "@" + "summery" + "@" + "dont close the manager");
 
 
         // Create Thread Pools
@@ -124,5 +184,3 @@ public class Main1 {
         poolForOutput.shutdown();
         Thread.sleep(2000);*/
 
-    }
-}
