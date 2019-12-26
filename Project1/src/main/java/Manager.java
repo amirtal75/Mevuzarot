@@ -1,3 +1,4 @@
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
 
@@ -16,10 +17,11 @@ public class Manager{
 
         String mark = "!!!!!!!!!!!!!!!!!!!";
         System.out.println(mark + " In Manager:" + mark + "\n");
-        S3Bucket s3 = new S3Bucket();
-        Queue queue = new Queue();
 
         // Variable Declaration
+        S3Bucket s3 = new S3Bucket();
+        Queue queue = new Queue();
+        EC2Object ec2 = new EC2Object();
         String QueueUrlLocalApps = "QueueUrlLocalApps";
         AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
         AtomicInteger numberOfTasks = new AtomicInteger(0);
@@ -28,10 +30,18 @@ public class Manager{
         String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
 
+        System.out.println("test commands");
+        queue.purgeQueue("QueueUrlLocalApps");
+        queue.purgeQueue("workerJobQueue");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile2.txtec39dcfd-181e-4e23-b2c2-6fca97cca18e.txt" + "@" + 30 + "@" + "summery" + "@" + "dont close the manager");
+        queue.sendMessage(QueueUrlLocalApps, "inputFile1.txt353ddf90-33eb-4795-904e-fb0fa0597956.txt" + "@" + 30 + "@" + "summery" + "@" + "dont close the manager");
+
+        System.out.println("Thread pools creation");
         // Create Thread Pools
         ExecutorService poolForInput = Executors.newCachedThreadPool();
         ExecutorService poolForOutput = Executors.newCachedThreadPool();
 
+        System.out.println("\nManager Run:");
         // Loop Split variables
         String inputFileName;
         int numberOfLinesInTheLocalAppFile;
@@ -47,6 +57,8 @@ public class Manager{
             System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
             }*/
 
+            // check if more workers are needed
+            createworker(ec2,numberOfTasks.get());
             // Recieve message from local app queue
             currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
             if (currMessageQueue != null && !currMessageQueue.isEmpty()) {
@@ -91,6 +103,7 @@ public class Manager{
                 }
             }
 
+            System.out.println("checking for upload:\n");
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
@@ -119,10 +132,34 @@ public class Manager{
 
         // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
         // we need to clean all resources the LocalApp queue
+        System.out.println("\n Manager termiante deleting resources\n");
         queue.deleteQueue("QueueUrlLocalApps");
         queue.deleteQueue("workerJobQueue");
-        EC2Object ec2 = new EC2Object();
-        ec2.terminateInstances(null);
+    }
 
+    public static void createworker(EC2Object ec2, int numberOfTasks){
+
+        int workerinstances = ec2.getInstances("").size() - 1;
+        Boolean tasksDivides = (numberOfTasks % 80) == 0;
+        int tasks = numberOfTasks/80;
+        Boolean condition = tasksDivides == false && workerinstances <= (tasks);
+
+        if ( condition == false || workerinstances > 15){
+            return;
+        }
+
+        // create user data dor workers
+        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
+        String unzip = getProject + "sudo unzip -o master.zip\n";
+        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
+        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
+        String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
+        String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
+        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
+        String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + createAndRunProject;
+
+        Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
+        ec2.attachTags(instance, "worker");
+        System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
     }
 }
