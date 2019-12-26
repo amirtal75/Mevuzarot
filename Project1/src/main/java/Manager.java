@@ -68,7 +68,7 @@ public class Manager{
                 //Print input message process results
                 numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
                 String inputFileID  = UUID.randomUUID().toString();
-                continueRunning.set(terminationIndicator.equals("terminate"));
+                continueRunning.set(!terminationIndicator.equals("terminate"));
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
                 BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                 queue.deleteMessage(QueueUrlLocalApps, currMessege);
