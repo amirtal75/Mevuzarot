@@ -121,6 +121,7 @@ public class Manager{
         // we need to clean all resources the LocalApp queue
         queue.deleteQueue("QueueUrlLocalApps");
         queue.deleteQueue("workerJobQueue");
+        EC2Object ec2 = new EC2Object();
         ec2.terminateInstances(null);
 
     }
