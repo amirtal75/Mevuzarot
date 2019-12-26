@@ -133,12 +133,9 @@ public class Manager{
 
     public static void createworker(EC2Object ec2, int numberOfTasks){
 
-        int workerinstances = ec2.getInstances("").size() - 1;
-        Boolean tasksDivides = (numberOfTasks % 80) == 0;
-        int tasks = numberOfTasks/80;
-        Boolean condition = tasksDivides == false && workerinstances <= (tasks);
+        int workerinstances = ec2.getInstances("worker").size();
 
-        if ( condition == false || workerinstances > 15){
+        if ( !(numberOfTasks % 200==0) || workerinstances > 14){
             return;
         }
 
