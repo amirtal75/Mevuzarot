@@ -76,6 +76,7 @@ public class LocalApp implements Runnable{
                 // Check if manager crashed, reopen and resend request
                 synchronized (ec2){
                     instance = createManager(queue, ec2);
+                    createWorker(ec2);
                     if (instance != null){
                         // delete all unrelevant queues
                         for (String url:
@@ -248,7 +249,7 @@ public class LocalApp implements Runnable{
             Instance instance = ec2.createInstance(1, 1, userdata).get(0);
             ec2.createTags("manager",instance.getInstanceId());
             ec2.attachTags(instance, "manager");
-            createWorker(ec2);
+
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
@@ -257,6 +258,15 @@ public class LocalApp implements Runnable{
             queue.createQueue("QueueUrlLocalApps");
             queue.createQueue("workerJobQueue");
             System.out.println("Creating Manager: " + instance.getInstanceId());
+            if (queue.getQueueList().size() < 1){
+                try {
+                    Thread.sleep(70000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                queue.createQueue("QueueUrlLocalApps");
+                queue.createQueue("workerJobQueue");
+            }
 
             return  instance;
         }

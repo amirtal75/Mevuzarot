@@ -21,6 +21,7 @@ public class Main {
         new S3Bucket().createBucket();
         // Create manager and worker if not already opened
         Instance instance = createManager(queue, ec2);
+        createWorker(ec2);
 
         Thread thread = null;
         LocalApp localApp = null;
@@ -86,7 +87,15 @@ public class Main {
         System.out.println("creating: " +queue.createQueue("QueueUrlLocalApps"));
         System.out.println("creating: " + queue.createQueue("workerJobQueue"));
         System.out.println("Creating Manager: " + instance.getInstanceId());
-        createWorker(ec2);
+        if (queue.getQueueList().size() < 1){
+            try {
+                Thread.sleep(70000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            queue.createQueue("QueueUrlLocalApps");
+            queue.createQueue("workerJobQueue");
+        }
         return  instance;
     }
 }
