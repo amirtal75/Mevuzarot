@@ -81,7 +81,7 @@ public class LocalApp implements Runnable{
                             queue.deleteQueue(url,Thread.currentThread().toString());
                         }
                         ec2.terminateInstances(null);
-                        queue.purgeQueue("workerJobQueue");
+                        queue.createQueue(summeryFilesIndicatorQueue);
                         queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
                     }
                 }
