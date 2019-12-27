@@ -23,12 +23,14 @@ class Main2 {
 
 
         String path = "/home/amirtal/IdeaProjects/Localapp/src/main/java/B0047E0EII.txt";
-        ArrayList<parsedInputObject> inputList = parse(path);
+        //ArrayList<parsedInputObject> inputList = parse(path);
         String entities = "";
-        for (parsedInputObject inputObject:
+        /*for (parsedInputObject inputObject:
             inputList ) {
             new Thread((new Test(inputObject.getReview().getText()))).start();
-        }
+        }*/
+
+
 
     }
 
