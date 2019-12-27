@@ -76,6 +76,10 @@ public class LocalApp implements Runnable{
                 synchronized (ec2){
                     instance = createManager(queue, ec2);
                     if (instance != null){
+                        for (String url:
+                             queues) {
+                            queue.deleteQueue(url,Thread.currentThread().toString());
+                        }
                         ec2.terminateInstances(null);
                         queue.purgeQueue("workerJobQueue");
                         queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);

@@ -68,18 +68,10 @@ public class Queue {
         return queueUrl;
     }
 
-    public void listQueue() {
+    public
+    List<String> listQueue() {
 
-        try {
-            System.out.println("Listing all queues in your account.\n");
-            for (String queueUrl : this.sqs.listQueues().getQueueUrls()) {
-                System.out.println("  QueueUrl: " + queueUrl);
-            }
-            System.out.println();
-        } catch (AmazonServiceException ase) {
-            System.out.println("Listing all queues in your account error\n");
-
-        }
+        return sqs.listQueues("").getQueueUrls();
     }
 
     public void sendMessage(String queueUrl, String message) {
