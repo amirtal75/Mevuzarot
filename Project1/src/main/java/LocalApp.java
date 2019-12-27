@@ -77,13 +77,15 @@ public class LocalApp implements Runnable{
                 synchronized (ec2){
                     instance = createManager(queue, ec2);
                     if (instance != null){
+                        // delete all unrelevant queues
                         for (String url:
                              queues) {
                             if (!url.equals(urlPrefix+"QueueUrlLocalApps") && !url.equals(urlPrefix+summeryFilesIndicatorQueue))
                             queue.deleteQueue(url,Thread.currentThread().toString());
                         }
+                        // sleep for 70 seconds to prevent errors in recreating queues
+                        Thread.sleep(70000);
                         ec2.terminateInstances(null);
-                        queue.createQueue(summeryFilesIndicatorQueue);
                         queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
                     }
                 }
