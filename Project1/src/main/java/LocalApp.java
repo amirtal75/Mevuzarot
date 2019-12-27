@@ -31,6 +31,7 @@ public class LocalApp implements Runnable{
 
     public void run() {
         String delimiter = " -@@@@@@@- ";
+        String urlPrefix = "https://sqs.us-west-2.amazonaws.com/002041186709/";
         try {
             System.out.println("In local App " + Thread.currentThread().getId());
             boolean summeryFileIsReady = false;
@@ -78,6 +79,7 @@ public class LocalApp implements Runnable{
                     if (instance != null){
                         for (String url:
                              queues) {
+                            if (!url.equals(urlPrefix+"QueueUrlLocalApps") && !url.equals(urlPrefix+summeryFilesIndicatorQueue))
                             queue.deleteQueue(url,Thread.currentThread().toString());
                         }
                         ec2.terminateInstances(null);
