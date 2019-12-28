@@ -100,7 +100,7 @@ public class InputFileObject {
         allWorkersDone.set(inputLines.get()==outputLines.get());
     }
     public void setRedAllLines(){
-        allWorkersDone.set(inputLines.get()==numberoffilelines.get());
+        redAllLines.set(inputLines.get()==numberoffilelines.get());
     }
 
     public String toString(){
