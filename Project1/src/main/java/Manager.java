@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class LocalManager{
+public class Manager{
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
