@@ -38,6 +38,7 @@ public class OutputThread implements Runnable {
                 synchronized (currFileObject) {
                     System.out.println("\n" + originator + " is increasing output lines of teh file object with the detials: " + currFileObject+ "\n" + " from: " + currFileObject.getOutputLines());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1],originator);
+                    queueExist = false;
                     for (String url:
                             queue.getQueueList()) {
                         if (url.contains(completedTasksQueue)){
