@@ -126,8 +126,8 @@ public class Manager{
         // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
         // we need to clean all resources the LocalApp queue
         System.out.println("\n Manager termiante deleting resources\n");
-        queue.deleteQueue("QueueUrlLocalApps",");
-        queue.deleteQueue("workerJobQueue",");
+        queue.deleteQueue("QueueUrlLocalApps,"");
+        queue.deleteQueue("workerJobQueue,"");
         ec2.terminateInstances(null);
     }
 
