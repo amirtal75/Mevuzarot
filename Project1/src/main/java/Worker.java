@@ -7,6 +7,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -45,7 +46,7 @@ public class Worker {
                     //System.out.println("number of result ; "+ i + "the result is " + result);
 
                     System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
-                    queue.sendMessage(reviewAttributes[0], result);
+                    queue.sendMessage("completedJobQueue-" + reviewAttributes[0], result,"Worker:");
                     ////System.out.println("message was sent, deleting the task");
                     queue.deleteMessage(workerJobQueue, currJob); // we need to check befor deleting if we succeed to send the message
                 } else{
