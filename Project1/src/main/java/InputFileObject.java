@@ -95,6 +95,13 @@ public class InputFileObject {
     public String getInputFilename() {
         return inputFilename;
     }
+    
+    public void setAllWorkersDone(){
+        allWorkersDone.set(inputLines.get()==outputLines.get());
+    }
+    public void setRedAllLines(){
+        allWorkersDone.set(inputLines.get()==numberoffilelines.get());
+    }
 
     public String toString(){
         String res = "input lines : " + inputLines.get() + " output lines : " + outputLines.get() +
