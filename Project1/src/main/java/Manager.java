@@ -114,7 +114,7 @@ public class Manager{
                         bufferedWriter.flush();
                         queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
                         InputFileObjectById.remove(currFileObject.getInputFileID(),currFileObject);
-                        queue.deleteQueue(currFileObject.getInputFileID());
+                        queue.deleteQueue(currFileObject.getInputFileID(),"");
                         s3.upload(path, outputName);
                     }
                 }
