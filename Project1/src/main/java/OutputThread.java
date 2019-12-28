@@ -27,7 +27,7 @@ public class OutputThread implements Runnable {
         String delimiter = " -@@@@@@@- ";
         //System.out.println("In Output Thread: " + Thread.currentThread());
         boolean wroteAllLines = false;
-        while (!wroteAllLines && queueExist) {
+        while (!wroteAllLines) {
 
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
             if (messagefromCompletedTasksQueue != null && !messagefromCompletedTasksQueue.isEmpty()) {
