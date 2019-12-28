@@ -47,7 +47,7 @@ public class Worker {
                     System.out.println("sending the result of worker to the completed queue: " + reviewAttributes[0]);
                     queue.sendMessage(reviewAttributes[0], result);
                     ////System.out.println("message was sent, deleting the task");
-                    queue.deleteMessage(workerJobQueue, currJob); // we need to check befor deleting if we succeed to send the message
+                    queue.deleteMessage(workerJobQueue, currJob,""); // we need to check befor deleting if we succeed to send the message
                 } else{
                     System.out.println("Queus is empty");
                     Thread.sleep(1000);
