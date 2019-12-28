@@ -97,7 +97,7 @@ public class InputFileObject {
     }
     
     public void setAllWorkersDone(){
-        allWorkersDone.set(inputLines.get()==outputLines.get());
+        allWorkersDone.set(inputLines.get()==outputLines.get() && inputLines.get() > 0 && outputLines.get() >0);
     }
     public void setRedAllLines(){
         redAllLines.set(inputLines.get()==numberoffilelines.get());
