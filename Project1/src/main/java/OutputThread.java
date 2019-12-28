@@ -26,7 +26,6 @@ public class OutputThread implements Runnable {
         List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
         //System.out.println("In Output Thread: " + Thread.currentThread());
-        boolean queueExist = true;
         boolean wroteAllLines = false;
         while (!wroteAllLines && queueExist) {
 
@@ -38,13 +37,6 @@ public class OutputThread implements Runnable {
                 synchronized (currFileObject) {
                     System.out.println("\n" + originator + " is increasing output lines of teh file object with the detials: " + currFileObject+ "\n" + " from: " + currFileObject.getOutputLines());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1],originator);
-                    queueExist = false;
-                    for (String url:
-                            queue.getQueueList()) {
-                        if (url.contains(completedTasksQueue)){
-                            queueExist = true;
-                        }
-                    }
                     wroteAllLines = currFileObject.getAllWorkersDone();
                     System.out.println("to: " + currFileObject.getOutputLines() + " and all lines read status = " + wroteAllLines + "\n");
                 }
