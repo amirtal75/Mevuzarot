@@ -147,7 +147,7 @@ public class Manager{
                         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
                         bufferedWriter.write(currFileObject.getBuffer().toString());
                         bufferedWriter.flush();
-                        queue.sendMessage(getSummeryFilesIndicatorQueue, outputName, "");
+                        queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
                         InputFileObjectById.remove(currFileObject.getInputFileID(), currFileObject);
                         queue.deleteQueue(currFileObject.getInputFileID(), "");
                         s3.upload(path, outputName);
