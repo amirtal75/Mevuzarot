@@ -178,7 +178,7 @@ public class Manager{
 
     public static void createworker(EC2Object ec2){
 
-        int workerinstances = ec2.getInstances("worker").size();
+        int workerinstances = ec2.getInstances("manager").size()-1;
 
         if (workerinstances > 14){
             return;
