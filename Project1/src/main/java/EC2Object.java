@@ -1,8 +1,8 @@
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.*;
-import java.util.ArrayList;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -22,13 +22,12 @@ public class EC2Object {
      * @return if the tag was successfully created
      */
     public boolean createTags(String tagName, String InstanceID){
-        if (!tagExists(tagName)) {
             Tag tag = new Tag(tagName, tagName);
             CreateTagsRequest tagsRequest = new CreateTagsRequest()
                     .withResources(InstanceID)
                     .withTags(tag);
             CreateTagsResult result = this.ec2.createTags(tagsRequest);
-        }
+        System.out.println(result.toString());
         return tagExists(tagName);
     }
 
@@ -46,7 +45,12 @@ public class EC2Object {
         CreateTagsRequest tagsRequest = new CreateTagsRequest()
                 .withTags(new Tag(tagName,tagName))
                 .withResources(instance.getInstanceId());
-        ec2.createTags(tagsRequest);
+        try{
+            ec2.createTags(tagsRequest);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -161,6 +165,13 @@ public class EC2Object {
             instancesResult = this.ec2.runInstances(request);
         } catch (Exception e){
             System.out.println(e.getMessage());
+            if (e.getMessage().contains("vCPU")){
+                List<Instance> inst = getInstances("worker");
+                inst = inst.subList(0,1);
+                ArrayList<Instance> term = new ArrayList<>(inst);
+                terminateInstances(term);
+            }
+            else e.printStackTrace();
             return new ArrayList<Instance>();
         }
 
@@ -187,11 +198,7 @@ public class EC2Object {
                 instances) {
             instancesToTerminate.add(instance.getInstanceId());
         }
-        DeleteTagsRequest deleteTagsRequest = new DeleteTagsRequest()
-                .withResources(instancesToTerminate)
-                .withTags(new Tag("manager","manager"));
 
-        ec2.deleteTags(deleteTagsRequest);
         TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest(instancesToTerminate);
         if (!instances.isEmpty()) {
             TerminateInstancesResult result = this.ec2.terminateInstances(terminateRequest);
@@ -236,7 +243,6 @@ public class EC2Object {
                     Tag tag = new Tag(tagName,tagName);
                     Boolean run = instance.getState().getName().equals("running");
                     Boolean pend = instance.getState().getName().equals("pending");
-                    boolean sutting = instance.getState().getName().equals("shutting-down");
                     if ( (tagName.equals("") || tagName == null) && ( run || pend )){
                         instancesResult.add(instance);
                     }
