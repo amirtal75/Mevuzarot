@@ -195,7 +195,7 @@ public class Manager{
         String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + createAndRunProject;
 
         Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
-        ec2.createTags(instance, "worker");
+        ec2.createTags("worker",instance.getInstanceId());
         System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
     }
 }
