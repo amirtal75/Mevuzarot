@@ -124,6 +124,11 @@ public class Manager{
                     }
                 }
             }
+            try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         }
         poolForInput.shutdown();
         poolForOutput.shutdown();
