@@ -55,6 +55,8 @@ public class Manager{
             System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
             System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
             }*/
+
+            System.out.println("Before first worker start:");
             numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
             workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
             allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
@@ -62,6 +64,7 @@ public class Manager{
             while (numberOfActiveWorkers < allWorkersNeeded) {
                 createworker(ec2);
             }
+            System.out.println("Before receive message:");
 
             // Recieve message from local app queue
             currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
@@ -89,6 +92,8 @@ public class Manager{
                 BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                 queue.deleteMessage(QueueUrlLocalApps, currMessege);
 
+                System.out.println("Before second worker start:");
+
                 // Creatr Workers
                 numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
                 workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
@@ -98,6 +103,7 @@ public class Manager{
                     createworker(ec2);
                     ++numberOfActiveWorkers;
                 }
+                System.out.println("Before close worker start:");
 
                 // Close Workers
                 while (allWorkersNeeded < numberOfActiveWorkers){
@@ -111,6 +117,8 @@ public class Manager{
                 InputFileObjectById.putIfAbsent(inputFileID, newFile);
 
                 // Create Completed tasks queue unique for the input file object
+                System.out.println("Before create completedTasks queue:");
+
                 queue.createQueue(inputFileID);
 
                 // calculate number of threads to open
