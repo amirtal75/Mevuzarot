@@ -45,7 +45,7 @@ public class OutputThread implements Runnable {
                     System.out.println("\n" + originator + " is increasing output lines of teh file object with the detials: " + currFileObject+ "\n" + " from: " + currFileObject.getOutputLines());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1],originator);
                     numberOfOutputLines = currFileObject.getOutputLines();
-                    System.out.println("to: " + currFileObject.getOutputLines() + " and all lines read status = " + numberOfOutputLines<numberOfLines + "\n");
+                    System.out.println("to: " + currFileObject.getOutputLines());
                 }
                 queue.deleteMessage(completedTasksQueue, currMessege);
                 numberOfCompletedTasks.incrementAndGet();
