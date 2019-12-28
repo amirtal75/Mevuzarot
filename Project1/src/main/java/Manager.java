@@ -97,14 +97,13 @@ public class Manager{
                 }
             }
             
-            System.out.println("\nGoing over the upload loop");
-            boolean inputHasFinished = false;
-            System.out.println("\"\n");
-            System.out.println("\nlist size: " + InputFileObjectById.size());                   
+            boolean inputHasFinished = false;                
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
                 if (currFileObject != null ){
                     synchronized (currFileObject){
+                        System.out.println("InputIle object details: ");
+                        System.out.println(currFileObject);
                         inputHasFinished = currFileObject.getAllWorkersDone();
                     }
                 }
@@ -125,7 +124,7 @@ public class Manager{
                 }
             }
             try {
-            Thread.sleep(3000);
+            Thread.sleep(30000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
