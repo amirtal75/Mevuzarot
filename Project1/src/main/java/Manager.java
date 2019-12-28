@@ -106,10 +106,10 @@ public class Manager{
                 System.out.println("Before close worker start:");
 
                 // Close Workers
-                while (allWorkersNeeded < numberOfActiveWorkers){
+                /*while (allWorkersNeeded < numberOfActiveWorkers){
                     ec2.terminateInstances(new ArrayList<>(ec2.getInstances("worker").subList(0,numberOfActiveWorkers-allWorkersNeeded)));
                     --numberOfActiveWorkers;
-                }
+                }*/
 
 
                 // Create input file object
