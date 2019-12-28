@@ -35,9 +35,8 @@ public class OutputThread implements Runnable {
 
                 Message currMessege = messagefromCompletedTasksQueue.get(0);
                 String[] resultContent = currMessege.getBody().split(delimiter);
-                String result = inputFileId + delimiter + reviewId + delimiter + currIndicator + delimiter + reviewText + delimiter + reviewEntities +delimiter+ sentiment;
                 synchronized (currFileObject) {
-                    System.out.println("\n" + originator + " is increasing output lines of: " + currFileObject.getInputFilename() + " from: " + currFileObject.getOutputLines());
+                    System.out.println("\n" + originator + " is increasing output lines of teh file object with the detials: " + currFileObject+ "\n" + " from: " + currFileObject.getOutputLines());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1],originator);
                     wroteAllLines = currFileObject.getAllWorkersDone();
                     System.out.println("to: " + currFileObject.getOutputLines() + " and all lines read status = " + wroteAllLines + "\n");
