@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Manager{
+public class LocalManager{
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -28,7 +28,7 @@ public class Manager{
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
         AtomicBoolean continueRunning = new AtomicBoolean(true);
-        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
+        String path = "/home/amirtal/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
 
         System.out.println("Thread pools creation");
@@ -58,8 +58,12 @@ public class Manager{
 
             System.out.println("Before first worker start:");
             numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
+            System.out.println("numberOfWorkersNeededForFile: " + numberOfWorkersNeededForFile);
             workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
+            System.out.println("numberOfReceivedtasksFromTotalOfLocals: " + numberOfReceivedtasksFromTotalOfLocals.get());
+            System.out.println("numberOfCompletedTasks: " + numberOfCompletedTasks.get());
             allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
+            System.out.println("allWorkersNeeded: " + allWorkersNeeded);
             numberOfActiveWorkers = ec2.getInstances("worker").size();
             while (numberOfActiveWorkers < allWorkersNeeded) {
                 createworker(ec2);
@@ -131,7 +135,7 @@ public class Manager{
                     poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
                 }
             }
-                            System.out.println("Before upload loop:");
+            System.out.println("Before upload loop:");
 
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
@@ -184,7 +188,7 @@ public class Manager{
             return;
         }
         int workerinstances = ec2.getInstances("").size()-managerinstance;
-        if ( workerinstances > 14){
+        if ( workerinstances > 13){
             return;
         }
 
