@@ -96,8 +96,11 @@ public class Manager{
                     poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
                 }
             }
-
+            
+            System.out.println("\nGoing over the upload loop");
             boolean inputHasFinished = false;
+            System.out.println("\"\n");
+            System.out.println("\nlist size: " + InputFileObjectById.size());                   
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
                 if (currFileObject != null ){
@@ -107,6 +110,8 @@ public class Manager{
                 }
                 if (inputHasFinished){
                     synchronized (currFileObject) {
+                        System.out.println("Input fIle object details: ");
+                        System.out.println(currFileObject);
                         String outputName = currFileObject.getInputFilename() + "$";
                         String getSummeryFilesIndicatorQueue = currFileObject.getSummeryFilesIndicatorQueue();
                         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
