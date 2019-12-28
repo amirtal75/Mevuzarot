@@ -163,6 +163,7 @@ public class Manager{
                     }
                 }
             }
+            Thread.sleep(10000);
         }
         poolForInput.shutdown();
         poolForOutput.shutdown();
