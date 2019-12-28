@@ -193,8 +193,11 @@ public class Manager{
         String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
         String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + createAndRunProject;
-
-        Instance instance = ec2.createInstance(1, 1, workerUserData).get(0);
+        ArrayList<Instance> instances = ec2.createInstance(1, 1, workerUserData);
+        if(instances.isEmpty()){
+            return;
+        }
+        Instance instance = instances.get(0);
         ec2.createTags("worker",instance.getInstanceId());
         System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
     }
