@@ -127,11 +127,6 @@ public class Manager{
                     }
                 }
             }
-            try {
-            Thread.sleep(30000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         }
         poolForInput.shutdown();
         poolForOutput.shutdown();
