@@ -21,13 +21,20 @@ public class OutputThread implements Runnable {
 
     public
     void run() {
+        int numberOfOutputLines = 0;
+        int numberOfLines = 0;
+        synchronized (currFileObject) {
+            numberOfLines = currFileObject.getNumberoffilelines();
+            numberOfOutputLines = currFileObject.getOutputLines();
+        }
+        
         originator = "OutputThread: " + Thread.currentThread().getId();
         Queue queue = new Queue();
         List<Message> messagefromCompletedTasksQueue = new ArrayList<Message>();
         String delimiter = " -@@@@@@@- ";
         //System.out.println("In Output Thread: " + Thread.currentThread());
         boolean wroteAllLines = false;
-        while (!wroteAllLines) {
+        while (numberOfOutputLines<numberOfLines) {
 
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
             if (messagefromCompletedTasksQueue != null && !messagefromCompletedTasksQueue.isEmpty()) {
@@ -37,8 +44,8 @@ public class OutputThread implements Runnable {
                 synchronized (currFileObject) {
                     System.out.println("\n" + originator + " is increasing output lines of teh file object with the detials: " + currFileObject+ "\n" + " from: " + currFileObject.getOutputLines());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1],originator);
-                    wroteAllLines = currFileObject.getAllWorkersDone();
-                    System.out.println("to: " + currFileObject.getOutputLines() + " and all lines read status = " + wroteAllLines + "\n");
+                    numberOfOutputLines = currFileObject.getOutputLines();
+                    System.out.println("to: " + currFileObject.getOutputLines() + " and all lines read status = " + numberOfOutputLines<numberOfLines + "\n");
                 }
                 queue.deleteMessage(completedTasksQueue, currMessege);
                 numberOfCompletedTasks.incrementAndGet();
