@@ -109,7 +109,11 @@ public class Manager{
                 }
                 if (inputHasFinished){
                     synchronized (currFileObject) {
-                        System.out.println("Input fIle object details: ");
+                         System.out.println("Input fIle object before details: ");
+                        System.out.println(currFileObject);
+                        currFileObject.setAllWorkersDone();
+                        currFileObject.setRedAllLines();
+                        System.out.println("Input fIle object after details: ");
                         System.out.println(currFileObject);
                         String outputName = currFileObject.getInputFilename() + "$";
                         String getSummeryFilesIndicatorQueue = currFileObject.getSummeryFilesIndicatorQueue();
