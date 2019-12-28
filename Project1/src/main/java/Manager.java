@@ -91,7 +91,7 @@ public class Manager{
                 System.out.println("\nNumber of threads to launch for the input file: " + inputFileName + " are: " + numberOfThreadsToLaunch + "\n");
 
                 // open input and output threads for a file from local app
-                for (int i = 0; i < numberOfThreadsToLaunch; ++i) {
+                for (int i = 0; i < 1; ++i) {
                     poolForInput.execute(new InputThread(newFile, numberOfTasks));
                     poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
                 }
