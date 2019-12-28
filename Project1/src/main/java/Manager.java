@@ -3,6 +3,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.model.Message;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,21 +39,30 @@ public class Manager{
         System.out.println("\nManager Run:");
         // Loop Split variables
         String inputFileName;
-        int numberOfLinesInTheLocalAppFile;
-        String summeryFilesIndicatorQueue ;
+        int numberOfLinesInTheLocalAppFile = 0;
+        String summeryFilesIndicatorQueue;
         String terminationIndicator;
         List<Message> currMessageQueue;
         String[] messageContent;
         Message currMessege;
+        int numberOfWorkersNeededForFile = 0;
+        int workersForRest = 0;
+        int allWorkersNeeded = 0;
+        int numberOfActiveWorkers = 0;
         while (continueRunning.get()) {
             /*if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
             System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
             System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
             System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
             }*/
+            numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
+            workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
+            allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
+            numberOfActiveWorkers = ec2.getInstances("worker").size();
+            while (numberOfActiveWorkers < allWorkersNeeded) {
+                createworker(ec2);
+            }
 
-            // check if more workers are needed
-            createworker(ec2,numberOfTasks.get());
             // Recieve message from local app queue
             currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
             if (currMessageQueue != null && !currMessageQueue.isEmpty()) {
@@ -73,11 +83,28 @@ public class Manager{
 
                 //Print input message process results
                 numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
-                String inputFileID  = UUID.randomUUID().toString();
+                String inputFileID = UUID.randomUUID().toString();
                 continueRunning.set(!terminationIndicator.equals("terminate"));
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
                 BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
                 queue.deleteMessage(QueueUrlLocalApps, currMessege);
+
+                // Creatr Workers
+                numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
+                workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
+                allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
+                numberOfActiveWorkers = ec2.getInstances("worker").size();
+                while (numberOfActiveWorkers < allWorkersNeeded) {
+                    createworker(ec2);
+                    ++numberOfActiveWorkers;
+                }
+
+                // Close Workers
+                while (allWorkersNeeded < numberOfActiveWorkers){
+                    ec2.terminateInstances(new ArrayList<>(ec2.getInstances("worker").subList(0,numberOfActiveWorkers-allWorkersNeeded)));
+                    --numberOfActiveWorkers;
+                }
+
 
                 // Create input file object
                 InputFileObject newFile = new InputFileObject(inputFileName, numberOfLinesInTheLocalAppFile, reader, inputFileID, summeryFilesIndicatorQueue);
@@ -87,42 +114,42 @@ public class Manager{
                 queue.createQueue(inputFileID);
 
                 // calculate number of threads to open
-                int numberOfThreadsToLaunch = (numberOfLinesInTheLocalAppFile / 50) + 1;
+                int numberOfThreadsToLaunch = (numberOfLinesInTheLocalAppFile / 100) + 1;
                 System.out.println("\nNumber of threads to launch for the input file: " + inputFileName + " are: " + numberOfThreadsToLaunch + "\n");
 
                 // open input and output threads for a file from local app
-                for (int i = 0; i < 1; ++i) {
+                for (int i = 0; i < numberOfThreadsToLaunch; ++i) {
                     poolForInput.execute(new InputThread(newFile, numberOfTasks));
                     poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
                 }
             }
-            
-            boolean inputHasFinished = false;                
+
+            boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
-                if (currFileObject != null ){
-                    synchronized (currFileObject){
+                if (currFileObject != null) {
+                    synchronized (currFileObject) {
                         System.out.println("Input fIle object before details: ");
                         System.out.println(currFileObject);
                         currFileObject.setAllWorkersDone();
                         currFileObject.setRedAllLines();
                         System.out.println("Input fIle object after details: ");
-    
+
                         System.out.println(currFileObject);
                         inputHasFinished = currFileObject.getAllWorkersDone();
                     }
                 }
-                if (inputHasFinished){
+                if (inputHasFinished) {
                     synchronized (currFileObject) {
-                     
+
                         String outputName = currFileObject.getInputFilename() + "$";
                         String getSummeryFilesIndicatorQueue = currFileObject.getSummeryFilesIndicatorQueue();
                         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
                         bufferedWriter.write(currFileObject.getBuffer().toString());
                         bufferedWriter.flush();
-                        queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
-                        InputFileObjectById.remove(currFileObject.getInputFileID(),currFileObject);
-                        queue.deleteQueue(currFileObject.getInputFileID(),"");
+                        queue.sendMessage(getSummeryFilesIndicatorQueue, outputName, "");
+                        InputFileObjectById.remove(currFileObject.getInputFileID(), currFileObject);
+                        queue.deleteQueue(currFileObject.getInputFileID(), "");
                         s3.upload(path, outputName);
                     }
                 }
@@ -134,16 +161,17 @@ public class Manager{
         // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
         // we need to clean all resources the LocalApp queue
         System.out.println("\n Manager termiante deleting resources\n");
-        queue.deleteQueue("QueueUrlLocalApps","");
-        queue.deleteQueue("workerJobQueue","");
+        queue.deleteQueue("QueueUrlLocalApps", "");
+        queue.deleteQueue("workerJobQueue", "");
         ec2.terminateInstances(null);
     }
 
-    public static void createworker(EC2Object ec2, int numberOfTasks){
+
+    public static void createworker(EC2Object ec2){
 
         int workerinstances = ec2.getInstances("worker").size();
 
-        if ( !(numberOfTasks % 200==0) || workerinstances > 14 || workerinstances*200 > numberOfTasks){
+        if (workerinstances > 14){
             return;
         }
 
