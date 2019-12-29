@@ -1,212 +1,267 @@
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.*;
 
-import java.io.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class Manager{
+public class EC2Object {
+    private AmazonEC2 ec2;
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public EC2Object() {
+        this.ec2 = AmazonEC2ClientBuilder.defaultClient();
+    }
 
-        String mark = "!!!!!!!!!!!!!!!!!!!";
-        System.out.println(mark + " In Manager:" + mark + "\n");
+    public AmazonEC2 getEc2() {
+        return this.ec2;
+    }
 
-        // Variable Declaration
-        S3Bucket s3 = new S3Bucket();
-        Queue queue = new Queue();
-        EC2Object ec2 = new EC2Object();
-        String QueueUrlLocalApps = "QueueUrlLocalApps";
-        AtomicInteger numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(0);
-        AtomicInteger numberOfTasks = new AtomicInteger(0);
-        AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
-        AtomicBoolean continueRunning = new AtomicBoolean(true);
-        String path = "/home/amirtal/Mevuzarot-master/Project1/src/main/java/";
-        ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
+    /**
+     * @param tagName - Name of tag to create
+     * @return if the tag was successfully created
+     */
+    public boolean createTags(String tagName, String InstanceID){
+            Tag tag = new Tag(tagName, tagName);
+            CreateTagsRequest tagsRequest = new CreateTagsRequest()
+                    .withResources(InstanceID)
+                    .withTags(tag);
+            CreateTagsResult result = this.ec2.createTags(tagsRequest);
+        System.out.println(result.toString());
+        return tagExists(tagName);
+    }
 
-        System.out.println("Thread pools creation");
-        // Create Thread Pools
-        ExecutorService poolForInput = Executors.newCachedThreadPool();
-        ExecutorService poolForOutput = Executors.newCachedThreadPool();
-
-        System.out.println("\nManager Run:");
-        // Loop Split variables
-        String inputFileName;
-        int numberOfLinesInTheLocalAppFile = 0;
-        String summeryFilesIndicatorQueue;
-        String terminationIndicator;
-        List<Message> currMessageQueue;
-        String[] messageContent;
-        Message currMessege;
-        int numberOfWorkersNeededForFile = 0;
-        int workersForRest = 0;
-        int allWorkersNeeded = 0;
-        int numberOfActiveWorkers = 0;
-        while (continueRunning.get()) {
-            /*if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()) {
-            System.out.println("Manager numberOfReceivedtasksFromTotalOfLocals is :" + numberOfReceivedtasksFromTotalOfLocals.get());
-            System.out.println("Manager number Of Tasks sent to workers are: " + numberOfTasks.get());
-            System.out.println("Manager number Of Tasks received from workers (built into a buffer): " + numberOfCompletedTasks.get());
-            }*/
-
-            System.out.println("Before first worker start:");
-            numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
-            System.out.println("numberOfWorkersNeededForFile: " + numberOfWorkersNeededForFile);
-            workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
-            System.out.println("numberOfReceivedtasksFromTotalOfLocals: " + numberOfReceivedtasksFromTotalOfLocals.get());
-            System.out.println("numberOfCompletedTasks: " + numberOfCompletedTasks.get());
-            allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
-            System.out.println("allWorkersNeeded: " + allWorkersNeeded);
-            numberOfActiveWorkers = ec2.getInstances("worker").size();
-            for (int i = 0; i< allWorkersNeeded-numberOfActiveWorkers; i++){
-                createworker(ec2);
-            }
-            System.out.println("Before receive message:");
-
-            // Recieve message from local app queue
-            currMessageQueue = queue.recieveMessage(QueueUrlLocalApps, 1, 1000); // check about visibility
-            if (currMessageQueue != null && !currMessageQueue.isEmpty()) {
-
-                // Split the message from the LocalApp
-                currMessege = currMessageQueue.get(0);
-                messageContent = currMessege.getBody().split("@");
-                inputFileName = messageContent[0];
-                numberOfLinesInTheLocalAppFile = Integer.parseInt(messageContent[1]);
-                summeryFilesIndicatorQueue = messageContent[2];
-                terminationIndicator = messageContent[3];
-
-                // Print process input message split results
-                System.out.println();
-                System.out.println("Input From Local App processing split results:");
-                System.out.println("inputFileName: " + inputFileName + "numberOfLinesInTheLocalAppFile: " + numberOfLinesInTheLocalAppFile);
-                System.out.println("summeryFilesIndicatorQueue: " + summeryFilesIndicatorQueue + "terminationIndicator: " + terminationIndicator);
-
-                //Print input message process results
-                numberOfReceivedtasksFromTotalOfLocals = new AtomicInteger(numberOfReceivedtasksFromTotalOfLocals.get() + numberOfLinesInTheLocalAppFile);
-                String inputFileID = UUID.randomUUID().toString();
-                continueRunning.set(!terminationIndicator.equals("terminate"));
-                S3Object object = s3.downloadObject(messageContent[0]); //input file
-                BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                queue.deleteMessage(QueueUrlLocalApps, currMessege);
-
-                System.out.println("Before second worker start:");
-
-                // Creatr Workers
-                numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
-                workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get())/100;
-                allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
-                numberOfActiveWorkers = ec2.getInstances("worker").size();
-                for (int i = 0; i< allWorkersNeeded-numberOfActiveWorkers; i++){
-                    createworker(ec2);
-                }
-
-                System.out.println("Before close worker start:");
-
-                // Close Workers
-                /*while (allWorkersNeeded < numberOfActiveWorkers){
-                    ec2.terminateInstances(new ArrayList<>(ec2.getInstances("worker").subList(0,numberOfActiveWorkers-allWorkersNeeded)));
-                    --numberOfActiveWorkers;
-                }*/
-
-
-                // Create input file object
-                InputFileObject newFile = new InputFileObject(inputFileName, numberOfLinesInTheLocalAppFile, reader, inputFileID, summeryFilesIndicatorQueue);
-                InputFileObjectById.putIfAbsent(inputFileID, newFile);
-
-                // Create Completed tasks queue unique for the input file object
-                System.out.println("Before create completedTasks queue:");
-
-                queue.createQueue(inputFileID);
-
-                // calculate number of threads to open
-                int numberOfThreadsToLaunch = (numberOfLinesInTheLocalAppFile / 100) + 1;
-                System.out.println("\nNumber of threads to launch for the input file: " + inputFileName + " are: " + numberOfThreadsToLaunch + "\n");
-
-                // open input and output threads for a file from local app
-                for (int i = 0; i < numberOfThreadsToLaunch; ++i) {
-                    poolForInput.execute(new InputThread(newFile, numberOfTasks));
-                    poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
-                }
-            }
-            System.out.println("Before upload loop:");
-
-            boolean inputHasFinished = false;
-            for (InputFileObject currFileObject :
-                    InputFileObjectById.values()) {
-                if (currFileObject != null) {
-                    synchronized (currFileObject) {
-                        System.out.println("Input fIle object before details: ");
-                        System.out.println(currFileObject);
-                        currFileObject.setAllWorkersDone();
-                        currFileObject.setRedAllLines();
-                        System.out.println("Input fIle object after details: ");
-
-                        System.out.println(currFileObject);
-                        inputHasFinished = currFileObject.getAllWorkersDone();
-                    }
-                }
-                if (inputHasFinished) {
-                    synchronized (currFileObject) {
-
-                        String outputName = currFileObject.getInputFilename() + "$";
-                        String getSummeryFilesIndicatorQueue = currFileObject.getSummeryFilesIndicatorQueue();
-                        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
-                        bufferedWriter.write(currFileObject.getBuffer().toString());
-                        bufferedWriter.flush();
-                        queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
-                        InputFileObjectById.remove(currFileObject.getInputFileID(), currFileObject);
-                        queue.deleteQueue(currFileObject.getInputFileID(), "");
-                        s3.upload(path, outputName);
-                    }
-                }
-            }
-            Thread.sleep(10000);
+    /**
+     * @param instance - the instance we want to have a tag attached
+     * @param tagName - the name of the tag to attch to the instance
+     */
+    public void attachTags(Instance instance, String tagName) {
+        if (!tagExists(tagName)){
+            return;
         }
-        poolForInput.shutdown();
-        poolForOutput.shutdown();
 
-        // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
-        // we need to clean all resources the LocalApp queue
-        System.out.println("\n Manager termiante deleting resources\n");
-        queue.deleteQueue("QueueUrlLocalApps", "");
-        queue.deleteQueue("workerJobQueue", "");
-        ec2.terminateInstances(null);
+        ArrayList<Tag> tags = new ArrayList<>();
+        tags.add(new Tag(tagName,tagName));
+        CreateTagsRequest tagsRequest = new CreateTagsRequest()
+                .withTags(new Tag(tagName,tagName))
+                .withResources(instance.getInstanceId());
+        try{
+            ec2.createTags(tagsRequest);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+    }
+
+    /**
+     * @param tagName the name of tag to check if exists
+     * @return if the tag exists
+     */
+    public boolean tagExists(String tagName){
+        if (tagName.equals("")){
+            return false;
+        }
+        DescribeTagsResult tagsResult= this.ec2.describeTags();
+        for (TagDescription tag:
+                tagsResult.getTags()) {
+            if (tag.getKey().equals(tagName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     *                 the role will be created only with permission for SQS, S3 & EC2
+     * @return if the role creation was succesfull
+     */
+    /*public boolean createRole(String roleName){
+        boolean roleExists = false;
+        Region myregion;
+        for (Region region:
+            ec2.describeRegions().getRegions() ) {
+
+        }
+        AmazonIdentityManagement iam = AmazonIdentityManagementClientBuilder.defaultClient();
+        for (Role role:
+                iam.listRoles().getRoles()) {
+            if (role.getRoleName().equals(roleName) == true) {
+                return true;
+            }
+        }
+        String policy = "{\n" +
+                "    \"Version\": \"2012-10-17\",\n" +
+                "    \"Statement\": [\n" +
+                "        {\n" +
+                "            \"Effect\": \"Allow\",\n" +
+                "            \"Action\": \"s3:*\",\n" +
+                "            \"Resource\": \"*\"\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}";
+        CreateRoleRequest roleRequest = new CreateRoleRequest().withRoleName(roleName).withAssumeRolePolicyDocument(policy);
+
+        CreateRoleResult result= iam.createRole(roleRequest);
+        AttachRolePolicyRequest request = new AttachRolePolicyRequest().withRoleName(roleName);
+        request.withPolicyArn("arn:aws:iam::aws:policy/AmazonS3FullAccess")
+                .withPolicyArn("arn:aws:iam::aws:policy/AmazonSQSFullAccess")
+                .withPolicyArn("arn:aws:iam::aws:policy/AmazonEC2FullAccess");
+        iam.attachRolePolicy(request);
+
+        return result.getRole().getRoleName().equals(roleName);
+    }
+
+    /**
+     * @param keyName name of the key to create
+     * @return returns true if a key with a value of keyname was created, false otherwise
+     */
+    public boolean createKeyPair(String keyName) {
+        boolean hasKey = false;
+        for (KeyPairInfo key:
+                this.ec2.describeKeyPairs().getKeyPairs()) {
+            if (key.getKeyName().equals(keyName)) {
+                hasKey = true;
+                break;
+            }
+        }
+
+        if (hasKey == false) {
+            CreateKeyPairResult result = this.ec2.createKeyPair(new CreateKeyPairRequest().withKeyName(keyName));
+            return result.getKeyPair().getKeyName().equals(keyName);
+        }
+        return false;
+    }
+
+    /**
+     * @param min - the min number of instances to create
+     * @param max - the max number of instances to create
+     * @param userdata - the script to launch for each instance
+     * @return the number of instances created
+     */
+    public ArrayList<Instance> createInstance(int min, int max, String userdata){
+        // Convert userData script to base 64
+        String encodedUserData = Base64.getEncoder().encodeToString(userdata.getBytes());
+        // ami image we created with various installations
+        String projectPrivateAmi = "ami-04e1e8f63cdc75cf2";
+        // create the project Key Pair
+        createKeyPair("projectKey");
+        // Create the project IAM Role
+        //  createRole("projectRole");
+        //Create the request to run
+        RunInstancesRequest request = new RunInstancesRequest(projectPrivateAmi, min, max);
+        // define instance type
+        request.setInstanceType(InstanceType.T2Large.toString());
+        // define the script to run in base 64
+        request.withUserData(encodedUserData);
+        // define the random key pair we created
+        request.withKeyName("projectKey");
+        // define the iam role
+        IamInstanceProfileSpecification specification = new IamInstanceProfileSpecification().withName("projectRole");
+        request.withIamInstanceProfile(specification);
+        // run the instance with the above defined request
+        RunInstancesResult instancesResult = null;
+        try{
+            instancesResult = this.ec2.runInstances(request);
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+            if (e.getMessage().contains("vCPU")){
+                List<Instance> inst = getInstances("worker");
+                inst = inst.subList(0,1);
+                ArrayList<Instance> term = new ArrayList<>(inst);
+                terminateInstances(term);
+            }
+            else e.printStackTrace();
+            return new ArrayList<Instance>();
+        }
+
+        return new ArrayList<Instance> ( instancesResult.getReservation().getInstances());
     }
 
 
-    public static void createworker(EC2Object ec2){
-        System.out.println("in create worker");
-        int managerinstance = ec2.getInstances("manager").size();
-        if (managerinstance == 0){
-            return;
-        }
-        int workerinstances = ec2.getInstances("").size()-managerinstance;
-        if ( workerinstances > 13){
-            return;
+    /**
+     * @param instances - list of instances to terminate.
+     *                  if the list is null, all instances will be terminated
+     * @return Number of instacnes terminated
+     */
+    public int terminateInstances(ArrayList<Instance> instances) {
+        if (instances == null) {
+            instances = getInstances("");
         }
 
-        // create user data dor workers
-        String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
-        String unzip = getProject + "sudo unzip -o master.zip\n";
-        String goToProjectDirectory = unzip + "cd Mevuzarot-master/Project1/\n";
-        String removeSuperPom = goToProjectDirectory + "sudo rm pom.xml\n";
-        String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
-        String buildProject = setWorkerPom + "sudo mvn -T 4 install -o\n";
-        String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
-        String workerUserData = "#!/bin/bash\n" + "cd home/ubuntu/\n" + buildProject + createAndRunProject;
-        ArrayList<Instance> instances = ec2.createInstance(1, 1, workerUserData);
-        if(instances.isEmpty()){
-            return;
+        if (instances.size() == 0){
+            return 0;
         }
-        Instance instance = instances.get(0);
-        ec2.createTags("worker",instance.getInstanceId());
-        System.out.println("created new worker instance: " + instance.getInstanceId() + "\n\n\n\n");
+
+        ArrayList<String> instancesToTerminate = new ArrayList<>();
+        for (Instance instance:
+                instances) {
+            instancesToTerminate.add(instance.getInstanceId());
+        }
+
+        TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest(instancesToTerminate);
+        if (!instances.isEmpty()) {
+            TerminateInstancesResult result = this.ec2.terminateInstances(terminateRequest);
+            return result.getTerminatingInstances().size();
+        }
+        return 0;
+
+    }
+
+    /**
+     * @param tagName - can be empty string or an an existing tag name
+     * @return - return a list of instances that has tagName attached to them.
+     *          If the the tag is empty string, then return all instances.
+     */
+    public ArrayList<Instance> getInstances(String tagName){
+
+        DescribeInstancesRequest request = new DescribeInstancesRequest();
+        boolean notdone = true;
+        DescribeInstancesResult response= null;
+        ArrayList<Instance> instancesResult= new ArrayList<>();
+        while(notdone) {
+            try {
+                response = this.ec2.describeInstances(request);
+
+            } catch (Exception e){
+                try {
+                    System.out.println("Ec2 describe Exception");
+                    Thread.sleep(1000);
+                    return getInstances(tagName);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            List<Reservation> reservations = response.getReservations();
+
+            for(Reservation reservation :
+                    reservations) {
+                List<Instance> instances = reservation.getInstances();
+                for (Instance instance:
+                        instances ) {
+                    Tag tag = new Tag(tagName,tagName);
+                    Boolean run = instance.getState().getName().equals("running");
+                    Boolean pend = instance.getState().getName().equals("pending");
+                    if ( (tagName.equals("") || tagName == null) && ( run || pend )){
+                        instancesResult.add(instance);
+                    }
+                    else if (instance.getTags().contains(tag) && (run || pend)){
+                        instancesResult.add(instance);
+                    }
+                }
+            }
+            request.setNextToken(response.getNextToken());
+
+            if(response.getNextToken() == null) {
+                notdone = false;
+            }
+
+        }
+        return  instancesResult;
+    }
+
+    public void stopInstance(String instanceID){
+        this.ec2.stopInstances(new StopInstancesRequest().withInstanceIds(instanceID));
     }
 }
