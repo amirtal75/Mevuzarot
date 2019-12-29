@@ -112,13 +112,16 @@ public class Manager{
                     }
                 }
             }
-            while (continueRunning.get() == false && numberOfReceivedtasksFromTotalOfLocals.get() > numberOfCompletedTasks.get()){
+            
+             synchronized (InputFileObjectById.get(0)) {
+                        currFileObject.setAllWorkersDone();
+                        currFileObject.setRedAllLines();
+                    }
+            while (continueRunning.get() == false && !InputFileObjectById.get(0).getAllWorkersDone()){
                 // do nothing until all thread finished working
-                 if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()-1){
                     System.out.println("termination currefileobject details: " + InputFileObjectById.get(0));
-                     Thread.sleep(60000);
-                }
             }
+            Thread.sleep(10000)
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
@@ -138,10 +141,10 @@ public class Manager{
                         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
                         bufferedWriter.write(currFileObject.getBuffer().toString());
                         bufferedWriter.flush();
+                        s3.upload(path, outputName);
                         queue.sendMessage(getSummeryFilesIndicatorQueue, outputName);
                         InputFileObjectById.remove(currFileObject.getInputFileID(), currFileObject);
                         queue.deleteQueue(currFileObject.getInputFileID(), "");
-                        s3.upload(path, outputName);
                     }
                 }
             }
