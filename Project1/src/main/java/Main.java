@@ -1,45 +1,193 @@
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sqs.model.Message;
+import com.google.gson.Gson;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class Main {
 
-    static String summeryFilesIndicatorQueueUrl;
-    static String QueueUrlLocalApps;
-
-
     public static
     void main(String[] args) throws Exception {
-
+        String QueueUrlLocalApps = "QueueUrlLocalApps";
+        ArrayList<String> outputFileNameList = new ArrayList<>();
         String pathtoPtojectLocation = args[0];
         EC2Object ec2 = new EC2Object();
         Queue queue = new Queue();
+        String summeryFilesIndicatorQueue = "LocalApp-"+UUID.randomUUID().toString();
+        ArrayList<parsedInputObject> inputList = new ArrayList<>();
+        String outputFilename = "";
+        BufferedWriter writer = null;
+        String delimiter = " -@@@@@@@- ";
+        String towrite = "";
+        S3Bucket s3 = new S3Bucket();
+        String urlPrefix = "https://sqs.us-west-2.amazonaws.com/002041186709/";
 
         // Create bucket
         new S3Bucket().createBucket();
         // Create manager and worker if not already opened
         Instance instance = createManager(queue, ec2);
-        createWorker(ec2);
 
-        Thread thread = null;
-        LocalApp localApp = null;
-        int terminationIndicator = 0;
-        if (args[args.length-1].equals("terminate")){
-            terminationIndicator = 1;
+        // Create the summary queue
+        queue.createQueue(summeryFilesIndicatorQueue);
+
+
+        int size =  args.length;
+        String terminationIndicator = args[args.length-1];
+        if(args[size-1].equals("terminate")){
+            --size;
         }
-        for (int i = 1; i < args.length - 1 + terminationIndicator; i++) {
-            localApp = new LocalApp(pathtoPtojectLocation, args[i], args[args.length - 1], ec2);
-            thread = new Thread(localApp);
-            thread.start();
+        else terminationIndicator = "Dont Terminate";
+
+        for (int i = 1; i < size; i++) {
+
+            inputList = parse(args[0] + args[i]);
+            System.out.println(inputList.size());
+            outputFilename = args[i] + UUID.randomUUID().toString();
+            outputFileNameList.add(outputFilename);
+
+            // create Buffered Reader for the output file
+            writer = new BufferedWriter(new FileWriter(args[0] + outputFilename));
+
+            // Write to the output file
+            for (parsedInputObject obj : inputList) {
+                towrite = obj.getReview().getId() + delimiter + obj.getReview().getText()
+                        + delimiter + obj.getReview().getRating() + delimiter
+                        + obj.getReview().getLink() + "\n";
+                writer.write(towrite);
+            }
+            writer.flush();
+
+            // Upload the finished file to the bucket
+            s3.upload(args[0],outputFilename);
+            // send message to the Manager
+            if (terminationIndicator.equals("terminate")){
+                if (i == size-1){
+                    queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+                }
+                else queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + "Dont Terminate");
+            }
+            else queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
         }
+
+        List<String> queues = new ArrayList<>();
+        String currMessageName="";
+        List<Message> messages = null;
+
+        while (!outputFileNameList.isEmpty()) {
+
+            // check if the resource were terminated, meaning the service is no longer operational and we need to close the program
+            queues = queue.getQueueList();
+            if (queues.isEmpty()) {
+                System.out.println("No queues, manager was terminated");
+                return;
+            }
+            // Check if manager crashed, reopen and resend request
+            List<Instance> instances = ec2.getInstances("manager");
+            if (instances.isEmpty()){
+                System.out.println("manager crashed, reactivating the server");
+                instance = createManager(queue, ec2);
+                if (instance != null) {
+                    queue.purgeQueue("workerJobQueue");
+                    for (String url:
+                         queues) {
+                        if (!url.equals(urlPrefix+"QueueUrlLocalApps") && !url.equals(urlPrefix+"workerJobQueue") && !url.equals(urlPrefix+summeryFilesIndicatorQueue)){
+                            queue.deleteQueue(url,"Main: ");
+                        }
+                    }
+                    for (String outputfile:
+                         outputFileNameList) {
+                        queue.sendMessage(QueueUrlLocalApps, outputfile + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+                    }
+                }
+            }
+
+            // try to get an answer from the manager
+            messages = queue.recieveMessage(summeryFilesIndicatorQueue,1,1);
+            if (messages != null && !messages.isEmpty()) {
+                currMessageName = messages.get(0).getBody().split(delimiter)[0]; // the input file name
+                System.out.println(Thread.currentThread().getId() + " Recieved an answer from the manager");
+
+                // Download the ready answer file from the manager and read the contents to a buffer
+
+                S3Object outputObject = s3.downloadObject(currMessageName);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(outputObject.getObjectContent()));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line = "";
+                while ((line = reader.readLine()) != null ){
+                    stringBuilder.append(line+ "\n");
+                }
+
+                System.out.println("Creating the HTML file");
+                // create HTML answer file from the buffer containing the content of the answer fie from the manager
+                String[] resultsToHTML = stringBuilder.toString().split("\n");
+                createHTML(currMessageName,resultsToHTML);
+
+                // delete the message and the outputflename
+                System.out.println("size of list before removal of: " + currMessageName + " is: " + outputFileNameList.size());
+                outputFileNameList.remove(currMessageName.substring(0,currMessageName.length()-1));
+                queue.deleteMessage(summeryFilesIndicatorQueue,messages.get(0));
+                System.out.println("size of list after removal of: " + currMessageName + " is: " + outputFileNameList.size());
+
+            }
+        }
+
+        System.out.println("Deleting resources");
+        queue.deleteQueue(summeryFilesIndicatorQueue, "LocalApp : " + Thread.currentThread().getId());
+        System.out.println(Thread.currentThread() + "ending the run");
+
+    }
+
+    private static
+    ArrayList<parsedInputObject> parse(String filename) {
+        //System.out.println("in parse");
+        ArrayList<parsedInputObject> inputArray = new ArrayList<parsedInputObject>();
+        Gson gson = new Gson();
+        BufferedReader reader;
+        ArrayList<Review> reviews;
+        try {
+            reader = new BufferedReader(new FileReader(filename));
+            //System.out.println("file was opened");
+            String line;
+            while ((line = reader.readLine()) != null) {
+                //System.out.println("current line is:" + line);
+                Book dataholder = gson.fromJson(line, Book.class);
+                //System.out.println("gson done");
+
+
+
+                if (dataholder != null) {
+                    //System.out.println("gson not null");
+                    reviews = dataholder.getReviews();
+                    //System.out.println("got reviews: " + !reviews.isEmpty());
+                    for (int i = 0; i < reviews.size(); i++) {
+                        //System.out.println("title: " + dataholder.getTitle() + ", review: " + reviews.get(i).toString() );
+                        inputArray.add(new parsedInputObject(dataholder.getTitle(), reviews.get(i)));
+                    }
+                }
+                else System.out.println("gson was null");
+            }
+            reader.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return inputArray;
     }
 
 
     private static void createWorker(EC2Object ec2){
 
-        if (!ec2.getInstances("worker").isEmpty()){
+
+        int managerinstance = ec2.getInstances("manager").size();
+        if (managerinstance == 0){
+            return;
+        }
+        int workerinstances = ec2.getInstances("").size()-managerinstance;
+        if ( workerinstances > 13){
             return;
         }
 
@@ -51,7 +199,7 @@ public class Main {
         String setWorkerPom = removeSuperPom + "sudo cp workerpom.xml pom.xml\n";
         String buildProject = setWorkerPom + "sudo mvn  -T 4 install -o\n";
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
-        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject  + createAndRunProject;
+        String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject+createAndRunProject;
 
         // First created instance = worker
         Instance instance = ec2.createInstance(1, 1, userdata).get(0);
@@ -62,13 +210,14 @@ public class Main {
 
     }
 
-    private static Instance createManager(Queue queue, EC2Object ec2){
+    private static
+    Instance createManager(Queue queue, EC2Object ec2){
 
-
-        if (!ec2.getInstances("manager").isEmpty()){
-            return new Instance();
+        List<Instance> instances = ec2.getInstances("manager");
+        if (!instances.isEmpty()){
+            return null;
         }
-        System.out.println("No Manager Active, setting up the server");
+
         // Manager userdata
         String getProject = "wget https://github.com/amirtal75/Mevuzarot/archive/master.zip\n";
         String unzip = getProject + "sudo unzip -o master.zip\n";
@@ -79,23 +228,52 @@ public class Main {
         String createAndRunProject = "sudo java -jar target/Project1-1.0-SNAPSHOT.jar\n";
         String userdata = "#!/bin/bash\n" + "cd home/ubuntu/\n" +  buildProject + createAndRunProject;
 
-        // First created instance = manager
-        Instance instance = ec2.createInstance(1, 1, userdata).get(0);
+        // Create Manager and attach tag
+        Instance instance = null;
+        List<Instance> mangerlist= ec2.createInstance(1, 1, userdata);
+        instance = mangerlist.get(0);
         ec2.createTags("manager",instance.getInstanceId());
-        ec2.attachTags(instance, "manager");
 
-        System.out.println("creating: " +queue.createQueue("QueueUrlLocalApps"));
-        System.out.println("creating: " + queue.createQueue("workerJobQueue"));
-        System.out.println("Creating Manager: " + instance.getInstanceId());
-        if (queue.getQueueList().size() < 1){
-            try {
-                Thread.sleep(70000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            queue.createQueue("QueueUrlLocalApps");
-            queue.createQueue("workerJobQueue");
-        }
+        // Create permanent queues if they do not exist
+        queue.createQueue("QueueUrlLocalApps");
+        queue.createQueue("workerJobQueue");
+
+        System.out.println("Created Manager: " + instance.getInstanceId());
+        createWorker(ec2);
+
         return  instance;
     }
+
+    private static void createHTML(String filename, String[] inputRepresentation) throws IOException {
+        for (String str : inputRepresentation){
+            System.out.println(str);
+        }
+        String delimiter = " -@@@@@@@- ";
+        //String result = inputFileId + delimiter + reviewId + delimiter + isSarcastic + delimiter + reviewText + delimiter + reviewEntities + delimiter + sentiment + delimiter + reviewLink;
+        //System.out.println("the size of the input representation is " + inputRepresentation.length);
+        String[] colors = {"#97301A", "#F74C28", "#110401", "#6EF443", "#1F6608"};
+        StringBuilder html = new StringBuilder("<html>\n" + "<body>");
+        for (String str : inputRepresentation) {
+            String[] currReviewAttributes = str.split(delimiter);
+            //int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
+            int reviewSentiment = Integer.parseInt(currReviewAttributes[5]);
+            String isSarcestic = "";
+            if(currReviewAttributes[2].equals("false")){
+                isSarcestic = "not sarcastic review";
+            }
+            else
+                isSarcestic = "sarcastic review";
+
+            html.append("<h1 style=\"background-color:" + colors[reviewSentiment] + ";\">" + currReviewAttributes[3] + "</h1>" +
+                    "<h1>" + currReviewAttributes[4] +  "</h1>" + "<h1>" + isSarcestic + "</h1>" +
+                    "<h1>" + "<a href=" + currReviewAttributes[6] +  ">" + "visit" + "</a>");
+        }
+        html.append("</body>\n" + "</html>");
+
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(filename+".html"), "utf-8"))) {
+            writer.write(html.toString());
+        }
+    }
+
 }
