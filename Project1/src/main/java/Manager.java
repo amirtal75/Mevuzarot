@@ -65,7 +65,7 @@ public class Manager{
             allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
             System.out.println("allWorkersNeeded: " + allWorkersNeeded);
             numberOfActiveWorkers = ec2.getInstances("worker").size();
-            while (numberOfActiveWorkers < allWorkersNeeded) {
+            for (int i = 0; i< allWorkersNeeded-numberOfActiveWorkers; i++){
                 createworker(ec2);
             }
             System.out.println("Before receive message:");
@@ -100,13 +100,13 @@ public class Manager{
 
                 // Creatr Workers
                 numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
-                workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
+                workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get())/100;
                 allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
                 numberOfActiveWorkers = ec2.getInstances("worker").size();
-                while (numberOfActiveWorkers < allWorkersNeeded) {
+                for (int i = 0; i< allWorkersNeeded-numberOfActiveWorkers; i++){
                     createworker(ec2);
-                    ++numberOfActiveWorkers;
                 }
+
                 System.out.println("Before close worker start:");
 
                 // Close Workers
@@ -182,7 +182,7 @@ public class Manager{
 
 
     public static void createworker(EC2Object ec2){
-
+        System.out.println("in create worker");
         int managerinstance = ec2.getInstances("manager").size();
         if (managerinstance == 0){
             return;
