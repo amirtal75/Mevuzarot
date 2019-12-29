@@ -114,9 +114,9 @@ public class Manager{
             }
             
              synchronized (InputFileObjectById.get(0)) {
-                        currFileObject.setAllWorkersDone();
-                        currFileObject.setRedAllLines();
-                    }
+                InputFileObjectById.get(0).setAllWorkersDone();
+                InputFileObjectById.get(0).setRedAllLines();
+            }
             while (continueRunning.get() == false && !InputFileObjectById.get(0).getAllWorkersDone()){
                 // do nothing until all thread finished working
                     System.out.println("termination currefileobject details: " + InputFileObjectById.get(0));
