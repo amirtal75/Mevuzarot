@@ -35,6 +35,9 @@ public class OutputThread implements Runnable {
         //System.out.println("In Output Thread: " + Thread.currentThread());
         boolean wroteAllLines = false;
         while (!wroteAllLines) {
+            synchronized (currFileObject) {   
+                currFileObject.setAllWorkersDone();
+            }
 
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
             if (messagefromCompletedTasksQueue != null && !messagefromCompletedTasksQueue.isEmpty()) {
