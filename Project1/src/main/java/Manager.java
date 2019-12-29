@@ -153,9 +153,9 @@ public class Manager{
 
         System.out.println("\n Manager termianted deleting resources after 60 seconds\n");
         Thread.sleep(60000);
-        //queue.deleteQueue("QueueUrlLocalApps", "");
-        //queue.deleteQueue("workerJobQueue", "");
-        //ec2.terminateInstances(null);
+        queue.deleteQueue("QueueUrlLocalApps", "");
+        queue.deleteQueue("workerJobQueue", "");
+        ec2.terminateInstances(null);
     }
 
 
