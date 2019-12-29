@@ -28,7 +28,7 @@ public class Manager{
         AtomicInteger numberOfTasks = new AtomicInteger(0);
         AtomicInteger numberOfCompletedTasks = new AtomicInteger(0);
         AtomicBoolean continueRunning = new AtomicBoolean(true);
-        String path = "/home/amirtal/Mevuzarot-master/Project1/src/main/java/";
+        String path = "/home/ubuntu/Mevuzarot-master/Project1/src/main/java/";
         ConcurrentHashMap<String, InputFileObject> InputFileObjectById = new ConcurrentHashMap<>();
 
         System.out.println("Thread pools creation");
