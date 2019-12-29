@@ -80,38 +80,41 @@ public class Manager{
                 String inputFileID = UUID.randomUUID().toString();
                 continueRunning.set(!terminationIndicator.equals("terminate"));
                 S3Object object = s3.downloadObject(messageContent[0]); //input file
-                BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
-                queue.deleteMessage(QueueUrlLocalApps, currMessege);
+                //if legal input file
+                if (object != null){
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(object.getObjectContent()));
+                    queue.deleteMessage(QueueUrlLocalApps, currMessege);
 
-                // Create Workers
-                numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
-                workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get())/100;
-                allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
-                numberOfActiveWorkers = ec2.getInstances("").size() - ec2.getInstances("manager").size();
+                    // Create Workers
+                    numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
+                    workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfTasks.get())/100;
+                    allWorkersNeeded = numberOfWorkersNeededForFile+workersForRest;
+                    numberOfActiveWorkers = ec2.getInstances("").size() - ec2.getInstances("manager").size();
 
-                for (int i = 0; i< allWorkersNeeded-numberOfActiveWorkers; i++){
-                    createworker(ec2);
-                }
+                    for (int i = 0; i< allWorkersNeeded-numberOfActiveWorkers; i++){
+                        createworker(ec2);
+                    }
 
-                // Create input file object
-                InputFileObject newFile = new InputFileObject(inputFileName, numberOfLinesInTheLocalAppFile, reader, inputFileID, summeryFilesIndicatorQueue);
-                InputFileObjectById.putIfAbsent(inputFileID, newFile);
+                    // Create input file object
+                    InputFileObject newFile = new InputFileObject(inputFileName, numberOfLinesInTheLocalAppFile, reader, inputFileID, summeryFilesIndicatorQueue);
+                    InputFileObjectById.putIfAbsent(inputFileID, newFile);
 
-                // Create Completed tasks queue unique for the input file object
-                queue.createQueue(inputFileID);
+                    // Create Completed tasks queue unique for the input file object
+                    queue.createQueue(inputFileID);
 
-                // calculate number of threads to open
-                int numberOfThreadsToLaunch = (numberOfLinesInTheLocalAppFile / 100) + 1;
+                    // calculate number of threads to open
+                    int numberOfThreadsToLaunch = (numberOfLinesInTheLocalAppFile / 100) + 1;
 
-                // open input and output threads for a file from local app
-                for (int i = 0; i < numberOfThreadsToLaunch; ++i) {
-                    poolForInput.execute(new InputThread(newFile, numberOfTasks));
-                    poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
+                    // open input and output threads for a file from local app
+                    for (int i = 0; i < numberOfThreadsToLaunch; ++i) {
+                        poolForInput.execute(new InputThread(newFile, numberOfTasks));
+                        poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
+                    }
                 }
             }
             while (continueRunning.get() == false && numberOfReceivedtasksFromTotalOfLocals.get() > numberOfCompletedTasks.get()){
-                    // do nothing until all thread finished working
-                }
+                // do nothing until all thread finished working
+            }
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
@@ -144,7 +147,7 @@ public class Manager{
         // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
         // we need to clean all resources the LocalApp queue
         // asuming we ha a large number of message sent simultaniousley, we will wait for 1 minute before completeing the termiantion
-        
+
         System.out.println("\n Manager termianted deleting resources after 60 seconds\n");
         Thread.sleep(60000);
         queue.deleteQueue("QueueUrlLocalApps", "");
