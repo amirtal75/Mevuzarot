@@ -142,8 +142,9 @@ public class Manager{
         // at this point all threads finished working due to a termination message, meaning all client we committed to serve received an answer
         // we need to clean all resources the LocalApp queue
         // asuming we ha a large number of message sent simultaniousley, we will wait for 1 minute before completeing the termiantion
+        
+        System.out.println("\n Manager termianted deleting resources after 60 seconds\n");
         Thread.sleep(60000);
-        System.out.println("\n Manager termiante deleting resources\n");
         queue.deleteQueue("QueueUrlLocalApps", "");
         queue.deleteQueue("workerJobQueue", "");
         ec2.terminateInstances(null);
