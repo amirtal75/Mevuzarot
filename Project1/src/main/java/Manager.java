@@ -113,17 +113,7 @@ public class Manager{
                 }
             }
             
-             if (!InputFileObjectById.isEmpty() && InputFileObjectById.get(0) != null) {
-                synchronized (InputFileObjectById.get(0)) {
-                    InputFileObjectById.get(0).setAllWorkersDone();
-                    InputFileObjectById.get(0).setRedAllLines();
-                }
-                 while (continueRunning.get() == false && !InputFileObjectById.get(0).getAllWorkersDone()){
-                // do nothing until all thread finished working
-                    System.out.println("termination currefileobject details: " + InputFileObjectById.get(0));
-            }
-            }
-            
+                    
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
