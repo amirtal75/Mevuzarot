@@ -25,7 +25,7 @@ public class Main {
         String towrite = "";
         S3Bucket s3 = new S3Bucket();
         String urlPrefix = "https://sqs.us-west-2.amazonaws.com/002041186709/";
-
+        String terminatorOutputFile = "";
         // Create bucket
         new S3Bucket().createBucket();
         // Create manager and worker if not already opened
@@ -65,12 +65,12 @@ public class Main {
             s3.upload(args[0],outputFilename);
             // send message to the Manager
             if (terminationIndicator.equals("terminate")){
-                if (i == size-1){
-                    queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+                if (i < size-1){
+                    queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + "Dont Terminate");
                 }
-                else queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + "Dont Terminate");
+                else terminatorOutputFile = outputFilename;
             }
-            else queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+            else queue.sendMessage(QueueUrlLocalApps, outputFilename + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + "Dont Terminate");
         }
 
         List<String> queues = new ArrayList<>();
@@ -81,9 +81,13 @@ public class Main {
 
             // check if the resource were terminated, meaning the service is no longer operational and we need to close the program
             queues = queue.getQueueList();
-            if (queues.isEmpty()) {
-                System.out.println("No queues, manager was terminated");
-                return;
+            if (queues.size() == 1) {
+                if (queues.get(0).equals(summeryFilesIndicatorQueue)) {
+                    System.out.println("No queues, manager was terminated");
+                    queue.deleteQueue(summeryFilesIndicatorQueue, "Main:");
+                    ec2.terminateInstances(null);
+                    return;
+                }
             }
             // Check if manager crashed, reopen and resend request
             List<Instance> instances = ec2.getInstances("manager");
@@ -93,16 +97,29 @@ public class Main {
                 if (instance != null) {
                     queue.purgeQueue("workerJobQueue");
                     for (String url:
-                         queues) {
+                            queues) {
                         if (!url.equals(urlPrefix+"QueueUrlLocalApps") && !url.equals(urlPrefix+"workerJobQueue") && !url.equals(urlPrefix+summeryFilesIndicatorQueue)){
                             queue.deleteQueue(url,"Main: ");
                         }
                     }
                     for (String outputfile:
-                         outputFileNameList) {
-                        queue.sendMessage(QueueUrlLocalApps, outputfile + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+                            outputFileNameList) {
+                        if (!outputfile.equals(terminatorOutputFile)){
+                            queue.sendMessage(QueueUrlLocalApps, outputfile + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + "dont terminate");
+                        }
+                        else if (terminationIndicator.equals("terminate") && outputFileNameList.size() == 1){
+                            System.out.println("termination case");
+                            queue.sendMessage(QueueUrlLocalApps, terminatorOutputFile + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+                        }
                     }
                 }
+            }
+
+            // check if its time to send the termination file message
+            if (terminationIndicator.equals("terminate") && outputFileNameList.size() == 1 && !terminatorOutputFile.equals("")){
+                System.out.println("termination case");
+                queue.sendMessage(QueueUrlLocalApps, terminatorOutputFile + "@" + inputList.size() + "@" + summeryFilesIndicatorQueue + "@" + terminationIndicator);
+                terminatorOutputFile = "";
             }
 
             // try to get an answer from the manager
