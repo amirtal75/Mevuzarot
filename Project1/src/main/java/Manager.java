@@ -114,6 +114,10 @@ public class Manager{
             }
             while (continueRunning.get() == false && numberOfReceivedtasksFromTotalOfLocals.get() > numberOfCompletedTasks.get()){
                 // do nothing until all thread finished working
+                 if (numberOfReceivedtasksFromTotalOfLocals.get() == numberOfCompletedTasks.get()-1){
+                    System.out.println("termination currefileobject details: " + InputFileObjectById.get(0));
+                     Thread.sleep(60000);
+                }
             }
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
@@ -127,6 +131,8 @@ public class Manager{
                 }
                 if (inputHasFinished) {
                     synchronized (currFileObject) {
+                        System.out.println("currefileobject details: " + currFileObject);
+
                         String outputName = currFileObject.getInputFilename() + "$";
                         String getSummeryFilesIndicatorQueue = currFileObject.getSummeryFilesIndicatorQueue();
                         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path + outputName));
