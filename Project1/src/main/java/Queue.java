@@ -75,7 +75,6 @@ public class Queue {
     }
 
     public void sendMessage(String queueUrl, String message) {
-        System.out.println("is sending a message to: " + queueUrl + message);
         try {
             SendMessageResult sendMessageResult = this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
         } catch (AmazonServiceException ase) {
