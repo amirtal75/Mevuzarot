@@ -37,6 +37,7 @@ public class OutputThread implements Runnable {
         while (!wroteAllLines) {
             synchronized (currFileObject) {   
                 currFileObject.setAllWorkersDone();
+                wroteAllLines = currFileObject.getAllWorkersDone();
             }
 
             messagefromCompletedTasksQueue = queue.recieveMessage(completedTasksQueue, 1, 60); // check about visibility
@@ -48,8 +49,6 @@ public class OutputThread implements Runnable {
                 synchronized (currFileObject) {
                    // System.out.println("\n" + originator + " is increasing output lines of: " + currFileObject.getInputFilename() + " from: " + currFileObject.getOutputLines());
                     currFileObject.appendToBuffer(currMessege.getBody(), resultContent[1],originator);
-                    currFileObject.setAllWorkersDone();
-                    wroteAllLines = currFileObject.getAllWorkersDone();
                    // System.out.println("to: " + currFileObject.getOutputLines() + " and all lines read status = " + wroteAllLines + "\n");
                 }
                 queue.deleteMessage(completedTasksQueue, currMessege);
