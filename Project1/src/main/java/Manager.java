@@ -113,7 +113,10 @@ public class Manager{
                 }
             }
             
-                    
+            if (continueRunning.get() == false){
+                // do nothing until all thread finished working
+               Thread.sleep(180000);
+            }
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
