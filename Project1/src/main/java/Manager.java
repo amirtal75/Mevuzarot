@@ -109,7 +109,7 @@ public class Manager{
                     poolForOutput.execute(new OutputThread(newFile, numberOfCompletedTasks));
                 }
             }
-            while (continueRunning.get() == false && numberOfReceivedtasksFromTotalOfLocals > numberOfCompletedTasks){
+            while (continueRunning.get() == false && numberOfReceivedtasksFromTotalOfLocals.get() > numberOfCompletedTasks.get()){
                     // do nothing until all thread finished working
                 }
             boolean inputHasFinished = false;
