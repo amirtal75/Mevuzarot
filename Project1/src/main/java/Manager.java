@@ -121,7 +121,6 @@ public class Manager{
                 // do nothing until all thread finished working
                     System.out.println("termination currefileobject details: " + InputFileObjectById.get(0));
             }
-            Thread.sleep(10000)
             boolean inputHasFinished = false;
             for (InputFileObject currFileObject :
                     InputFileObjectById.values()) {
