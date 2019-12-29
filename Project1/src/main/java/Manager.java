@@ -144,8 +144,9 @@ public class Manager{
         // asuming we ha a large number of message sent simultaniousley, we will wait for 1 minute before completeing the termiantion
         Thread.sleep(60000);
         System.out.println("\n Manager termiante deleting resources\n");
-        queue.deleteQueue("QueueUrlLocalApps", "");
-        queue.deleteQueue("workerJobQueue", "");
+        for (String url : queue.getQueueList()) {
+            queue.deleteQueue(url);
+        }
         ec2.terminateInstances(null);
     }
 
