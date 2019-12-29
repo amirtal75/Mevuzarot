@@ -34,7 +34,6 @@ public class Main {
         // Create the summary queue
         queue.createQueue(summeryFilesIndicatorQueue);
 
-
         int size =  args.length;
         String terminationIndicator = args[args.length-1];
         if(args[size-1].equals("terminate")){
@@ -98,7 +97,10 @@ public class Main {
                     queue.purgeQueue("workerJobQueue");
                     for (String url:
                             queues) {
-                        if (!url.equals(urlPrefix+"QueueUrlLocalApps") && !url.equals(urlPrefix+"workerJobQueue") && !url.equals(urlPrefix+summeryFilesIndicatorQueue)){
+                        if (!url.contains("QueueUrlLocalApps") && !url.contains("workerJobQueue") && !url.contains(summeryFilesIndicatorQueue)){
+                            System.out.println();
+                            System.out.println("url:" + url);
+                            System.out.println(urlPrefix+"QueueUrlLocalApps");
                             queue.deleteQueue(url,"Main: ");
                         }
                     }
