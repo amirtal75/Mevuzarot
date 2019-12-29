@@ -47,7 +47,7 @@ public class Manager{
         int workersForRest = 0;
         int allWorkersNeeded = 0;
         int numberOfActiveWorkers = 0;
-        while (continueRunning.get()) {
+        while (continueRunning.get()  && !InputFileObjectById.isEmpty()) {
 
             numberOfWorkersNeededForFile = numberOfLinesInTheLocalAppFile / 100;
             workersForRest = (numberOfReceivedtasksFromTotalOfLocals.get() - numberOfCompletedTasks.get())/100;
